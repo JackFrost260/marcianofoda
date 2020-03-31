@@ -1,0 +1,35 @@
+﻿<Properties StartupConfiguration="{52E05335-A50D-E608-DC91-FCC626C5F6D2}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/NVJOB Water Shader SAF/Example Scenes/PostProcessing/Editor/Utils/CurveEditor.cs">
+    <Files>
+      <File FileName="Assets/NVJOB Water Shader SAF/Example Scenes/PostProcessing/Editor/Utils/CurveEditor.cs" Line="425" Column="1" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="marciano foda" expanded="True">
+            <Node name="Assets" expanded="True">
+              <Node name="NVJOB Water Shader SAF" expanded="True">
+                <Node name="Example Scenes" expanded="True">
+                  <Node name="PostProcessing" expanded="True">
+                    <Node name="Editor" expanded="True">
+                      <Node name="Utils" expanded="True">
+                        <Node name="CurveEditor.cs" selected="True" />
+                      </Node>
+                    </Node>
+                  </Node>
+                </Node>
+              </Node>
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="f31d7762-820c-498a-a071-6bdb7a46f0d8" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
