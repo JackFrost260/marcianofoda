@@ -2,6 +2,11 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
+<<<<<<< HEAD
+=======
+    <CscToolPath>D:\Unity\2019.3.2f1\Editor\Data\Tools\RoslynScripts</CscToolPath>
+    <CscToolExe>unity_csc.bat</CscToolExe>
+>>>>>>> 53ba6f6f3cfb48298f987f724e84ce7fa925ab92
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -22,7 +27,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>Temp\bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE;UNITY_2019_3_2;UNITY_2019_3;UNITY_2019;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_3_OR_NEWER;UNITY_2017_4_OR_NEWER;UNITY_2018_1_OR_NEWER;UNITY_2018_2_OR_NEWER;UNITY_2018_3_OR_NEWER;UNITY_2018_4_OR_NEWER;UNITY_2019_1_OR_NEWER;UNITY_2019_2_OR_NEWER;UNITY_2019_3_OR_NEWER;UNITY_INCLUDE_TESTS;ENABLE_AR;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_EVENT_QUEUE;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_TEXTURE_STREAMING;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_VR;ENABLE_WEBCAM;ENABLE_UNITYWEBREQUEST;ENABLE_WWW;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_DIRECTOR_TEXTURE;ENABLE_MANAGED_JOBS;ENABLE_MANAGED_TRANSFORM_JOBS;ENABLE_MANAGED_ANIMATION_JOBS;ENABLE_MANAGED_AUDIO_JOBS;INCLUDE_DYNAMIC_GI;ENABLE_MONO_BDWGC;ENABLE_SCRIPTING_GC_WBARRIERS;PLATFORM_SUPPORTS_MONO;RENDER_SOFTWARE_CURSOR;ENABLE_VIDEO;PLATFORM_STANDALONE;PLATFORM_STANDALONE_WIN;UNITY_STANDALONE_WIN;UNITY_STANDALONE;ENABLE_RUNTIME_GI;ENABLE_MOVIES;ENABLE_NETWORK;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_OUT_OF_PROCESS_CRASH_HANDLER;ENABLE_CLUSTER_SYNC;ENABLE_CLUSTERINPUT;ENABLE_WEBSOCKET_HOST;ENABLE_MONO;NET_STANDARD_2_0;ENABLE_PROFILER;UNITY_ASSERTIONS;UNITY_EDITOR;UNITY_EDITOR_64;UNITY_EDITOR_WIN;ENABLE_UNITY_COLLECTIONS_CHECKS;ENABLE_BURST_AOT;UNITY_TEAM_LICENSE;ENABLE_VSTU;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_DIRECTOR;ENABLE_LOCALIZATION;ENABLE_SPRITES;ENABLE_TERRAIN;ENABLE_TILEMAP;ENABLE_TIMELINE;ENABLE_LEGACY_INPUT_MANAGER;CROSS_PLATFORM_INPUT;CSHARP_7_OR_LATER;CSHARP_7_3_OR_NEWER</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;UNITY_2019_3_2;UNITY_2019_3;UNITY_2019;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_3_OR_NEWER;UNITY_2017_4_OR_NEWER;UNITY_2018_1_OR_NEWER;UNITY_2018_2_OR_NEWER;UNITY_2018_3_OR_NEWER;UNITY_2018_4_OR_NEWER;UNITY_2019_1_OR_NEWER;UNITY_2019_2_OR_NEWER;UNITY_2019_3_OR_NEWER;PLATFORM_ARCH_64;UNITY_64;UNITY_INCLUDE_TESTS;ENABLE_AR;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_TEXTURE_STREAMING;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_VR;ENABLE_WEBCAM;ENABLE_UNITYWEBREQUEST;ENABLE_WWW;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;ENABLE_CLOUD_SERVICES_NATIVE_CRASH_REPORTING;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_DIRECTOR_TEXTURE;ENABLE_MANAGED_JOBS;ENABLE_MANAGED_TRANSFORM_JOBS;ENABLE_MANAGED_ANIMATION_JOBS;ENABLE_MANAGED_AUDIO_JOBS;INCLUDE_DYNAMIC_GI;ENABLE_MONO_BDWGC;ENABLE_SCRIPTING_GC_WBARRIERS;PLATFORM_SUPPORTS_MONO;RENDER_SOFTWARE_CURSOR;ENABLE_VIDEO;PLATFORM_STANDALONE;PLATFORM_STANDALONE_OSX;UNITY_STANDALONE_OSX;UNITY_STANDALONE;ENABLE_GAMECENTER;ENABLE_RUNTIME_GI;ENABLE_MOVIES;ENABLE_NETWORK;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_CLUSTER_SYNC;ENABLE_CLUSTERINPUT;ENABLE_SPATIALTRACKING;ENABLE_WEBSOCKET_HOST;ENABLE_MONO;NET_STANDARD_2_0;ENABLE_PROFILER;UNITY_ASSERTIONS;UNITY_EDITOR;UNITY_EDITOR_64;UNITY_EDITOR_WIN;ENABLE_UNITY_COLLECTIONS_CHECKS;ENABLE_BURST_AOT;UNITY_TEAM_LICENSE;ENABLE_VSTU;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_DIRECTOR;ENABLE_LOCALIZATION;ENABLE_SPRITES;ENABLE_TERRAIN;ENABLE_TILEMAP;ENABLE_TIMELINE;ENABLE_LEGACY_INPUT_MANAGER;CROSS_PLATFORM_INPUT;UNITY_POST_PROCESSING_STACK_V2;BAYATGAMES;BAYATGAMES_SAVEGAMEPRO;CSHARP_7_OR_LATER;CSHARP_7_3_OR_NEWER</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <NoWarn>0169</NoWarn>
@@ -48,7 +53,7 @@
     <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <UnityProjectGenerator>Unity/VSTU</UnityProjectGenerator>
     <UnityProjectType>Game:1</UnityProjectType>
-    <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
+    <UnityBuildTarget>StandaloneOSX:2</UnityBuildTarget>
     <UnityVersion>2019.3.2f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -56,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
+<<<<<<< HEAD
       <HintPath>C:\Program Files\Unity\Hub\Editor\2019.3.2f1\Editor\Data\Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor">
@@ -75,10 +81,325 @@
     <Compile Include="Assets\Scripts\ItemContainer.cs" />
     <Compile Include="Assets\Scripts\ItemPickup.cs" />
     <Compile Include="Assets\Scripts\MovimentoDoJogador.cs" />
+=======
+      <HintPath>D:\Unity\2019.3.2f1\Editor\Data\Managed/UnityEngine/UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor">
+      <HintPath>D:\Unity\2019.3.2f1\Editor\Data\Managed/UnityEditor.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Cloud Saving\Scripts\WebCloudSave.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Custom Path Saving\Scripts\CustomPathSave.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Listing Saved Files\Scripts\ListItem.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Listing Saved Files\Scripts\ListSavedFiles.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Abstract Class\Scripts\ItemBase.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Abstract Class\Scripts\ItemWeapon.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Abstract Class\Scripts\SaveAbstractClass.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Abstract List\Scripts\SaveAbstractList.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Asynchronous\Scripts\AudioClipSaveAsync.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Asynchronous\Scripts\BasicSaveAsync.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Collections\Scripts\SaveCollections.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Custom Data\Scripts\SaveCustomData.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Encrypted Data\Scripts\SaveEncryptedData.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Game Object\Scripts\SaveGameObject.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Raw Data\Scripts\SaveRawData.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Runtime Generated Objects\Scripts\SaveRuntimeGeneratedObjects.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Runtime Generated Objects\Scripts\Test.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Simple Data\Scripts\SaveSimpleData.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Slots\Scripts\SaveSlots.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Texture2D\Scripts\SaveTexture2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Saving Transform\Scripts\SaveTransform.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Shared\Scripts\MoveTransform.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Examples\Uploading Texture\Scripts\UploadTexture.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Events\LoadEvent.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Events\SaveEvent.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Extensions\GameObjectExtensions.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Extensions\TilemapExtensions.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Extensions\TransformExtensions.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\IO\SaveGameFileStorage.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\IO\SaveGameMemoryStorage.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\IO\SaveGamePlayerPrefsStorage.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\IO\SaveGameStorage.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\ISavable.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\MetaData.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Networking\SaveGameCloud.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Networking\SaveGameWeb.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\NonSavableAttribute.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Reflection\FieldInfoUtils.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Reflection\PropertyInfoUtils.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Reflection\TypeUtils.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\SavableAttribute.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\SaveGame.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\SaveGameAuto.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\SaveGameAutoBehaviour.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\SaveGameBehaviour.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\SaveGamePrefab.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\SaveGameReferenceManager.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\SaveGameSceneObject.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\SaveGameSceneReferenceManager.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\SaveGameSettings.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Formatters\Binary\BinaryExtensions.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Formatters\Binary\BinaryFormatter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Formatters\Binary\BinaryObjectReader.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Formatters\Binary\BinaryObjectWriter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Formatters\BinaryV2\BinaryFormatterV2.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Formatters\BinaryV2\BinaryObjectReaderV2.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Formatters\BinaryV2\BinaryObjectWriterV2.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Formatters\Json\JsonExtensions.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Formatters\Json\JsonFormatter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Formatters\Json\JsonReader.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Formatters\Json\JsonTextReader.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Formatters\Json\JsonTextWriter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Formatters\Json\JsonWriter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\ISaveGameFormatter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\ISaveGameReader.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\ISaveGameWriter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\SaveGameType.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\SaveGameTypeManager.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AnchoredJoint2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Animation.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AnimationClip.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AnimationCurve.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AnimationEvent.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AnimationState.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AnimationTriggers.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Animator.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AnimatorControllerParameter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AnimatorOverrideController.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AreaEffector2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AspectRatioFitter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AudioChorusFilter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AudioClip.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AudioConfiguration.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AudioDistortionFilter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AudioEchoFilter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AudioHighPassFilter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AudioListener.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AudioLowPassFilter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AudioMixer.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AudioMixerGroup.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AudioReverbFilter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AudioReverbZone.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AudioSource.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Avatar.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_AvatarMask.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_BillboardAsset.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_BillboardRenderer.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_BoneWeight.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Bounds.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_BoxCollider.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_BoxCollider2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_BuoyancyEffector2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Button.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Camera.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_CanvasScaler.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_CapsuleCollider.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_CapsuleCollider2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_CharacterController.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_CharacterInfo.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_CharacterJoint.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_CircleCollider2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Cloth.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Collider.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Collider2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_CollisionModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Color.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Color32.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_ColorBlock.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_ColorBySpeedModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_ColorOverLifetimeModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_CompositeCollider2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_ConfigurableJoint.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_ConstantForce.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_ConstantForce2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_ContentSizeFitter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_CullingGroup.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_CustomDataModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_DetailPrototype.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_DistanceJoint2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Dropdown.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_EdgeCollider2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Effector2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_EmissionModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_EventSystem.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_EventTrigger.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_ExternalForcesModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_FixedJoint.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_FixedJoint2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Flare.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_FlareLayer.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Font.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_FontData.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_ForceOverLifetimeModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_FrictionJoint2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Gradient.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_GradientAlphaKey.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_GradientColorKey.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_GraphicRaycaster.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_GridLayoutGroup.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_HingeJoint.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_HingeJoint2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_HorizontalLayoutGroup.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Image.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_InheritVelocityModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_InputField.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_JointAngleLimits2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_JointDrive.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_JointLimits.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_JointMotor.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_JointMotor2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_JointSpring.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_JointSuspension2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_JointTranslationLimits2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Keyframe.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_LayerMask.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_LayoutElement.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_LensFlare.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Light.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_LightProbeGroup.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_LightProbeProxyVolume.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_LightProbes.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_LightmapData.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_LightsModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_LimitVelocityOverLifetimeModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_LineRenderer.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_MainModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Mask.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Material.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Matrix4x4.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Mesh.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_MeshCollider.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_MeshFilter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_MeshRenderer.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_MinMaxCurve.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_MinMaxGradient.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Motion.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_NavMeshAgent.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_NavMeshData.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_NavMeshDataInstance.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_NavMeshHit.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_NavMeshLinkData.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_NavMeshLinkInstance.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_NavMeshObstacle.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_NavMeshQueryFilter.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_NavMeshTriangulation.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Navigation.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_NoiseModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_OcclusionArea.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_OcclusionPortal.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_OffMeshLink.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_OptionData.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_OptionDataList.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Outline.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_ParticleSystem.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_PhysicMaterial.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Physics2DRaycaster.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_PhysicsMaterial2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_PhysicsRaycaster.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_PlatformEffector2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_PointEffector2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_PolygonCollider2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Projector.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Quaternion.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_RawImage.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Ray.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Ray2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_RaycastHit.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_RaycastHit2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Rect.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_RectMask2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_RectTransform.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_RelativeJoint2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_RenderTexture.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_RenderTextureDescriptor.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Rigidbody.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Rigidbody2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_RotationBySpeedModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_RotationOverLifetimeModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_RuntimeAnimatorController.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_ScrollRect.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Scrollbar.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Shader.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Shadow.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_ShapeModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SizeBySpeedModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SizeOverLifetimeModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SkinnedMeshRenderer.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Skybox.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Slider.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SliderJoint2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SoftJointLimit.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SoftJointLimitSpring.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SortingGroup.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SparseTexture.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SphereCollider.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SpringJoint.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SpringJoint2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Sprite.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SpriteMask.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SpriteRenderer.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SpriteState.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_StandaloneInputModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SubEmittersModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_SurfaceEffector2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_TargetJoint2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Terrain.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_TerrainCollider.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_TerrainData.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Text.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_TextMesh.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Texture.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Texture2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Texture2DArray.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Texture3D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_TextureSheetAnimationModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Toggle.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_ToggleGroup.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Touch.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_TrailModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_TrailRenderer.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Transform.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Tree.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_TreeInstance.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_TreePrototype.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_TriggerModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Vector2.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Vector3.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_Vector4.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_VelocityOverLifetimeModule.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_VerticalLayoutGroup.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_VideoClip.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_VideoPlayer.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_WheelCollider.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_WheelFrictionCurve.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_WheelHit.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_WheelJoint2D.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Serialization\Types\SaveGameType_WindZone.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Utilities\EncryptionUtils.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Utilities\MetaDataUtils.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Utilities\PathUtils.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Utilities\StreamUtils.cs" />
+    <Compile Include="Assets\BayatGames\SaveGamePro\Scripts\Utilities\StringUtils.cs" />
+    <Compile Include="Assets\CameraJogador.cs" />
+    <Compile Include="Assets\ControleJogador.cs" />
+    <Compile Include="Assets\MovimentoDoJogador.cs" />
+    <Compile Include="Assets\NVJOB Water Shader SAF\Example Scenes\Dynamic Sky Lite\DynamicSkyLite.cs" />
+    <Compile Include="Assets\NVJOB Water Shader SAF\Example Scenes\FPS Counter\FPSCounter.cs" />
+    <Compile Include="Assets\NVJOB Water Shader SAF\Example Scenes\Prefabs\Rotation.cs" />
+    <Compile Include="Assets\NVJOB Water Shader SAF\Example Scenes\UI nvjob\UINvjob.cs" />
+    <Compile Include="Assets\NVJOB Water Shader SAF\Water Shader\Water.cs" />
+    <Compile Include="Assets\NVJOB Water Shader SAF\Water Shader\WindZoneRot.cs" />
+    <Compile Include="Assets\Pause Menu Assets\Scripts\Pausemenu\PauseManager.cs" />
+    <Compile Include="Assets\Pause Menu Assets\Scripts\Pausemenu\SaveSettings.cs" />
+    <Compile Include="Assets\Pause Menu Assets\Scripts\Utlities\CoroutineUtlities.cs" />
+    <Compile Include="Assets\Pause Menu Assets\Scripts\Utlities\Rotate.cs" />
+>>>>>>> 53ba6f6f3cfb48298f987f724e84ce7fa925ab92
     <Compile Include="Assets\Simple_Day_and_Night_Cycle\(EXAMPLEONLY)CharacterAssets\Characters\FirstPersonCharacter\Scripts\FirstPersonController_EXAMPLE.cs" />
     <Compile Include="Assets\Simple_Day_and_Night_Cycle\(EXAMPLEONLY)CharacterAssets\Characters\FirstPersonCharacter\Scripts\MouseLook_EXAMPLE.cs" />
     <Compile Include="Assets\Simple_Day_and_Night_Cycle\Scripts\DayAndNightControl.cs" />
     <Compile Include="Assets\Simple_Day_and_Night_Cycle\Scripts\VisualClockController.cs" />
+<<<<<<< HEAD
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMPro.cginc" />
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Mobile Overlay.shader" />
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_Bitmap.shader" />
@@ -651,6 +972,593 @@
     </Reference>
     <Reference Include="System.Xml.Serialization">
       <HintPath>C:/Program Files/Unity/Hub/Editor/2019.3.2f1/Editor/Data/NetStandard/compat/2.0.0/shims/netfx/System.Xml.Serialization.dll</HintPath>
+=======
+    <None Include="Assets\Samples\Terrain Tools\0.1.0-preview\Terrain Assets\ThirdPartyNotices.txt" />
+    <None Include="Assets\NVJOB Water Shader SAF\license_nvjob.txt" />
+    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Materials\Trees\STBCustomCore.cginc" />
+    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Dynamic Sky Lite\Dynamic Sky Lite Standard Clouds Type 2.shader" />
+    <None Include="Assets\NVJOB Water Shader SAF\Water Shader\Water Shader Type 2.shader" />
+    <None Include="Assets\Pause Menu Assets\Fonts\open-sans\Apache License.txt" />
+    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Materials\Trees\STCustom.shader" />
+    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Dynamic Sky Lite\Dynamic Sky Lite Standard Horizon.shader" />
+    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Materials\Trees\STCustomCore.cginc" />
+    <None Include="Assets\NVJOB Water Shader SAF\license_unity.txt" />
+    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Materials\Trees\STBCustom.shader" />
+    <None Include="Assets\Simple_Day_and_Night_Cycle\(EXAMPLEONLY)CharacterAssets\Characters\FirstPersonCharacter\FirstPersonCharacterGuidelines.txt" />
+    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Dynamic Sky Lite\Dynamic Sky Lite Standard Clouds Type 1.shader" />
+    <None Include="Assets\Pause Menu Assets\Fonts\exo\SIL Open Font License.txt" />
+    <None Include="Assets\Simple_Day_and_Night_Cycle\ReadMe.txt" />
+    <None Include="Assets\NVJOB Water Shader SAF\Water Shader\Water Shader Type 1.shader" />
+    <Reference Include="Unity.Timeline.Editor">
+      <HintPath>E:/Faculdade/TCC/GIT/marciano foda/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TerrainTools">
+      <HintPath>E:/Faculdade/TCC/GIT/marciano foda/Library/ScriptAssemblies/Unity.TerrainTools.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.VSCode.Editor">
+      <HintPath>E:/Faculdade/TCC/GIT/marciano foda/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro.Editor">
+      <HintPath>E:/Faculdade/TCC/GIT/marciano foda/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>E:/Faculdade/TCC/GIT/marciano foda/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Timeline">
+      <HintPath>E:/Faculdade/TCC/GIT/marciano foda/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.CollabProxy.Editor">
+      <HintPath>E:/Faculdade/TCC/GIT/marciano foda/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Postprocessing.Editor">
+      <HintPath>E:/Faculdade/TCC/GIT/marciano foda/Library/ScriptAssemblies/Unity.Postprocessing.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Rider.Editor">
+      <HintPath>E:/Faculdade/TCC/GIT/marciano foda/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Postprocessing.Runtime">
+      <HintPath>E:/Faculdade/TCC/GIT/marciano foda/Library/ScriptAssemblies/Unity.Postprocessing.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>E:/Faculdade/TCC/GIT/marciano foda/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TerrainTools.Editor">
+      <HintPath>E:/Faculdade/TCC/GIT/marciano foda/Library/ScriptAssemblies/Unity.TerrainTools.Editor.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor.UI">
+      <HintPath>E:/Faculdade/TCC/GIT/marciano foda/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AIModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.AIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ARModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.ARModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AccessibilityModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.AccessibilityModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AndroidJNIModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.AndroidJNIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.AnimationModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.AssetBundleModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.AudioModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ClothModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.ClothModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ClusterInputModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.ClusterInputModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ClusterRendererModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.ClusterRendererModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CrashReportingModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.CrashReportingModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.DSPGraphModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.DSPGraphModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.DirectorModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.DirectorModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.GameCenterModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.GameCenterModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.GridModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.GridModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.HotReloadModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.HotReloadModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.IMGUIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.ImageConversionModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.InputModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.InputModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.InputLegacyModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.JSONSerializeModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.JSONSerializeModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.LocalizationModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.LocalizationModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.ParticleSystemModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PerformanceReportingModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.PerformanceReportingModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.Physics2DModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.Physics2DModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ProfilerModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.ProfilerModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ScreenCaptureModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.ScreenCaptureModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.SharedInternalsModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.SharedInternalsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.SpriteMaskModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.SpriteMaskModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.SpriteShapeModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.SpriteShapeModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.StreamingModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.StreamingModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.SubstanceModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.SubstanceModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.SubsystemsModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.SubsystemsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TLSModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.TLSModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.TerrainModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TerrainPhysicsModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.TerrainPhysicsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextCoreModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.TextCoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.TextRenderingModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TilemapModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.TilemapModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.UIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.UIElementsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UNETModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.UNETModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UmbraModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.UmbraModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityAnalyticsModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityAnalyticsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityConnectModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityConnectModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityTestProtocolModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityTestProtocolModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityWebRequestModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestAssetBundleModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityWebRequestAssetBundleModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestAudioModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestTextureModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestWWWModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.VFXModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.VFXModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.VRModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.VRModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.VehiclesModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.VehiclesModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.VideoModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.VideoModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.WindModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.WindModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.XRModule">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.XRModule.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/mscorlib.dll</HintPath>
+    </Reference>
+    <Reference Include="System">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/System.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/System.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/System.Runtime.Serialization.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/System.Xml.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/System.Xml.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/System.Numerics.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics.Vectors">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/System.Net.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Microsoft.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/System.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Win32.Primitives">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/Microsoft.Win32.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="netstandard">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/netstandard.dll</HintPath>
+    </Reference>
+    <Reference Include="System.AppContext">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.AppContext.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Concurrent">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Collections.Concurrent.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.NonGeneric">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Collections.NonGeneric.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Specialized">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Collections.Specialized.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.Annotations">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.ComponentModel.Annotations.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.ComponentModel.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.EventBasedAsync">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.ComponentModel.EventBasedAsync.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.Primitives">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.ComponentModel.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.TypeConverter">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.ComponentModel.TypeConverter.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Console">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Console.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.Common">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Data.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Diagnostics.Contracts">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Diagnostics.Contracts.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Diagnostics.Debug">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Diagnostics.Debug.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Diagnostics.FileVersionInfo">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Diagnostics.FileVersionInfo.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Diagnostics.Process">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Diagnostics.Process.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Diagnostics.StackTrace">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Diagnostics.StackTrace.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Diagnostics.TextWriterTraceListener">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Diagnostics.TextWriterTraceListener.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Diagnostics.Tools">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Diagnostics.Tools.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Diagnostics.TraceSource">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Diagnostics.TraceSource.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Drawing.Primitives">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Drawing.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Dynamic.Runtime">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Dynamic.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Globalization.Calendars">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Globalization.Calendars.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Globalization">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Globalization.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Globalization.Extensions">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Globalization.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.Compression.ZipFile">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.IO.Compression.ZipFile.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.IO.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.FileSystem">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.IO.FileSystem.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.FileSystem.DriveInfo">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.IO.FileSystem.DriveInfo.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.FileSystem.Primitives">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.IO.FileSystem.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.FileSystem.Watcher">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.IO.FileSystem.Watcher.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.IsolatedStorage">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.IO.IsolatedStorage.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.MemoryMappedFiles">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.IO.MemoryMappedFiles.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.Pipes">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.IO.Pipes.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.UnmanagedMemoryStream">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.IO.UnmanagedMemoryStream.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Linq">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Linq.Expressions">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Linq.Expressions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Linq.Parallel">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Linq.Parallel.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Linq.Queryable">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Linq.Queryable.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Rtc">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Net.Http.Rtc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.NameResolution">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Net.NameResolution.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.NetworkInformation">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Net.NetworkInformation.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Ping">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Net.Ping.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Primitives">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Net.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Requests">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Net.Requests.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Security">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Net.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Sockets">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Net.Sockets.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.WebHeaderCollection">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Net.WebHeaderCollection.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.WebSockets.Client">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Net.WebSockets.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.WebSockets">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Net.WebSockets.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ObjectModel">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.ObjectModel.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reflection">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Reflection.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reflection.Emit">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Reflection.Emit.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reflection.Emit.ILGeneration">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Reflection.Emit.ILGeneration.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reflection.Emit.Lightweight">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Reflection.Emit.Lightweight.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reflection.Extensions">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Reflection.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Reflection.Primitives">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Reflection.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Resources.Reader">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Resources.Reader.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Resources.ResourceManager">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Resources.ResourceManager.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Resources.Writer">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Resources.Writer.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.VisualC">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Runtime.CompilerServices.VisualC.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Extensions">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Runtime.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Handles">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Runtime.Handles.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.InteropServices">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Runtime.InteropServices.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.InteropServices.WindowsRuntime">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Runtime.InteropServices.WindowsRuntime.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Numerics">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Runtime.Numerics.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization.Formatters">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Runtime.Serialization.Formatters.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization.Json">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Runtime.Serialization.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization.Primitives">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Runtime.Serialization.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization.Xml">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Runtime.Serialization.Xml.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Claims">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Security.Claims.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Algorithms">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Security.Cryptography.Algorithms.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Csp">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Security.Cryptography.Csp.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Encoding">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Security.Cryptography.Encoding.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Primitives">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Security.Cryptography.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.X509Certificates">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Security.Cryptography.X509Certificates.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.Principal">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Security.Principal.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Security.SecureString">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Security.SecureString.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceModel.Duplex">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.ServiceModel.Duplex.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceModel.Http">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.ServiceModel.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceModel.NetTcp">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.ServiceModel.NetTcp.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceModel.Primitives">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.ServiceModel.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceModel.Security">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.ServiceModel.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Encoding">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Text.Encoding.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.Encoding.Extensions">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Text.Encoding.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Text.RegularExpressions">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Text.RegularExpressions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Threading.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Overlapped">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Threading.Overlapped.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Threading.Tasks.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Parallel">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Threading.Tasks.Parallel.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Thread">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Threading.Thread.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.ThreadPool">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Threading.ThreadPool.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Timer">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Threading.Timer.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ValueTuple">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.ReaderWriter">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Xml.ReaderWriter.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.XDocument">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Xml.XDocument.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.XmlDocument">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Xml.XmlDocument.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.XmlSerializer">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Xml.XmlSerializer.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.XPath">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Xml.XPath.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.XPath.XDocument">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/Facades/System.Xml.XPath.XDocument.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityScript">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/unityscript/UnityScript.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityScript.Lang">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/unityscript/UnityScript.Lang.dll</HintPath>
+    </Reference>
+    <Reference Include="Boo.Lang">
+      <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/unityscript/Boo.Lang.dll</HintPath>
+>>>>>>> 53ba6f6f3cfb48298f987f724e84ce7fa925ab92
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
