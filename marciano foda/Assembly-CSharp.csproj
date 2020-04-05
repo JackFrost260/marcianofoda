@@ -456,6 +456,7 @@
     <Compile Include="Assets\Pause Menu Assets\Scripts\Pausemenu\SaveSettings.cs" />
     <Compile Include="Assets\Pause Menu Assets\Scripts\Utlities\CoroutineUtlities.cs" />
     <Compile Include="Assets\Pause Menu Assets\Scripts\Utlities\Rotate.cs" />
+    <Compile Include="Assets\Rover_Controller_SimpleEdition\scripts\Controller_Rover.cs" />
     <Compile Include="Assets\Scripts\CameraJogador.cs" />
     <Compile Include="Assets\Scripts\ControleJogador.cs" />
     <Compile Include="Assets\Scripts\Crafting.cs" />
@@ -593,6 +594,7 @@
     <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Dynamic Sky Lite\Dynamic Sky Lite Standard Clouds Type 2.shader" />
     <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerAdvancedNoiseShaderInclude.cginc" />
     <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerWavingGrassShader.shader" />
+    <None Include="Assets\Rover_Controller_SimpleEdition\README\INSTRUCTION.txt" />
     <None Include="Assets\NVJOB Water Shader SAF\Water Shader\Water Shader Type 2.shader" />
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_Bitmap.shader" />
     <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerSkyShaderInclude.cginc" />
@@ -629,6 +631,7 @@
     <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Particles.shader" />
     <None Include="Assets\WeatherMaker\Prefab\Shaders\Resources\WeatherMakerCloudProbeShader.compute" />
     <None Include="Assets\NatureManufacture Assets\Object Shaders\Standard_Metalic_UV_Free_Faces.shader" />
+    <None Include="Assets\Rover_Controller_SimpleEdition\shaders\VertexColor_detailed.shader" />
     <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenCloudsShader.shader" />
     <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFogVertFragShaderInclude.cginc" />
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Surface.shader" />
@@ -672,6 +675,7 @@
     <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCloudParticleShader.shader" />
     <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerWaterTesselationShader.shader" />
     <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFogExternalShaderInclude.cginc" />
+    <None Include="Assets\Rover_Controller_SimpleEdition\shaders\MegaGrunt_mobile.shader" />
     <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\NM_indirect.cginc" />
     <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Stylized Offset Vertex Color Flow.shader" />
     <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenWetnessOverlayShader.shader" />
