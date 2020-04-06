@@ -1,0 +1,132 @@
+WARNING! for enable post-process you need import Post process Stack  and use "winter.asset" ( from Unity Tehnologies)
+
+
+
+ROVER CONCROLLER SIMPLE EDITION
+
+
+suport - almgp@yandex.ru
+
+
+PARAMETERS
+
+
+
+
+   -----------WHEELS BASE SETUP-----------
+
+
+  [Tooltip("If  true - Use Torque in this wheels")]
+ 
+   public bool ThisMotor;
+
+
+    
+
+
+
+  [Tooltip("If  true - reverse this wheels")]
+ 
+  public bool Reverse;
+
+ 
+
+ [Tooltip("If  true - this wheel's can steering")]
+    public bool ThisSteering;
+
+
+
+ 
+
+  [Tooltip("If _ThisSteereng == true - reverse steering angle")]
+  
+ public bool SteeringRevers;
+
+
+ 
+
+   [Header("------------  WHEELS COLLIDER  ------------")]
+ 
+   [Tooltip("Left Wheel Collider")]
+  
+  public WheelCollider Left_Wheel_Collider;
+
+
+   [Tooltip("Right Wheel Collider")]
+ 
+   public WheelCollider Right_Wheel_Collider;
+   
+
+ [Header("------------     WHEELS MESH      ------------")]
+ 
+   [Tooltip("Left Wheel mesh")]
+    public GameObject Left_Wheel_Mesh;
+ 
+   [Tooltip("Right Wheel Mesh")]
+    public GameObject Right_Wheel_Mesh;
+
+
+
+
+
+    [Header("WHEELS SETUP")]
+    public List<Controller_Rover_system> Wheel_Settings;
+
+ 
+   [Header("ENGINE POWER SETTINGS")]
+
+    [Tooltip("Maximum engine power. If more - faster acceleration and torque.If less - slower and weaker. For power per speed control - use torque curve")]
+    [Range(16.0f, 8192.0f)]
+    public float MaxPower = 750f;
+
+    [Tooltip("Maximum speed in KPH. For power per speed control - use torque curve")]
+    [Range(10.0f, 220.0f)]
+    public float MaxSpeed = 45f;
+    [Tooltip("Torque curve - needed for power per speed control. to example - big power in small speed  - helpful for hillclimbing,  big power in hight speed - good for sportcars")]
+    public AnimationCurve Torque_Curve;
+
+    [Header("STEER SETTINGS")]
+
+    [Range(0.1f, 55f)]
+
+
+
+    [Tooltip("Wheels steering - maximum angle in Low speed")]
+    public float MaxAngle = 45f;
+    [Range(0.1f, 40.0f)]
+
+
+    [Tooltip("Wheels steering - maximum angle in hight speed")]
+    public float MaxAngle_InSpeed = 8.0f;
+    [Range(-1.2f, 1.2f)]
+
+    [Tooltip("Differential balance")]
+    public float Differential_Power = 0.1f;
+
+    [Header("BODY SETTINGS")]
+    public Vector3 CenterOfMass_offset;
+
+    public Rigidbody RoverRigidBody;
+    private bool Sleep_Rigidbody_Debug;
+
+
+    [Header("VEHICLE DRIVING DATA")]
+
+    [Tooltip("Current torque")]
+    public float FinalPower;
+    [Tooltip("Current speed in unity engine units")]
+    public float CurrentSpeed;
+
+    [Tooltip("Current speed in KPH")]
+    public float CurrentSpeed_KPH;
+
+    [Tooltip("Current speed in MPH")]
+    public float CurrentSpeed_MPH;
+    [Tooltip("RPM counter")]
+    public float WheelRPM;
+
+    [Tooltip("Wheel for RPM counter")]
+    public WheelCollider RPM_counter_collider;
+
+
+

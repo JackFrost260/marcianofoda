@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:marciano foda/Assets/Prefabs.meta
+guid: cb18bffacbfe4a24394fbd91044978fe
+=======
 guid: 7c390d9349cc46e4b9cbc7e87bfe5f79
+>>>>>>> 53ba6f6f3cfb48298f987f724e84ce7fa925ab92:marciano foda/Assets/NVJOB Water Shader SAF/Example Scenes/Prefabs.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

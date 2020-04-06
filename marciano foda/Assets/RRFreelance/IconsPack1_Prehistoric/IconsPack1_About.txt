@@ -1,0 +1,22 @@
+Initial Release - Feb 2020
+
+Prehistoric pack - Ideal for a game set in the prehistoric era.
+
+Pack contains 50 icons in 512*512 images.
+One Border has been created with the intention of introducing more borders and backgrounds that can be layered up.
+One Backplate has been created as an example (will be expanded on in future versions)
+One Layer effect has been created as an example (will be expanded on in future versions)
+
+Please request more icons by email: robert@pixelburner.com
+
+
+
+Next version (planned):
+
+More Borders, Backplates and Effects.
+
+
+Technical Notes:
+
+The order of the icons is important, in the example you will see Backplate is the top most in the canvas heirarchy, so it draws frist, then the layer below will draw over it, etc etc.
+Top dran first, bottom on list draw last or over the top of the already drawn icons.
