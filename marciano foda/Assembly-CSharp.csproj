@@ -24,7 +24,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>Temp\bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE;UNITY_2019_3_2;UNITY_2019_3;UNITY_2019;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_3_OR_NEWER;UNITY_2017_4_OR_NEWER;UNITY_2018_1_OR_NEWER;UNITY_2018_2_OR_NEWER;UNITY_2018_3_OR_NEWER;UNITY_2018_4_OR_NEWER;UNITY_2019_1_OR_NEWER;UNITY_2019_2_OR_NEWER;UNITY_2019_3_OR_NEWER;UNITY_INCLUDE_TESTS;ENABLE_AR;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_EVENT_QUEUE;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_TEXTURE_STREAMING;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_VR;ENABLE_WEBCAM;ENABLE_UNITYWEBREQUEST;ENABLE_WWW;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_DIRECTOR_TEXTURE;ENABLE_MANAGED_JOBS;ENABLE_MANAGED_TRANSFORM_JOBS;ENABLE_MANAGED_ANIMATION_JOBS;ENABLE_MANAGED_AUDIO_JOBS;INCLUDE_DYNAMIC_GI;ENABLE_MONO_BDWGC;ENABLE_SCRIPTING_GC_WBARRIERS;PLATFORM_SUPPORTS_MONO;RENDER_SOFTWARE_CURSOR;ENABLE_VIDEO;PLATFORM_STANDALONE;PLATFORM_STANDALONE_WIN;UNITY_STANDALONE_WIN;UNITY_STANDALONE;ENABLE_RUNTIME_GI;ENABLE_MOVIES;ENABLE_NETWORK;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_OUT_OF_PROCESS_CRASH_HANDLER;ENABLE_CLUSTER_SYNC;ENABLE_CLUSTERINPUT;ENABLE_WEBSOCKET_HOST;ENABLE_MONO;NET_STANDARD_2_0;ENABLE_PROFILER;UNITY_ASSERTIONS;UNITY_EDITOR;UNITY_EDITOR_64;UNITY_EDITOR_WIN;ENABLE_UNITY_COLLECTIONS_CHECKS;ENABLE_BURST_AOT;UNITY_TEAM_LICENSE;ENABLE_VSTU;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_DIRECTOR;ENABLE_LOCALIZATION;ENABLE_SPRITES;ENABLE_TERRAIN;ENABLE_TILEMAP;ENABLE_TIMELINE;ENABLE_LEGACY_INPUT_MANAGER;CROSS_PLATFORM_INPUT;UNITY_POST_PROCESSING_STACK_V2;BAYATGAMES;BAYATGAMES_SAVEGAMEPRO;WEATHER_MAKER_PRESENT;CSHARP_7_OR_LATER;CSHARP_7_3_OR_NEWER</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;UNITY_2019_3_2;UNITY_2019_3;UNITY_2019;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_3_OR_NEWER;UNITY_2017_4_OR_NEWER;UNITY_2018_1_OR_NEWER;UNITY_2018_2_OR_NEWER;UNITY_2018_3_OR_NEWER;UNITY_2018_4_OR_NEWER;UNITY_2019_1_OR_NEWER;UNITY_2019_2_OR_NEWER;UNITY_2019_3_OR_NEWER;PLATFORM_ARCH_64;UNITY_64;UNITY_INCLUDE_TESTS;ENABLE_AR;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_EVENT_QUEUE;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_TEXTURE_STREAMING;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_VR;ENABLE_WEBCAM;ENABLE_UNITYWEBREQUEST;ENABLE_WWW;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_DIRECTOR_TEXTURE;ENABLE_MANAGED_JOBS;ENABLE_MANAGED_TRANSFORM_JOBS;ENABLE_MANAGED_ANIMATION_JOBS;ENABLE_MANAGED_AUDIO_JOBS;INCLUDE_DYNAMIC_GI;ENABLE_MONO_BDWGC;ENABLE_SCRIPTING_GC_WBARRIERS;PLATFORM_SUPPORTS_MONO;RENDER_SOFTWARE_CURSOR;ENABLE_VIDEO;PLATFORM_STANDALONE;PLATFORM_STANDALONE_WIN;UNITY_STANDALONE_WIN;UNITY_STANDALONE;ENABLE_RUNTIME_GI;ENABLE_MOVIES;ENABLE_NETWORK;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_OUT_OF_PROCESS_CRASH_HANDLER;ENABLE_CLUSTER_SYNC;ENABLE_CLUSTERINPUT;ENABLE_WEBSOCKET_HOST;ENABLE_MONO;NET_STANDARD_2_0;ENABLE_PROFILER;UNITY_ASSERTIONS;UNITY_EDITOR;UNITY_EDITOR_64;UNITY_EDITOR_WIN;ENABLE_UNITY_COLLECTIONS_CHECKS;ENABLE_BURST_AOT;UNITY_TEAM_LICENSE;ENABLE_VSTU;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_DIRECTOR;ENABLE_LOCALIZATION;ENABLE_SPRITES;ENABLE_TERRAIN;ENABLE_TILEMAP;ENABLE_TIMELINE;ENABLE_LEGACY_INPUT_MANAGER;CROSS_PLATFORM_INPUT;UNITY_POST_PROCESSING_STACK_V2;BAYATGAMES;BAYATGAMES_SAVEGAMEPRO;WEATHER_MAKER_PRESENT;OOTII_CC;CSHARP_7_OR_LATER;CSHARP_7_3_OR_NEWER</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <NoWarn>0169</NoWarn>
@@ -50,7 +50,7 @@
     <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <UnityProjectGenerator>Unity/VSTU</UnityProjectGenerator>
     <UnityProjectType>Game:1</UnityProjectType>
-    <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
+    <UnityBuildTarget>StandaloneWindows64:19</UnityBuildTarget>
     <UnityVersion>2019.3.2f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -586,125 +586,126 @@
     <Compile Include="Assets\WeatherMaker\ThirdParty\HydraulicErosion\Scripts\Erosion.cs" />
     <Compile Include="Assets\WeatherMaker\ThirdParty\HydraulicErosion\Scripts\HeightMapGenerator.cs" />
     <Compile Include="Assets\WeatherMaker\ThirdParty\HydraulicErosion\Scripts\TerrainGenerator.cs" />
-    <None Include="Assets\Samples\Terrain Tools\0.1.0-preview\Terrain Assets\ThirdPartyNotices.txt" />
-    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMPro.cginc" />
-    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Mobile Overlay.shader" />
-    <None Include="Assets\NVJOB Water Shader SAF\license_nvjob.txt" />
-    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Materials\Trees\STBCustomCore.cginc" />
-    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Dynamic Sky Lite\Dynamic Sky Lite Standard Clouds Type 2.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerAdvancedNoiseShaderInclude.cginc" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerWavingGrassShader.shader" />
-    <None Include="Assets\Rover_Controller_SimpleEdition\README\INSTRUCTION.txt" />
-    <None Include="Assets\NVJOB Water Shader SAF\Water Shader\Water Shader Type 2.shader" />
-    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_Bitmap.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerSkyShaderInclude.cginc" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerShadowsShaderInclude.cginc" />
-    <None Include="Assets\NatureManufacture Assets\Additional Tools\Debug\Debug Shaders\Debug Vertex Colors.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerWaterShader.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerSkySphereShader.shader" />
-    <None Include="Assets\Pause Menu Assets\Fonts\open-sans\Apache License.txt" />
-    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Materials\Trees\STCustom.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerAuroraShaderInclude.cginc" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerSkyPlaneShader.shader" />
-    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water River Tesseled Vertex Color Flow.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerDebugShader.shader" />
-    <None Include="Assets\NatureManufacture Assets\Additional Tools\Debug\Debug Shaders\Debug Terrain Carve.shader" />
-    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Stylized Tesseled Vertex Color Flow.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\WeatherMakerNetworkPlayer.zip.txt" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerNullZoneShaderInclude.cginc" />
-    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Dynamic Sky Lite\Dynamic Sky Lite Standard Horizon.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerMoonShader.shader" />
-    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Materials\Trees\STCustomCore.cginc" />
-    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Surface-Mobile.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCloudVolumetricShaderInclude.cginc" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCloudShaderInclude.cginc" />
-    <None Include="Assets\RRFreelance\IconsPack1_Prehistoric\IconsPack1_About.txt" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerTreeBillboardShader.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerNoiseShaderInclude.cginc" />
     <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerTesselationShaderInclude.cginc" />
-    <None Include="Assets\WeatherMaker\Readme.txt" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerDownsampleDepthBufferShader.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerTemporalReprojectionShaderInclude.cginc" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerLightShaderInclude.cginc" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerAnimated3DTextureShader.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenOverlayShader.shader" />
+    <None Include="Assets\Pause Menu Assets\Fonts\open-sans\Apache License.txt" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerWeatherMapShader.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerSunShader.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerSkyPlaneShader.shader" />
+    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Stylized Offset Vertex Color Flow.shader" />
+    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Surface-Mobile.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCloudNoiseShader.shader" />
     <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerWaterShaderInclude.cginc" />
-    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water River Mobile Flow.shader" />
-    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Particles.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\Resources\WeatherMakerCloudProbeShader.compute" />
-    <None Include="Assets\NatureManufacture Assets\Object Shaders\Standard_Metalic_UV_Free_Faces.shader" />
-    <None Include="Assets\Rover_Controller_SimpleEdition\shaders\VertexColor_detailed.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenCloudsShader.shader" />
+    <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerWavingGrassBillboardShader.shader" />
+    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Materials\Trees\STCustomCore.cginc" />
+    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Materials\Trees\STCustom.shader" />
+    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water River Tesseled Vertex Color Flow.shader" />
+    <None Include="Assets\NVJOB Water Shader SAF\Water Shader\Water Shader Type 2.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerNullZoneShaderInclude.cginc" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerMoonShader.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerScreenSpaceShadowsShader.shader" />
+    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Swamp Tesseled Vertex Color Flow.shader" />
+    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Stylized Tesseled Vertex Color Flow.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerNormalGenerator2DShader.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerLightningBoltShaderNoGlow.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenBilateralBlurShader.shader" />
+    <None Include="Assets\NVJOB Water Shader SAF\license_nvjob.txt" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerWaterTesselationShader.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerSkyShaderInclude.cginc" />
+    <None Include="Assets\NatureManufacture Assets\Object Shaders\Standard_Metalic_Cover_Wet.shader" />
     <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFogVertFragShaderInclude.cginc" />
-    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Surface.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenBlurShader.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerWaterShader.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCloudVolumetricShaderInclude.cginc" />
+    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMPro_Properties.cginc" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFogShaderInclude.cginc" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerSkySphereShader.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerLightShaderInclude.cginc" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCloudParticleShader.shader" />
+    <None Include="Assets\Rover_Controller_SimpleEdition\shaders\VertexColor_detailed.shader" />
     <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerLightningBoltShader.shader" />
-    <None Include="Assets\TextMesh Pro\Sprites\EmojiOne Attribution.txt" />
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_Bitmap-Custom-Atlas.shader" />
     <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerBoxFogShader.shader" />
-    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF.shader" />
-    <None Include="Assets\NatureManufacture Assets\Object Shaders\Standard_Specular_Cover_Wet.shader" />
-    <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
-    <None Include="Assets\NatureManufacture Assets\Object Shaders\Standard_Metallic_Wet.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenFogShader.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFogShaderInclude.cginc" />
-    <None Include="Assets\NatureManufacture Assets\Object Shaders\Standard_Specular_Wet.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCoreShaderInclude.cginc" />
-    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMPro_Properties.cginc" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCloudNoiseShader.shader" />
-    <None Include="Assets\WeatherMaker\ThirdParty\HydraulicErosion\Scripts\ComputeShaders\HeightMap.compute" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenBilateralBlurShader.shader" />
-    <None Include="Assets\WeatherMaker\ThirdParty\HydraulicErosion\License.txt" />
-    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Swamp Vertex Color Flow Mobile.shader" />
-    <None Include="Assets\WeatherMaker\Demo\DemoResources\Material\WeatherMakerDemoBackgroundShader.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerSphereFogShader.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerTemporalReprojectionShader.shader" />
-    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMPro_Surface.cginc" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCloudShadowShader.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenAlphaShader.shader" />
-    <None Include="Assets\WeatherMaker\ThirdParty\HydraulicErosion\Shaders\Terrain.shader" />
-    <None Include="Assets\NatureManufacture Assets\Object Shaders\Standard_Metalic_Cover_Wet.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerWavingGrassBillboardShader.shader" />
-    <None Include="Assets\NatureManufacture Assets\Additional Tools\Debug\Debug Shaders\Debug Flowmap Direction.shader" />
-    <None Include="Assets\NVJOB Water Shader SAF\license_unity.txt" />
-    <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerPrecipitationShader.shader" />
-    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Swamp Tesseled Vertex Color Flow.shader" />
-    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Swamp Offset Vertex Color Flow.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerOverlayShaderInclude.cginc" />
+    <None Include="Assets\Rover_Controller_SimpleEdition\README\INSTRUCTION.txt" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenCloudsShader.shader" />
+    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Particles.shader" />
+    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water River Mobile Flow.shader" />
+    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Dynamic Sky Lite\Dynamic Sky Lite Standard Horizon.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerWavingGrassShader.shader" />
     <None Include="Assets\WeatherMaker\ChangeLog.txt" />
-    <None Include="Assets\NatureManufacture Assets\Object Shaders\NM_indirect.cginc" />
-    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Materials\Trees\STBCustom.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCloudParticleShader.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerWaterTesselationShader.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFogExternalShaderInclude.cginc" />
-    <None Include="Assets\Rover_Controller_SimpleEdition\shaders\MegaGrunt_mobile.shader" />
-    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\NM_indirect.cginc" />
-    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Stylized Offset Vertex Color Flow.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenWetnessOverlayShader.shader" />
-    <None Include="Assets\Simple_Day_and_Night_Cycle\(EXAMPLEONLY)CharacterAssets\Characters\FirstPersonCharacter\FirstPersonCharacterGuidelines.txt" />
-    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Mobile Masking.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerSunShader.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerLightningBoltShaderNoGlow.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerMathShaderInclude.cginc" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerTemporalReprojectionShader.shader" />
     <None Include="Assets\WeatherMaker\ThirdParty\HydraulicErosion\Scripts\ComputeShaders\Erosion.compute" />
-    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Dynamic Sky Lite\Dynamic Sky Lite Standard Clouds Type 1.shader" />
-    <None Include="Assets\Pause Menu Assets\Fonts\exo\SIL Open Font License.txt" />
-    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF Overlay.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerNormalGenerator2DShader.shader" />
-    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_Bitmap-Mobile.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenBlurShader.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerAnimated3DTextureShader.shader" />
-    <None Include="Assets\Simple_Day_and_Night_Cycle\ReadMe.txt" />
-    <None Include="Assets\NVJOB Water Shader SAF\Water Shader\Water Shader Type 1.shader" />
-    <None Include="Assets\TextMesh Pro\Fonts\LiberationSans - OFL.txt" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenOverlayShader.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCloudNoiseShaderInclude.cginc" />
-    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Mobile.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerWeatherMapShader.shader" />
-    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerScreenSpaceShadowsShader.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerTemporalReprojectionShaderInclude.cginc" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerNoiseShaderInclude.cginc" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerMathShaderInclude.cginc" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerShadowsShaderInclude.cginc" />
+    <None Include="Assets\ootii_CameraController\CameraController_ReadMe.txt" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerPrecipitationShader.shader" />
+    <None Include="Assets\NatureManufacture Assets\Object Shaders\Standard_Specular_Cover_Wet.shader" />
     <None Include="Assets\NatureManufacture Assets\Additional Tools\Debug\Debug Shaders\Debug Flowmap UV4.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCloudNoiseShaderInclude.cginc" />
+    <None Include="Assets\WeatherMaker\ThirdParty\HydraulicErosion\Scripts\ComputeShaders\HeightMap.compute" />
+    <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
+    <None Include="Assets\TextMesh Pro\Sprites\EmojiOne Attribution.txt" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerAdvancedNoiseShaderInclude.cginc" />
+    <None Include="Assets\NatureManufacture Assets\Additional Tools\Debug\Debug Shaders\Debug Vertex Colors.shader" />
+    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Mobile Masking.shader" />
+    <None Include="Assets\NatureManufacture Assets\Object Shaders\Standard_Specular_Wet.shader" />
+    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Swamp Offset Vertex Color Flow.shader" />
+    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Materials\Trees\STBCustomCore.cginc" />
+    <None Include="Assets\Simple_Day_and_Night_Cycle\ReadMe.txt" />
+    <None Include="Assets\NatureManufacture Assets\Object Shaders\NM_indirect.cginc" />
+    <None Include="Assets\NatureManufacture Assets\Additional Tools\Debug\Debug Shaders\Debug Terrain Carve.shader" />
+    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_Bitmap-Mobile.shader" />
     <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water River Offset Vertex Color Flow.shader" />
-    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Particles Foam.shader" />
+    <None Include="Assets\Pause Menu Assets\Fonts\exo\SIL Open Font License.txt" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCloudShadowShader.shader" />
+    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Dynamic Sky Lite\Dynamic Sky Lite Standard Clouds Type 2.shader" />
+    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF Overlay.shader" />
+    <None Include="Assets\TextMesh Pro\Fonts\LiberationSans - OFL.txt" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerAuroraShaderInclude.cginc" />
+    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMPro_Surface.cginc" />
+    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Swamp Vertex Color Flow Mobile.shader" />
+    <None Include="Assets\NatureManufacture Assets\Object Shaders\Standard_Metalic_UV_Free_Faces.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCoreShaderInclude.cginc" />
+    <None Include="Assets\NatureManufacture Assets\Additional Tools\Debug\Debug Shaders\Debug Flowmap Direction.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerTreeBillboardShader.shader" />
+    <None Include="Assets\WeatherMaker\ThirdParty\HydraulicErosion\License.txt" />
+    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Mobile Overlay.shader" />
     <None Include="Assets\WeatherMaker\ThirdParty\HydraulicErosion\Shaders\Terrain2.shader" />
+    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Dynamic Sky Lite\Dynamic Sky Lite Standard Clouds Type 1.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\WeatherMakerNetworkPlayer.zip.txt" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\Resources\WeatherMakerCloudProbeShader.compute" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerOverlayShaderInclude.cginc" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFogExternalShaderInclude.cginc" />
+    <None Include="Assets\WeatherMaker\ThirdParty\HydraulicErosion\Shaders\Terrain.shader" />
+    <None Include="Assets\WeatherMaker\Readme.txt" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenFogShader.shader" />
+    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_Bitmap.shader" />
+    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMPro.cginc" />
+    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\Water Particles Foam.shader" />
+    <None Include="Assets\Samples\Terrain Tools\0.1.0-preview\Terrain Assets\ThirdPartyNotices.txt" />
+    <None Include="Assets\NatureManufacture Assets\River Auto Material\River\Shaders\NM_indirect.cginc" />
+    <None Include="Assets\WeatherMaker\Demo\DemoResources\Material\WeatherMakerDemoBackgroundShader.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerDownsampleDepthBufferShader.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerSphereFogShader.shader" />
+    <None Include="Assets\Simple_Day_and_Night_Cycle\(EXAMPLEONLY)CharacterAssets\Characters\FirstPersonCharacter\FirstPersonCharacterGuidelines.txt" />
+    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF.shader" />
+    <None Include="Assets\NVJOB Water Shader SAF\license_unity.txt" />
+    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Mobile.shader" />
+    <None Include="Assets\NatureManufacture Assets\Object Shaders\Standard_Metallic_Wet.shader" />
+    <None Include="Assets\RRFreelance\IconsPack1_Prehistoric\IconsPack1_About.txt" />
+    <None Include="Assets\NVJOB Water Shader SAF\Water Shader\Water Shader Type 1.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerDebugShader.shader" />
+    <None Include="Assets\NVJOB Water Shader SAF\Example Scenes\Materials\Trees\STBCustom.shader" />
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_Sprite.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenWetnessOverlayShader.shader" />
+    <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Surface.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerCloudShaderInclude.cginc" />
+    <None Include="Assets\Rover_Controller_SimpleEdition\shaders\MegaGrunt_mobile.shader" />
+    <None Include="Assets\WeatherMaker\Prefab\Shaders\WeatherMakerFullScreenAlphaShader.shader" />
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>E:/Faculdade/TCC/GIT/marciano foda/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>
@@ -1278,6 +1279,28 @@
     <Reference Include="Boo.Lang">
       <HintPath>D:/Unity/2019.3.2f1/Editor/Data/MonoBleedingEdge/lib/mono/unityscript/Boo.Lang.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
+      <Project>{811CEBEB-EAAB-6CB9-24B8-7F3D141F005F}</Project>
+      <Name>Assembly-CSharp-firstpass</Name>
+    </ProjectReference>
+    <ProjectReference Include="ootii.Demos.Shared.Editor.csproj">
+      <Project>{F6B24D7C-7A09-E20C-A78D-53A8D730ABB4}</Project>
+      <Name>ootii.Demos.Shared.Editor</Name>
+    </ProjectReference>
+    <ProjectReference Include="ootii.Demos.csproj">
+      <Project>{AF0DA56A-E261-6DEB-51FD-ACE8F826CC62}</Project>
+      <Name>ootii.Demos</Name>
+    </ProjectReference>
+    <ProjectReference Include="ootii.csproj">
+      <Project>{6C536E7E-198C-A32B-860F-C87C81CE35AB}</Project>
+      <Name>ootii</Name>
+    </ProjectReference>
+    <ProjectReference Include="ootii.Editor.csproj">
+      <Project>{E8470C5A-FCD7-2A87-CA39-6C939030705C}</Project>
+      <Name>ootii.Editor</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
