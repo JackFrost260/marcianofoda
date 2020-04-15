@@ -12,7 +12,8 @@ public class RayCastShootComplete : MonoBehaviour {
 	private WaitForSeconds shotDuration = new WaitForSeconds(0.07f);	
 	private AudioSource gunAudio;										
 	private LineRenderer laserLine;										
-	private float nextFire;												
+	private float nextFire;
+	public Texture2D CrossHair;
 
 
 	void Start () 
@@ -22,6 +23,7 @@ public class RayCastShootComplete : MonoBehaviour {
 		gunAudio = GetComponent<AudioSource>();
 
 		fpsCam = GetComponentInParent<Camera>();
+
 	}
 	
 
@@ -80,5 +82,10 @@ public class RayCastShootComplete : MonoBehaviour {
 		yield return shotDuration;
 
 		laserLine.enabled = false;
+	}
+
+	private void OnGUI()
+	{
+		GUI.DrawTexture(new Rect((Screen.width / 2) - (100 / 2), (Screen.height / 2) - (100 / 2), 100, 100), CrossHair);
 	}
 }

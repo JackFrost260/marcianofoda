@@ -11,9 +11,6 @@ using UnityEngine;
 public class CraftingRecipe : ScriptableObject
 {
 
-    private Inventory inventory;
-
-
     [Serializable]
     public struct ItemAmount
     {
@@ -24,30 +21,27 @@ public class CraftingRecipe : ScriptableObject
 
     //public Item item;
 
-
+    public int energyUsed;
     public List<ItemAmount> Materials;
     public List<ItemAmount> Results;
 
     public bool CanCraft(ItemContainer itemContainer)
     {
-        Debug.Log("4");
+        
         return HasMaterials(itemContainer); // && HasSpace(itemContainer);
     }
 
 
-    private bool HasMaterials(ItemContainer itemContainer)
+    public bool HasMaterials(ItemContainer itemContainer)
     {
-        Debug.Log("5");
+     
         foreach (ItemAmount itemAmount in Materials)
         {
-            Debug.Log("6");
-            Debug.Log(itemAmount.Amount);
-            Debug.Log(itemAmount.item.name);
-            Debug.Log(itemContainer);
+           
             
             if (itemContainer.ItemCount(itemAmount.item.name) < itemAmount.Amount)
             {
-                Debug.Log("7");
+           
                 Debug.LogWarning("You don't have the required materals.");
                 return false;
             }
@@ -70,15 +64,19 @@ public class CraftingRecipe : ScriptableObject
 
     public void Craft(ItemContainer itemContainer)
     {
-        Debug.Log("3");
-        if (CanCraft(itemContainer))
+        if (Generators.currentEnergy >= energyUsed)
         {
-            RemoveMaterials(itemContainer);
-            AddResults(itemContainer);
+            if (CanCraft(itemContainer))
+            {
+                Generators.currentEnergy -= energyUsed;
+                UpdateInterface.instance.Update();
+                RemoveMaterials(itemContainer);
+                AddResults(itemContainer);
+            }
         }
     }
 
-    private void RemoveMaterials(ItemContainer itemContainer)
+    public void RemoveMaterials(ItemContainer itemContainer)
     {
         foreach (ItemAmount itemAmount in Materials)
         {
