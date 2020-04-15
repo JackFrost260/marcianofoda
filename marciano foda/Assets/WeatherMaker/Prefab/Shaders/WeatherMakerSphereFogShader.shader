@@ -44,6 +44,7 @@ Shader "WeatherMaker/WeatherMakerBoxFogShader"
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
 		
+		#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
 
 		ENDCG
 
@@ -63,7 +64,7 @@ Shader "WeatherMaker/WeatherMakerBoxFogShader"
 				#define WEATHER_MAKER_FOG_VOLUME
 				#define NULL_ZONE_RENDER_MASK 2 // fog is 2
 
-				#include "WeatherMakerFogShaderInclude.cginc"
+				#include "WeatherMakerFogVertFragShaderInclude.cginc"
 
 				ENDCG
 			}

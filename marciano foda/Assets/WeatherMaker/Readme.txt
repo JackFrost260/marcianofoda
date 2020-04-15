@@ -2,7 +2,7 @@
 http://www.digitalruby.com
 Created by Jeff Johnson
 
-Current Version : 5.5.0
+Current Version : 5.6.9
 
 *** IMPORTANT ***
 *** Please delete any existing Weather Maker folder and re-add everything from scratch if you are upgrading from earlier than 5.0.0 version. ***
@@ -14,13 +14,14 @@ Welcome to Weather Maker! I'm Jeff Johnson, and I've spent thousands of hours on
 
 Please send me your suggestions, feedback and bug reports to support@digitalruby.com.
 
-Weather Maker is many assets in one. Rain/snow/sleet/hail, sky, night starts, sun/moon, volumetric clouds, volumetric light, audio manager / ambient audio, weather zones, fog, day/night cycle, thunder and lightning and much more. With dynamic profiles for everything, you can customize the look and feel of every scene.
+Weather Maker is many assets in one. Rain/snow/sleet/hail, sky, night stars, sun/moon, volumetric clouds, volumetric light, audio manager / ambient audio, weather zones, fog, day/night cycle, thunder and lightning and much more. With dynamic profiles for everything, you can customize the look and feel of every scene.
 
 Requirements
 --------------------------------------------------
 - Weather Maker requires Unity 2017.4 or newer.
 - Weather Maker requires texture array support.
 - Weather Maker is NOT supported on gles 2.0, WebGL and DirectX 9.0 or older. WebGL support is broken due to Unity bug, I am working with them to help them fix it.
+- On iOS/MAC, use OpenGL rendering. Metal also has broken features such as 3D texture lookups.
 
 Setup Instructions
 --------------------------------------------------
@@ -40,7 +41,6 @@ Project / Scene Setup:
 - Add weather zones throughout your scene if you want different types of weather.
 - Ensure screen space shadows are enabled in your graphics settings for best appearance.
 - Without screen space shadows, Weather Maker will not cast shadows on full screen snow overlay and clouds will not cast shadows.
-- If you are running VR/AR deferred shading, Weather Maker does not support a custom screen space shadow shader due to several show stopping bugs in Unity (I have notified them). Until these are fixed, leave VR/AR as use internal screen space shader or disabled.
 - For VR/AR it is recommended to use forward rendering due to Unity bugs with deferred rendering in VR/AR.
 - Add WeatherMakerCelestialObject to any directional lights that you want to be a sun or moons. Set the IsSun property to tell Weather Maker whether it is a sun or moon.
 - Post processing stack is highly recommended on your camera. Window -> Package Manager -> Post Processing.
@@ -51,7 +51,8 @@ Project / Scene Setup:
 	- I like to setup temporal AA or SMAA, bloom, color grading, depth of field, ambient occlusion and vignette.
 
 Prefab Setup:
-- Drag the Prefab/WeatherMakerPrefab (or WeatherMakerPrefab2D for 2D) into your first scene. Call DontDestroyOnLoad on the root game object. This object can be deactivated if you don't need Weather Maker for certain scenes.
+- Drag the Prefab/WeatherMakerPrefab (or WeatherMakerPrefab2D for 2D) into your first scene. This object can be deactivated if you don't need Weather Maker for certain scenes.
+- Set IsPermanent to false on WeatherMakerScript (root of prefab) if you want to add a new Weather Maker prefab to each scene, otherwise please only add the prefab to your first scene.
 - Add any additional allow cameras or allow camera names that you want weather maker to render in. See WeatherMakerScript at root of prefab object. Default is to allow the main camera.
 - If you want global random weather, you can activate the GlobalWeatherZone object underneath the WeatherMakerPrefab object. See the weather zone tutorial video below.
 - Set the manager interfaces on WeatherMakerScript to your own scripts if you want to provide your own manager / rendering of precipitation, clouds, fog, wind, etc., or just tweak the particle systems right in the prefab.
@@ -63,6 +64,7 @@ Prefab Setup:
   - WeatherMakerPrefab root (WeatherMakerScript and WeatherMakerCommandBufferManagerScript)
   - WeatherMakerPrefab -> DayNightCycle (WeatherMakerDayNightCycleManagerScript)
   - WeatherMakerPrefab -> LightManager (WeatherMakerLightManagerScript)
+  - WeatherMakerPrefab -> SkySphere (WeatherMakerSkySphereScript) - you can deactivate the sky sphere mesh renderer if you have your own skybox, but please leave everything else active.
 - The 2D prefab includes a 2D and 3D camera in the prefab. If you need to customize 2D movement with your own special camera, deactivate the 2D camera, duplicate it and make your own outside the prefab.
 - For 2D/orthographic, you can show sun, moon and volumetric clouds. See instructions in DemoScene2D.
 - If you want clouds to render AFTER skybox, you can keep your main camera clear flag as skybox and then set WeatherMakerPrefab -> FullScreenEffects -> Clouds -> Render Queue to after skybox.
@@ -70,7 +72,7 @@ Prefab Setup:
 Player Setup:
 - Ensure the player object has an audio listener component that is enabled. This is how Weather Maker identifies a local player.
 - Add a kinematic rigid body to the player object on the same game object as the audio listener.
-- Add a tiny sphere collider (radius of 0.001) to the camera object and make sure the 'trigger' checkbox is selected. Do this to the same object as the audio listener.
+- Add a tiny sphere collider (radius of 0.001) to the player object and make sure the 'trigger' checkbox is selected. Do this to the same object as the audio listener.
 - Adding the rigid body and sphere collider ensures that OnTriggerEnter is properly called in Weather Maker scripts, specifically weather zones.
 - Add a WeatherMakerSoundZoneScript to your player if you want to use sound zones (ambient sound). Add this to the same object as the audio listener.
 - The Player prefab object is setup like this if you need an example (WeatherMaker/Prefab/WeatherMakerPlayer.prefab).
@@ -84,9 +86,10 @@ Network Setup with Mirror (Unity Networking Replacement):
 - Import Mirror into your project and restart Unity.
 - On your player prefab:
 	- Add to your player prefab a script like WeatherMaker/Prefab/Scripts/Other/WeatherMakerNetworkPlayerScript.cs. Your script should do the following:
-		- Disable (NOT delete) any audio listeners, sound zone scripts, cameras, etc. for non-local players. You only want to activate some things for the local player.
-		- For a first person player, you need to add the camera to the allow camera list of Weather Maker.
-		- Other cameras not in the player object don't need special handling if they are tagged as main camera.
+		- For network players, disable (do NOT delete) any audio listeners on the network player object.
+		- For network players, disable (do NOT delete) any sound zone scripts on the network player object.
+		- For network players, disable (do NOT delete) any cameras on the network player object.
+		- You only want to activate the above things for the local player.
 	- Make sure your player controller script is checking for local player, like WeatherMakerPlayerControllerScript.cs, or using commands to a central server. You don't want a player controller executing on all the non-local players.
 	- Ensure your player layer can collide with your weather zone layer. The default global weather zone layer is on the 'Default' layer but you can change it. WeatherMakerPrefab -> GlobalWeatherZone.
 	- For optimal performance you might consider a player layer and a weather zone layer that can only collide with the player layer, but this is up to you.
@@ -96,13 +99,13 @@ Network Setup with Mirror (Unity Networking Replacement):
 - Mirror works basically the same way as UNet did, only less buggy and much faster and with the full source code, these guys are awesome!
 - Time of day and the global weather zone are synced from server to clients currently. Weather profiles will not be pixel for pixel the same on each client but will generally look the same for the type of weather.
 - Lightning and other random effects are random on each client, but generally the same for the given weather profile.
-- Please watch the uMMORPG tutorial.
+- Please watch the uMMORPG tutorial in the tutorial video section of this readme file.
 
 For troubleshooting/performance problems, see the troubleshooting section near the bottom of this document.
 
 Workflow
 --------------------------------------------------
-Weather Maker is built on scriptable object profiles. Most profiles are cloned upon running / playing to avoid accidental changes.
+Weather Maker is built on scriptable object profiles. Some profiles are cloned upon pressing play to avoid accidental changes.
 
 You can now edit clouds in editor mode as of Weather Maker 5.4.0. Simply drag in a cloud profile and start editing and configuring stuff, then set it back to the 'none' profile when you are done. If you see clouds that don't look quite right try opening the scene view or resizing the game Window. Unity is a little funny in editor mode about sending update events.
 
@@ -110,12 +113,13 @@ To change a profile during play mode, press play and then drag the profile in fr
 
 For clouds, during play mode an extra protection is added with an "AutoCloneProfile" property. Set this to false during play mode and then drag in a new profile to edit clouds during play mode. This ensures profiles are not modified accidently during animation or other weather events.
 
-Materials work in a similar way. For example, water clones the material upon play to avoid accidental changes to the original material. You can drag a water material onto the water mesh renderer during play mode to modify the original material.
+Some materials work in a similar way, they are cloned upon play. I've tried to move most materials to material property blocks, but there may still be some cloned Material objects upon pressing play.
 
 Tutorial Videos
 --------------------------------------------------
 Newest Weather Maker Videos...
 
+- Open Weather Map API: https://youtu.be/7_r7oibCM68
 - uMMORPG/Mirror Tutorial: https://youtu.be/BIFQqmG2Gws
 - Volumetric Clouds:
 	- Beautiful Sky Setup: https://youtu.be/1Xk2z858T1U
@@ -181,6 +185,24 @@ If you are using post processing, create a new weather layer and assign it to th
 Weather zones require that an audio listener be attached to the camera game object, along with a tiny trigger collider (use a sphere trigger collider with radius 0.001). For networked, non-local players, simply disable the camera and the audio listener components (do not delete them).
 
 WeatherMakeScript has a HasHadWeatherTransition bool that is false to start. If false, the first weather transition is instant. Subsequent transitions are normal. You can reset this bool to false to enable instant transition for the next weather transition.
+
+Weather Api
+--------------------------------------------------
+Weather Maker makes it easy to sync up the weather profile from an external API. DemoSceneWeatherApi shows this in action using open weather map.
+
+Weather Maker maps open weather map weather conditions ids to weather maker profiles. This is not 100% exact for all weather conditions but it does pretty well.
+
+*IMPORTANT* You must set an API key for open weather map to work. You can easily get a free API key from open weather map here: https://openweathermap.org/appid
+
+In order for this to work, you need to set either a lat/lon or a place name to query. You can lat/lon of -999 to use the day night cycle lat lon, or 999 to use the current location from location services.
+
+*IMPORTANT* If the place name is specified on the WeatherMakerLocationScript, it overrides lat/lon.
+
+If you have a different weather api service you want to use, you can implement the IWeatherMakerLocationWeatherApi interface, and set your implementation on WeatherMakerLocationWeatherScript.WeatherApi property. See the WeatherMakerOpenWeatherMapApi class for how this is done.
+
+When implementing your own weather api, it is easiest to map weather conditions to weather maker profiles, but you can get very advanced and configure everything such as wind, fog, clouds, rain, lightning, etc. separately if you want. You also need to potentially get an api key for other weather api services as well.
+
+Please see WeatherMakerLocationWeatherScript.cs for example code.
 
 Null Zones
 --------------------------------------------------
@@ -340,7 +362,7 @@ In 3D, clouds are created using the cloud script. In 2D, 2D clouds are created u
 
 The cloud script now uses a cloud profile as of Weather Maker 3.0.0, all the cloud properties are in the cloud profile scriptable object and cloud layer profiles.
 
-Cloud shadows are only available with volumetric clouds and perspective/3D cameras.
+Cloud shadows are only available with perspective/3D cameras.
 
 *NEW* Volumetric and flat clouds are now available in 2D, see DemoScene2D for details.
 
@@ -370,7 +392,7 @@ There are many properties that can be configured on the volumetric clouds. The t
 
 The shape of the volumetric clouds depends heavily on the noise textures used. I've generated a few 3D textures out of the box for you to use. You can create your own textures by creating a 3D texture for the shape and detail textures. See more details here: http://bitsquid.blogspot.com/2016/07/volumetric-clouds.html.
 
-Volumetric cloud shadows are supported with Unity screen space shadows, but be aware that shadows will fade at distance by default. This can be removed by doing the following:
+Cloud shadows are supported with Unity screen space shadows, but be aware that shadows will fade at distance by default. This can be removed by doing the following:
 
 Find UnityShadowLibrary.cginc in the Unity install directory (UnityInstallDirectory/Editor/Data/CGIncludes folder). Find this method and change it, then restart Unity.
 
@@ -386,24 +408,30 @@ In addition, Unity does a poor job of handling shadow distance when using screen
  
 You can easily create your own 3D noise textures for different types and styles of clouds. Window -> WeatherMaker -> Cloud Noise Editor.
 
-The temporal reprojection material on the full screen clouds has a blur mode property that can be set to 1 for very crisp, sharp clouds, but watch out for artifacts for fast moving clouds, or lightning at night in the clouds.
+The temporal reprojection material on the full screen clouds script has a blur mode property that can be set to 1 for very crisp, sharp clouds, but watch out for artifacts for fast moving clouds, or lightning at night in the clouds.
 
 Known issues with volumetric clouds (I am working on them):
 - Jittering clouds - this can happen with temporal reprojection and VR. Use temporal anti aliasing to help.
 - Fly-through clouds are possible, but the horizon has some problems as you transition into the clouds. I am working on a fix, but you can also add mountains or terrain to your horizon to help.
 - If there are more issues or bugs, I will try to fix them as I find them or you report them.
 
-You can comment out line 25 of WeatherMakerCloudVolumetricShaderInclude.cginc to turn off all the volumetric code if you are not using it as this will save shader size and compile times.
+You can comment out line 26 of WeatherMakerCloudVolumetricShaderInclude.cginc to turn off all the volumetric code if you are not using it as this will save shader size and compile times.
 
 *** Please view the volumetric cloud tutorial at the top of this readme file to get a complete overview of all properties and usage. ***
 
+The sun and moon object in the Weather Maker prefab contain a shadow script with a shadow material that controls additional shadow settings such as intensity, detail texturing, etc.
+
+The global "general" shadow of Weather Maker fog and clouds can be accessed via WeatherMakerLightManagerScript.Instance.GlobalShadow.
+
 Volumetric Clouds Probes
 --------------------------------------------------
-You can probe into the volumetric cloud density of any transform. Simply add a WeatherMakerCloudProbeScript to any transform.
+Volumetric cloud probes require Unity 2018.3 or newer and compute shader and async GPU readback capability to avoid GPU stalls. Earlier versions of Unity and some platforms are not possible and suffer from FPS loss due to GPU stalling.
 
-When you need to get the probe density, call WeatherMakerFullScreenCloudScript.Instance.GetCloudDensity(camera, transform) and you get back a float, 0 to 1.
+You can probe into the volumetric cloud density of any transform. Simply add a WeatherMakerCloudProbeScript to any transform. If destination transform is null, a single point probe is done. If destination is not null and not equal to source, a ray cast probe is done.
 
-Probing for cloud densities requires computer shaders. Without compute shaders, GetCloudDensity will always return 0.0.
+When you need to get the probe, call WeatherMakerFullScreenCloudScript.Instance.GetCloudProbe(camera, sourceTransform, targetTransform) and you get back a result. Pass null for targetTransform if it is the same as sourceTransform.
+
+Probing for cloud densities requires computer shaders. Without compute shaders, GetCloudProbe will always return 0.0.
 
 Only regular game cameras can probe. Reflection, cubemap, etc. cameras do not have cloud probe capability.
 
@@ -470,6 +498,7 @@ Sky Sphere
 Sun / Moon:
 - Celestial bodies are managed on WeatherScript, using the Suns and Moons properties. Only 1 sun is supported. Up to 8 moons are supported. Set the lighting properties on these scripts (Sun/Moons properties of WeatherMakerLightManagerScript.cs), do not modify the Light object itself as it will get overwritten by the Weather Maker scripts. Orbit defaults to Earth based orbit, but can also be set to a custom orbit (see WeatherMakerLightManagerScript.cs, OrbitTypeCustomScript property).
 - Sun is rendererd with it's own mesh now, look for it in the prefab, just search for the Sun object.
+- Lens flare can be blocked. By default the WeatherMakerPrefab has a sun lens flare blocker that is setup to block using compute shaders and cloud probes, with fallback to global cloud coverage if no compute shaders.
 
 SkyMode:
 - Procedural: Sky is fully procedural and day and dawn dusk sky sphere textures are ignored. Night texture is used as the sun goes below the horizon.
@@ -583,9 +612,6 @@ Please test that performance is adequate before shipping your game with this tur
 
 Fog now supports temporal reprojection as of Weather Maker 5.0.0. Please watch the temporal reprojection tutorial video.
 
-External/3rd Party Fog Use:
-You can use Weather Maker fog in your own transparent materials, see WeatherMakerFogExternalShaderInclude.cginc, ComputeFogLightingExternal function. You can also #define ENABLE_EXTERNAL_FOG_FUNCTION_WITH_WEATHER_MAKER_FOG_PARAMS before including the external shader and simply call ComputeFogLightingExternalWithWeatherMakerFogParams(fixed4 pixelColor, float3 worldPos).
-
 Water
 --------------------------------------------------
 A water prefab is included. Water now uses water profiles (see water profile property of WeatherMakerWaterScript).
@@ -625,6 +651,16 @@ Displacement options are also available for tesselated water to add finer detail
 I would suggest to keep your water at least 2 world units below the flat ground around the water as the water null zone can fade up through the ground. Or you can change the water null zone profile fade to be higher values.
 
 Volumetric light and shadows for water will be returning in a future version once performance is acceptable.
+
+Shader Integrations (Water, Fog, Shadows, etc.)
+--------------------------------------------------
+WeatherMakerFogExternalShaderInclude.cginc contains all the shader integration for external shaders using Weather Maker, such as water, etc.
+
+You can use Weather Maker fog in your own transparent materials, see WeatherMakerFogExternalShaderInclude.cginc, ComputeWeatherMakerFog function.
+
+You can sample Weather Maker shadows using ComputeWeatherMakerShadows, also in WeatherMakerFogExternalShaderInclude.cginc.
+
+Search for 'External shader integration functions' in your code editor (Visual Studio, etc.) to find all the possible function definitions.
 
 Orthographic Size
 --------------------------------------------------
@@ -666,6 +702,24 @@ Other Integrations / Extensions
 If you are integrating Weather Maker into your own asset, use a #if WEATHER_MAKER_PRESENT ... #endif around your code.
 
 Weather Maker has integration with some other assets. Add via Component -> Weather Maker -> Extensions -> ...
+- Crest Ocean, my fork: https://github.com/DigitalRuby/crest-oceanrender
+	- Until they merge in my pull request, you'll need to use my fork of crest ocean. I've added better dir light specular and scattering, along with hooks for fog and shadows.
+	- Import Crest Ocean into your project. Just download the zip from github and find the Assets/Crest folder and bring it into your project in the assets folder.
+	- Modify Ocean.shader, uncomment EXTERNAL_FOG_PASS and change the include path to #include "../../../WeatherMaker/Prefab/Shaders/WeatherMakerFogExternalShaderInclude.cginc"
+	- Modify UpdateShadow.shader, uncomment EXTERNAL_SHADOW_PASS and change the include path to #include "../../../../WeatherMaker/Prefab/Shaders/WeatherMakerFogExternalShaderInclude.cginc"
+	- You may need to adjust the #include paths depending on how Crest Ocean and Weather Maker are relative to each other in your project.
+	- Provide a reflection probe somewhere in your scene. Set as solid clear color instead of Skybox if you are using the Weather Maker sky sphere and/or clouds. You can attach it to your player if you want, or if you have ample probes in your scene, rely on that.
+	- Add an OceanPlanarReflection script to your main camera, this is needed for sky and cloud reflections.
+	- Enable planar reflections on the ocean material.
+	- Add the OceanRenderer script to an empty game object in your scene and ensure the transform is identity (no position or rotation, scale of 1).
+	- Ensure shadows are turned on in your ocean material and script.
+	- Add WeatherMakerPrefab to your scene.
+	- Set the OceanRenderer script primary dir light to the WeatherMakerPrefab -> DayNightCycle -> Sun object.
+	- Note that underwater does not yet have proper fog and cloud shadows (yet). This is coming in the future.
+	- Crest Ocean water is too bright in the distance, even if shadowed, I've sent them a bug report.
+	- Crest Ocean at night seems a little too bright, have not yet figured this one out.
+- Playmaker
+	- Actions for get/set date time and weather profile by name. Let me know if you would like additional actions.
 - Vegetation Studio Pro
 	- You can customize snow and rain buildup / melt speeds.
 	- Attach a weather zone to each biome - great for rain forests, snowy mountains, dry desert, etc.
@@ -696,6 +750,7 @@ Performance Considerations
 --------------------------------------------------
 Here is a list of things to try if performance is not adequate:
 
+- First and always, try lowering your Unity quality setting. Weather Maker adapts to the Unity quality level.
 - Turn off volumetric clouds or reduce volumetric cloud sample counts.
 - Turn on temporal reprojection for clouds and fog.
 - Increase downsample scale for clouds and fog.
@@ -716,6 +771,8 @@ Here is a list of things to try if performance is not adequate:
 Troubleshooting / FAQ
 --------------------------------------------------
 - If you are getting strange errors and compile problems, you should remove Weather Maker entirely and redownload from the asset store and reimport and readd any WeatherMakerPrefab objects.
+- Clouds or shadow are flickering, wiggling or jiggling, jitter, etc. : try post processing: depth of field, bloom, color grading, temporal AA and/or motion blur.
+- Everything is gray / grey - Double check that LWRP or HDRP is not turned on and that any pre-processor definitions have removed any LWRP or HDRP defines.
 - Weather zone is not triggering: Make sure your player has kinematic rigid body, trigger sphere collider and that project physics settings allows the player and weather zone layer to collide.
 - Rain, mist, etc. looks bad - make sure HDR is on for your camera.
 - Night sky is not showing: Try turning up the night intensity on your sky sphere profile.
@@ -730,7 +787,6 @@ Troubleshooting / FAQ
 - Sun shafts and other effects aren't working in player: Make sure scene tab isn't showing, hide the tab. Not sure why this causes problems but until I figure it out this is the fix.
 - For ultimate survival or other custom camera assets, try tweaking the clear flags or culling mask if you see display glitches.
 - RenderToCubemap doesn't work - set WeatherMakerCommandBufferManagerScript.CubemapCamera to your camera, call RenderToCubemap, then set WeatherMakerCommandBufferManagerScript.CubemapCamera back to null.
-- Jittering/blinking pixels - try adding temporal anti-alising post processing effect.
 - Cloud shadows - cloud shadows fade out at distance due to Unity shadow fade defaults, see volumetric cloud section on how to work around this.
 - Reflection probes - make sure to not use box projection, this is not supported. Set mode to realtime as well if you want to show moving clouds, lightning, etc.
 - Flickering lights - try turning off reflection probes in performance profile.
@@ -750,24 +806,27 @@ I'm Jeff Johnson, I created Weather Maker just for you. Please email support@dig
 
 Credits
 --------------------------------------------------
+Third Party Code / Assets
+- https://github.com/SebLague/Hydraulic-Erosion (MIT license)
+
 Code / Rendering:
-https://catlikecoding.com/unity/tutorials/flow/looking-through-water/
-https://patapom.com/topics/Revision2013/Revision%202013%20-%20Real-time%20Volumetric%20Rendering%20Course%20Notes.pdf
-http://advances.realtimerendering.com/s2017/Nubis%20-%20Authoring%20Realtime%20Volumetric%20Cloudscapes%20with%20the%20Decima%20Engine%20-%20Final%20.pdf
-https://gist.github.com/stephenmerendino/8b8aea77ac8d69a4427de588475cc0d2
-https://www.gamedev.net/forums/topic/680832-horizonzero-dawn-cloud-system/
-http://killzone.dl.playstation.net/killzone/horizonzerodawn/presentations/Siggraph15_Schneider_Real-Time_Volumetric_Cloudscapes_of_Horizon_Zero_Dawn.pdf
-https://bib.irb.hr/datoteka/949019.Final_0036470256_56.pdf
-http://bitsquid.blogspot.com/2016/07/volumetric-clouds.html
-http://petewerner.blogspot.com/2015/02/intro-to-curl-noise.html
+- https://catlikecoding.com/unity/tutorials/flow/looking-through-water/
+- https://patapom.com/topics/Revision2013/Revision%202013%20-%20Real-time%20Volumetric%20Rendering%20Course%20Notes.pdf
+- http://advances.realtimerendering.com/s2017/Nubis%20-%20Authoring%20Realtime%20Volumetric%20Cloudscapes%20with%20the%20Decima%20Engine%20-%20Final%20.pdf
+- https://gist.github.com/stephenmerendino/8b8aea77ac8d69a4427de588475cc0d2
+- https://www.gamedev.net/forums/topic/680832-horizonzero-dawn-cloud-system/
+- http://killzone.dl.playstation.net/killzone/horizonzerodawn/presentations/Siggraph15_Schneider_Real-Time_Volumetric_Cloudscapes_of_Horizon_Zero_Dawn.pdf
+- https://bib.irb.hr/datoteka/949019.Final_0036470256_56.pdf
+- http://bitsquid.blogspot.com/2016/07/volumetric-clouds.html
+- http://petewerner.blogspot.com/2015/02/intro-to-curl-noise.html
 
 Free Sound and Graphics:
-http://soundbible.com/1718-Hailstorm.html
-http://blenderartists.org/forum/archive/index.php/t-24038.html
-https://www.binpress.com/tutorial/creating-an-octahedron-sphere/162
-http://freesound.org/
-http://www.orangefreesounds.com/meditation-music-for-relaxation-and-dreaming/
-https://opengameart.org/content/seamless-animated-raindrop-ripples-texture
-https://freesound.org/people/akemov/sounds/255597/
-https://freesound.org/people/InspectorJ/sounds/398700/
-https://www.bensound.com "Royalty Free Music from Bensound"
+- http://soundbible.com/1718-Hailstorm.html
+- http://blenderartists.org/forum/archive/index.php/t-24038.html
+- https://www.binpress.com/tutorial/creating-an-octahedron-sphere/162
+- http://freesound.org/
+- http://www.orangefreesounds.com/meditation-music-for-relaxation-and-dreaming/
+- https://opengameart.org/content/seamless-animated-raindrop-ripples-texture
+- https://freesound.org/people/akemov/sounds/255597/
+- https://freesound.org/people/InspectorJ/sounds/398700/
+- https://www.bensound.com "Royalty Free Music from Bensound"

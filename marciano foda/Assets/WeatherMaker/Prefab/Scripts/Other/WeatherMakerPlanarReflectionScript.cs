@@ -117,7 +117,10 @@ namespace DigitalRuby.WeatherMaker
             {
                 ReflectMaterial = (ReflectMaterial == null ? ReflectRenderer.sharedMaterial : ReflectMaterial);
             }
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
+            }
             ReflectionSamplerName2 = ReflectionSamplerName + "2";
         }
 
@@ -129,7 +132,10 @@ namespace DigitalRuby.WeatherMaker
 
         private void OnDestroy()
         {
-            WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
+            }
         }
 
         private void CameraPreCull(Camera camera)

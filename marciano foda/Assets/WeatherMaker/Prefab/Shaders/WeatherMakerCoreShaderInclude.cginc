@@ -22,6 +22,7 @@
 
 #include "UnityCG.cginc" 
 
+#if !defined(GAMMA)
 #if defined(UNITY_COLORSPACE_GAMMA)
 #define GAMMA 2
 #define COLOR_2_GAMMA(color) color
@@ -33,7 +34,9 @@
 #define COLOR_2_LINEAR(color) color
 #define LINEAR_2_OUTPUT(color) color
 #endif
+#endif
 
+#if !defined(float4Zero)
 #define float4Zero float4(0.0, 0.0, 0.0, 0.0)
 #define float4One float4(1.0, 1.0, 1.0, 1.0)
 #define fixed4Zero fixed4(0.0, 0.0, 0.0, 0.0)
@@ -45,20 +48,23 @@
 #define ditherMagic fixed4(12.9898, 78.233, 43758.5453, 241325690.2135)
 #define ditherMagic2 fixed4(2.34234, 5.123124, 1024.0, 1024.0)
 #define upVector float3(0.0, 1.0, 0.0)
+#endif
 
-#ifndef PI
+#if !defined(PI)
 #define PI 3.14159263
 #endif
 
-#ifndef PI2
+#if !defined(PI2)
 #define PI2 (PI * 2.0)
 #endif
 
-#ifndef PI4
+#if !defined(PI4)
 #define PI4 (PI * 4.0)
 #endif
 
+#if !defined(ANTI_ALIAS)
 #define ANTI_ALIAS(v) abs(frac(v) - 0.5)
+#endif
 
 #define WM_BASE_VERTEX_INPUT UNITY_VERTEX_INPUT_INSTANCE_ID
 #define WM_BASE_VERTEX_TO_FRAG UNITY_VERTEX_INPUT_INSTANCE_ID UNITY_VERTEX_OUTPUT_STEREO
@@ -74,32 +80,16 @@
 #define WM_SAMPLE_DEPTH(uv) UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, (uv).xy))
 #define WM_SAMPLE_DEPTH_PROJ(uv) UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(uv)))
 
+// // you can get depth01 as follows:
+// float depth01 = Linear01Depth(UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(screenPos)))); // screenPos is float4 from ComputeScreenPos
+// float depth01 = Linear01Depth(UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, screenUV))); // screenUV is float2
+
+#if !defined(DO_ALPHA_BLEND)
 #define DO_ALPHA_BLEND(fg, bg) ((fg.rgb * fg.a) + (bg.rgb * (1.0 - fg.a)))
-
-// vertex...
-struct vertex_only_input_data
-{
-	float4 vertex : POSITION;
-	WM_BASE_VERTEX_INPUT
-};
-
-struct vertex_uv_normal
-{
-	float4 vertex : POSITION;
-	float2 uv : TEXCOORD0;
-	float3 normal : NORMAL;
-	WM_BASE_VERTEX_INPUT
-};
-
-struct full_screen_vertex
-{
-	float4 vertex : POSITION;
-	float2 uv : TEXCOORD0;
-	WM_BASE_VERTEX_INPUT
-};
+#endif
 
 // fragment...
-struct volumetric_data
+struct wm_volumetric_data
 {
 	float4 vertex : POSITION;
 	float3 normal : NORMAL;
@@ -110,14 +100,30 @@ struct volumetric_data
 	WM_BASE_VERTEX_TO_FRAG
 };
 
-struct full_screen_fragment_vertex_uv
+// vertex...
+struct wm_vertex_uv_normal
+{
+	float4 vertex : POSITION;
+	float2 uv : TEXCOORD0;
+	float3 normal : NORMAL;
+	WM_BASE_VERTEX_INPUT
+};
+
+struct wm_full_screen_vertex
+{
+	float4 vertex : POSITION;
+	float2 uv : TEXCOORD0;
+	WM_BASE_VERTEX_INPUT
+};
+
+struct wm_full_screen_fragment_vertex_uv
 {
 	float4 vertex : SV_POSITION;
 	float2 uv : TEXCOORD0;
 	WM_BASE_VERTEX_TO_FRAG
 };
 
-struct full_screen_fragment
+struct wm_full_screen_fragment
 {
 	float4 vertex : SV_POSITION;
 	float3 rayDir : NORMAL;
@@ -126,7 +132,7 @@ struct full_screen_fragment
 	WM_BASE_VERTEX_TO_FRAG
 };
 
-struct full_screen_fragment_reflection
+struct wm_full_screen_fragment_reflection
 {
 	float4 vertex : SV_POSITION;
 	float3 rayDir : NORMAL;
@@ -137,7 +143,7 @@ struct full_screen_fragment_reflection
 	WM_BASE_VERTEX_TO_FRAG
 };
 
-struct deferred_fragment
+struct wm_deferred_fragment
 {
 	float4 gBuffer0 : SV_Target0;
 	float4 gBuffer1 : SV_Target1;
@@ -145,11 +151,13 @@ struct deferred_fragment
 	float4 gBuffer3 : SV_Target3;
 };
 
-struct frag_out_with_depth
+struct wm_frag_out_with_depth
 {
 	fixed4 color : COLOR;
 	float depth : DEPTH;
 };
+
+#if defined(WEATHER_MAKER_ENABLE_TEXTURE_DEFINES)
 
 // https://docs.unity3d.com/Manual/SL-SamplerStates.html
 // Sampler names recognized as “inline” sampler states (all case insensitive):
@@ -158,24 +166,13 @@ struct frag_out_with_depth
 // Wrap modes can be specified per - axis(UVW), e.g.“ClampU_RepeatV”.
 // “Compare”(optional) set up sampler for depth comparison; use with HLSL SamplerComparisonState type and SampleCmp / SampleCmpLevelZero functions.
 SamplerState sampler_point_clamp_sampler;
+SamplerState sampler_linear_clamp_sampler;
+
+#endif // WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
 
 uniform float4 _WeatherMakerTime;
 uniform float4 _WeatherMakerTimeSin;
 uniform float4 _WeatherMakerTimeAngle;
-uniform float4 _CameraDepthTexture_ST;
-uniform float4 _CameraDepthTexture_TexelSize;
-//uniform float4 _CameraDepthTextureOne_ST;
-//uniform float4 _CameraDepthTextureOne_TexelSize;
-uniform float4 _CameraDepthTextureHalf_ST;
-uniform float4 _CameraDepthTextureHalf_TexelSize;
-uniform float4 _CameraDepthTextureQuarter_ST;
-uniform float4 _CameraDepthTextureQuarter_TexelSize;
-uniform float4 _CameraDepthTextureEighth_ST;
-uniform float4 _CameraDepthTextureEighth_TexelSize;
-uniform float4 _CameraDepthTextureSixteenth_ST;
-uniform float4 _CameraDepthTextureSixteenth_TexelSize;
-uniform float4 _CameraDepthNormalsTexture_ST;
-uniform float4 _CameraDepthNormalsTexture_TexelSize;
 
 //uniform sampler2D _WeatherMakerDitherTexture;
 //uniform float4 _WeatherMakerDitherTexture_ST;
@@ -191,8 +188,9 @@ uniform float4 _WeatherMakerTemporalUV;
 // inverse matrix for each eye, use unity_StereoEyeIndex to idnex
 uniform float4x4 _WeatherMakerInverseView[2];
 uniform float4x4 _WeatherMakerInverseProj[2];
-
+uniform uint _WeatherMakerAdjustFullScreenUVStereoDisable; // set to 1 if you need to disable stereo screen space uv adjust for AdjustFullScreenUV method
 uniform uint _WeatherMakerCameraRenderMode;
+uniform uint _WeatherMakerVREnabled;
 #define WM_CAMERA_RENDER_MODE_NORMAL (_WeatherMakerCameraRenderMode == 0)
 #define WM_CAMERA_RENDER_MODE_NOT_NORMAL (_WeatherMakerCameraRenderMode != 0)
 #define WM_CAMERA_RENDER_MODE_REFLECTION (_WeatherMakerCameraRenderMode == 1)
@@ -213,54 +211,89 @@ uniform float _TemporalReprojection_BlendMode;
 
 static const uint weatherMakerTemporalReprojectionBlendModeBlur = (uint(round(_TemporalReprojection_BlendMode)) == 0);
 
-#if !defined(WEATHER_MAKER_NO_DEFINE_TEXTURES)
+#if defined(WEATHER_MAKER_ENABLE_TEXTURE_DEFINES)
 
 #if defined(WEATHER_MAKER_IS_FULL_SCREEN_EFFECT) && defined(WM_STEREO_INSTANCING_ENABLED)
 
 uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex);
 uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex2);
+uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex3);
+uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex4);
+uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex5);
 
 #elif defined(WEATHER_MAKER_IS_FULL_SCREEN_EFFECT) && defined(WEATHER_MAKER_MAIN_TEX_SAMPLERS)
 
 uniform UNITY_DECLARE_TEX2D(_MainTex);
 uniform UNITY_DECLARE_TEX2D(_MainTex2);
+uniform UNITY_DECLARE_TEX2D(_MainTex3);
+uniform UNITY_DECLARE_TEX2D(_MainTex4);
+uniform UNITY_DECLARE_TEX2D(_MainTex5);
 
 #else
 
 uniform sampler2D _MainTex;
 uniform sampler2D _MainTex2;
+uniform sampler2D _MainTex3;
+uniform sampler2D _MainTex4;
+uniform sampler2D _MainTex5;
 
 #endif
 
-UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthNormalsTexture);
-UNITY_DECLARE_SCREENSPACE_TEXTURE(_WeatherMakerAfterForwardOpaqueTexture);
-UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
+uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraDepthNormalsTexture);
+uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_WeatherMakerAfterForwardOpaqueTexture);
+uniform UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
 
-#endif
+uniform float4 _CameraDepthTexture_ST;
+uniform float4 _CameraDepthTexture_TexelSize;
+//uniform float4 _CameraDepthTextureOne_ST;
+//uniform float4 _CameraDepthTextureOne_TexelSize;
+uniform float4 _CameraDepthTextureHalf_ST;
+uniform float4 _CameraDepthTextureHalf_TexelSize;
+uniform float4 _CameraDepthTextureQuarter_ST;
+uniform float4 _CameraDepthTextureQuarter_TexelSize;
+uniform float4 _CameraDepthTextureEighth_ST;
+uniform float4 _CameraDepthTextureEighth_TexelSize;
+uniform float4 _CameraDepthTextureSixteenth_ST;
+uniform float4 _CameraDepthTextureSixteenth_TexelSize;
+uniform float4 _CameraDepthNormalsTexture_ST;
+uniform float4 _CameraDepthNormalsTexture_TexelSize;
 
-//UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTextureOne);
-UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTextureHalf);
-UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTextureQuarter);
-UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTextureEighth);
-UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTextureSixteenth);
-
-//UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraMotionVectorsTexture);
-//float2 motion = WM_SAMPLE_FULL_SCREEN_TEXTURE(_CameraMotionVectorsTexture, i.uv).xy;
-//float motionLength = length(motion * _CameraMotionVectorsTexture_TexelSize.zw);
+//uniform UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTextureOne);
+uniform UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTextureHalf);
+uniform UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTextureQuarter);
+uniform UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTextureEighth);
+uniform UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTextureSixteenth);
 
 uniform float4 _MainTex_ST;
 uniform float4 _MainTex_TexelSize;
 uniform float4 _MainTex2_ST;
 uniform float4 _MainTex2_TexelSize;
+uniform float4 _MainTex3_ST;
+uniform float4 _MainTex3_TexelSize;
+uniform float4 _MainTex4_ST;
+uniform float4 _MainTex4_TexelSize;
+uniform float4 _MainTex5_ST;
+uniform float4 _MainTex5_TexelSize;
 uniform float4 _CameraMotionVectorsTexture_ST;
 uniform float4 _CameraMotionVectorsTexture_TexelSize;
 uniform sampler2D _WeatherMakerBlueNoiseTexture;
+
+//UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraMotionVectorsTexture);
+//float2 motion = WM_SAMPLE_FULL_SCREEN_TEXTURE(_CameraMotionVectorsTexture, i.uv).xy;
+//float motionLength = length(motion * _CameraMotionVectorsTexture_TexelSize.zw);
+
+uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraGBufferTexture0);
+uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraGBufferTexture1);
+uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraGBufferTexture2);
+uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraGBufferTexture3);
 
 #if defined(SOFTPARTICLES_ON)
 
 float _InvFade;
 
 #endif
+
+#endif // WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
 
 #ifndef UNITY_SAMPLE_TEX2D_SAMPLER_LOD
 
@@ -278,7 +311,7 @@ float _InvFade;
 
 #define WM_SAMPLE_FULL_SCREEN_TEXTURE_PROJ(tex, uv) tex2Dproj(tex, uv)
 #define WM_SAMPLE_FULL_SCREEN_TEXTURE(tex, uv) tex2Dlod(tex, float4((uv).xy, 0.0, 0.0))
-#define WM_SAMPLE_FULL_SCREEN_TEXTURE_SAMPLER(tex, samp, uv) UNITY_SAMPLE_TEX2D_SAMPLER_LOD(tex, samp, uv)
+#define WM_SAMPLE_FULL_SCREEN_TEXTURE_SAMPLER(tex, samp, uv) UNITY_SAMPLE_TEX2D_SAMPLER_LOD(tex, samp, float4((uv).xy, 0.0, 0.0))
 
 #endif
 
@@ -286,7 +319,6 @@ float _InvFade;
 
 #define WM_LINEAR_DEPTH_01(depth) lerp(Linear01Depth(depth), 1.0, unity_OrthoParams.w)
 #define WM_SAMPLE_DEPTH_TEXTURE_01(tex, uv) WM_LINEAR_DEPTH_01(UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(tex, uv)))
-
 
 float _WeatherMakerEnableToneMapping;
 
@@ -301,15 +333,20 @@ static const float4x4 _WeatherMakerBayerMatrixRowAccess = { 1,0,0,0, 0,1,0,0, 0,
 
 inline float2 AdjustFullScreenUV(float2 uv)
 {
-	uv = UnityStereoTransformScreenSpaceTex(uv);
+
+#if defined(WEATHER_MAKER_ENABLE_TEXTURE_DEFINES)
+
+	uv = lerp(UnityStereoTransformScreenSpaceTex(uv), uv, _WeatherMakerAdjustFullScreenUVStereoDisable);
 	//uv = UnityStereoScreenSpaceUVAdjust(uv, _MainTex_ST);
 
-#if UNITY_UV_STARTS_AT_TOP
+#if (UNITY_UV_STARTS_AT_TOP)
 
-	if (_MainTex_TexelSize.y < 0)
+	if (_MainTex_TexelSize.y < 0.0)
 	{
 		uv.y = 1.0 - uv.y;
 	}
+
+#endif
 
 #endif
 
@@ -365,17 +402,45 @@ inline float GetDepth01FromWorldSpaceRay(float3 rayDir, float dist)
 
 inline float GetDepth01(float2 uv)
 {
+
+#if !defined(WEATHER_MAKER_ENABLE_TEXTURE_DEFINES)
+
+	return 0.0;
+
+#else
+
 	return WM_LINEAR_DEPTH_01(WM_SAMPLE_DEPTH(uv));
+
+#endif
+
 }
 
 inline void GetDepth01AndNormal(float2 uv, out float depth, out float3 normal)
 {
+
+#if !defined(WEATHER_MAKER_ENABLE_TEXTURE_DEFINES)
+
+	depth = 0.0;
+	normal = 0.0;
+
+#else
+
 	float4 samp = WM_SAMPLE_FULL_SCREEN_TEXTURE(_CameraDepthNormalsTexture, uv);
 	DecodeDepthNormal(samp, depth, normal);
+
+#endif
+
 }
 
 inline float WM_SAMPLE_DEPTH_DOWNSAMPLED_01(float2 uv)
 {
+
+#if !defined(WEATHER_MAKER_ENABLE_TEXTURE_DEFINES)
+
+	return 0.0;
+
+#else
+
 	UNITY_BRANCH
 	switch (weatherMakerDownsampleScale)
 	{
@@ -394,51 +459,181 @@ inline float WM_SAMPLE_DEPTH_DOWNSAMPLED_01(float2 uv)
 	case 16:
 		return (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(_CameraDepthTextureSixteenth, uv)));
 	}
+
+#endif
+
 }
 
 inline float WM_SAMPLE_DEPTH_DOWNSAMPLED_TEMPORAL_REPROJECTION_01(float2 uv)
 {
+
+#if !defined(WEATHER_MAKER_ENABLE_TEXTURE_DEFINES)
+
+	return 0.0;
+
+#else
+
 	return WM_SAMPLE_DEPTH_DOWNSAMPLED_01(uv + _WeatherMakerTemporalUV_FragmentShader);
+
+#endif
+
 }
 
-inline float WM_SAMPLE_DEPTH_AREA_DOWNSAMPLED_TEMPORAL_REPROJECTION_01(float2 uv)
+inline float WM_SAMPLE_DEPTH_LARGE_AREA(float2 uv)
 {
-	UNITY_BRANCH
-	if (weatherMakerTemporalReprojectionSubFrameEnabled)
-	{
-		// for temporal reprojection we take advantage of the eighth depth texture to ensure we render clouds behind tree
-		//  branches and the like, that way when the camera moves, those pixels will be available to re-use, preventing
-		//  the sky and other bright pixels showing, especially at night we still get the performance benefit of large
-		//  blocked areas like ground and mountains, roofs, etc.
-		float2 offset = _CameraDepthTextureSixteenth_TexelSize;
+
+#if !defined(WEATHER_MAKER_ENABLE_TEXTURE_DEFINES)
+
+	return 0.0;
+
+#else
+
+	static const float2 uv1 = float2(_CameraDepthTextureSixteenth_TexelSize.xy * -0.5);
+	static const float2 uv2 = float2(0.0, _CameraDepthTextureSixteenth_TexelSize.y * -0.5);
+	static const float2 uv3 = float2(_CameraDepthTextureSixteenth_TexelSize.x * 0.5, _CameraDepthTextureSixteenth_TexelSize.y * -0.5);
+	static const float2 uv4 = float2(_CameraDepthTextureSixteenth_TexelSize.x * -0.5, 0.0);
+	static const float2 uv5 = float2(0.0, 0.0);
+	static const float2 uv6 = float2(_CameraDepthTextureSixteenth_TexelSize.x * 0.5, 0.0);
+	static const float2 uv7 = float2(_CameraDepthTextureSixteenth_TexelSize.x * -0.5, _CameraDepthTextureSixteenth_TexelSize.y * 0.5);
+	static const float2 uv8 = float2(0.0, _CameraDepthTextureSixteenth_TexelSize.y * 0.5);
+	static const float2 uv9 = float2(_CameraDepthTextureSixteenth_TexelSize.xy * 0.5);
 
 #define samp _CameraDepthTextureSixteenth
 
-		// pick max depth value out of the grid to ensure rendering happens underneath edges
-		float depth = (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv)));
-		depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv + offset))));
-		depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv - offset))));
-		depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv + float2(-offset.x, offset.y)))));
-		depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv + float2(offset.x, -offset.y)))));
-		depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv + float2(offset.x, 0.0)))));
-		depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv - float2(offset.x, 0.0)))));
-		depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv + float2(0.0, offset.y)))));
-		depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv - float2(0.0, offset.y)))));
+	// pick max depth value out of the grid to ensure rendering happens underneath edges
+	float depth = (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv + uv1)));
+	depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv + uv2))));
+	depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv + uv3))));
+	depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv + uv4))));
+	depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv + uv5))));
+	depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv + uv6))));
+	depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv + uv7))));
+	depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv + uv8))));
+	depth = max(depth, (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(samp, uv + uv9))));
 
 #undef samp
 
-		return depth;
+	return depth;
+
+#endif
+
+}
+
+// alphaThreshold is the max difference from the average alpha value to include in the blur
+inline fixed4 GaussianBlur_Texture2D_17Tap(sampler2D samp, float2 uv, float4 offsets, float alphaThreshold)
+{
+	float2 uv1 = float2(uv.x + offsets.x, uv.y - offsets.w);
+	float2 uv2 = float2(uv.x - offsets.y, uv.y - offsets.z);
+	float2 uv3 = float2(uv.x + offsets.y, uv.y + offsets.z);
+	float2 uv4 = float2(uv.x - offsets.x, uv.y + offsets.w);
+	fixed4 col = tex2Dlod(samp, float4(uv, 0.0, 0.0));
+	fixed4 col2 = tex2Dlod(samp, float4(uv1, 0.0, 0.0));
+	fixed4 col3 = tex2Dlod(samp, float4(uv2, 0.0, 0.0));
+	fixed4 col4 = tex2Dlod(samp, float4(uv3, 0.0, 0.0));
+	fixed4 col5 = tex2Dlod(samp, float4(uv4, 0.0, 0.0));
+	UNITY_BRANCH
+	if (alphaThreshold < 1.0)
+	{
+		fixed alphaAvg = ((col.a + col2.a + col3.a + col4.a + col5.a) * 0.2);
+		fixed match1 = abs(col.a - alphaAvg) < alphaThreshold;
+		fixed match2 = abs(col2.a - alphaAvg) < alphaThreshold;
+		fixed match3 = abs(col3.a - alphaAvg) < alphaThreshold;
+		fixed match4 = abs(col4.a - alphaAvg) < alphaThreshold;
+		fixed match5 = abs(col5.a - alphaAvg) < alphaThreshold;
+		fixed count = match1 + match2 + match3 + match4 + match5;
+		col *= match1;
+		col += (match2 * col2);
+		col += (match3 * col3);
+		col += (match4 * col4);
+		col += (match5 * col5);
+		col /= count;
 	}
 	else
 	{
-		return WM_SAMPLE_DEPTH_DOWNSAMPLED_01(uv);
+		col = (col + col2 + col3 + col4 + col5) * 0.2;
 	}
+	return col;
+}
+
+#define GaussianBlur17Tap(ret, samp, uv, offsets, alphaThreshold) \
+{ \
+	float2 uv1 = float2(uv.x + offsets.x, uv.y - offsets.w); \
+	float2 uv2 = float2(uv.x - offsets.y, uv.y - offsets.z); \
+	float2 uv3 = float2(uv.x + offsets.y, uv.y + offsets.z); \
+	float2 uv4 = float2(uv.x - offsets.x, uv.y + offsets.w); \
+	fixed4 col = WM_SAMPLE_FULL_SCREEN_TEXTURE(samp, uv); \
+	fixed4 col2 = WM_SAMPLE_FULL_SCREEN_TEXTURE(samp, uv1); \
+	fixed4 col3 = WM_SAMPLE_FULL_SCREEN_TEXTURE(samp, uv2); \
+	fixed4 col4 = WM_SAMPLE_FULL_SCREEN_TEXTURE(samp, uv3); \
+	fixed4 col5 = WM_SAMPLE_FULL_SCREEN_TEXTURE(samp, uv4); \
+	if (alphaThreshold < 1.0) \
+	{ \
+		fixed alphaAvg = ((col.a + col2.a + col3.a + col4.a + col5.a) * 0.2); \
+		fixed match1 = abs(col.a - alphaAvg) < alphaThreshold; \
+		fixed match2 = abs(col2.a - alphaAvg) < alphaThreshold; \
+		fixed match3 = abs(col3.a - alphaAvg) < alphaThreshold; \
+		fixed match4 = abs(col4.a - alphaAvg) < alphaThreshold; \
+		fixed match5 = abs(col5.a - alphaAvg) < alphaThreshold; \
+		fixed count = match1 + match2 + match3 + match4 + match5; \
+		col *= match1; \
+		col += (match2 * col2); \
+		col += (match3 * col3); \
+		col += (match4 * col4); \
+		col += (match5 * col5); \
+		col /= count; \
+	} \
+	else \
+	{ \
+		col = (col + col2 + col3 + col4 + col5) * 0.2; \
+	} \
+	ret = col; \
+}
+
+// MIT license: https://github.com/tuxalin/water-shader/blob/3cf2cd4788c87d42303afbbdfb8bfe0591b20ccf/shaders/hlsl/bicubic.cginc
+inline float4 tex2DBicubic(sampler2D tex, float2 texCoords, float lod, float4 texelSize)
+{
+	float4 n, s;
+	float x, y, z, w;
+
+#define cubic(v, result) \
+	n = float4(1.0, 2.0, 3.0, 4.0) - v; \
+	s = n * n * n; \
+	x = s.x; \
+	y = s.y - 4.0 * s.x; \
+	z = s.z - 4.0 * s.y + 6.0 * s.x; \
+	w = 6.0 - x - y - z; \
+	float4 result = float4(x, y, z, w) * (1.0 / 6.0);
+
+	texCoords = (texCoords * texelSize.zw) - 0.5;
+	float2 fxy = frac(texCoords);
+	texCoords -= fxy;
+
+	cubic(fxy.x, xcubic);
+	cubic(fxy.y, ycubic);
+
+	float4 c = texCoords.xxyy + float2(-0.5, 1.5).xyxy;
+	float4 t = float4(xcubic.xz + xcubic.yw, ycubic.xz + ycubic.yw);
+	float4 offset = c + float4(xcubic.yw, ycubic.yw) / t;
+	offset *= texelSize.xxyy;
+	float4 sample0 = tex2Dlod(tex, float4(offset.xz, 0.0, lod));
+	float4 sample1 = tex2Dlod(tex, float4(offset.yz, 0.0, lod));
+	float4 sample2 = tex2Dlod(tex, float4(offset.xw, 0.0, lod));
+	float4 sample3 = tex2Dlod(tex, float4(offset.yw, 0.0, lod));
+	float sx = t.x / (t.x + t.y);
+	float sy = t.z / (t.z + t.w);
+
+	return lerp(lerp(sample3, sample2, sx), lerp(sample1, sample0, sx), sy);
+
+#undef cubic
+
 }
 
 inline float2 AlignScreenUVWithDepthTexel(float2 uv)
 {
 
-#if UNITY_UV_STARTS_AT_TOP
+#if defined(WEATHER_MAKER_ENABLE_TEXTURE_DEFINES)
+	
+#if (UNITY_UV_STARTS_AT_TOP)
 
 	if (_CameraDepthTexture_TexelSize.y < 0)
 	{
@@ -449,8 +644,22 @@ inline float2 AlignScreenUVWithDepthTexel(float2 uv)
 
 	return (floor(uv * _CameraDepthTexture_TexelSize.zw) + 0.5) *
 		abs(_CameraDepthTexture_TexelSize.xy);
+
+#else
+
+	return uv;
+
+#endif // WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
+
 }
 
+float ViewDepthFromDepth01(float depth01, float2 screenUV)
+{
+	float4 clipPos = float4((screenUV * 2.0) - 1.0, 1.0, 1.0);
+	clipPos = mul(unity_CameraInvProjection, clipPos);
+	clipPos.xyz /= clipPos.w;
+	return length(clipPos.xyz);
+}
 
 inline fixed LerpFade(float4 lifeTime, float timeSinceLevelLoad)
 {
@@ -577,9 +786,9 @@ inline float3 GetFullScreenRayDir(float3 rayDir)
 	}
 }
 
-inline volumetric_data GetVolumetricData(appdata_base v)
+inline wm_volumetric_data GetVolumetricData(appdata_base v)
 {
-	WM_INSTANCE_VERT(v, volumetric_data, o);
+	WM_INSTANCE_VERT(v, wm_volumetric_data, o);
 	o.vertex = UnityObjectToClipPosFarPlane(v.vertex);
 	o.normal = UnityObjectToWorldNormal(v.normal);
 	o.projPos = ComputeScreenPos(o.vertex);
@@ -589,9 +798,9 @@ inline volumetric_data GetVolumetricData(appdata_base v)
 	return o;
 }
 
-full_screen_fragment full_screen_vertex_shader(full_screen_vertex v)
+wm_full_screen_fragment full_screen_vertex_shader(wm_full_screen_vertex v)
 {
-	WM_INSTANCE_VERT(v, full_screen_fragment, o);
+	WM_INSTANCE_VERT(v, wm_full_screen_fragment, o);
 	o.vertex = UnityObjectToClipPos(v.vertex);
 	o.uv.xy = AdjustFullScreenUV(v.uv);
 	float2 cameraUV = (2.0 * v.uv.xy) - 1.0;
@@ -620,9 +829,9 @@ full_screen_fragment full_screen_vertex_shader(full_screen_vertex v)
 	return o;
 }
 
-full_screen_fragment_reflection full_screen_vertex_shader_refl(full_screen_vertex v)
+wm_full_screen_fragment_reflection full_screen_vertex_shader_refl(wm_full_screen_vertex v)
 {
-	WM_INSTANCE_VERT(v, full_screen_fragment_reflection, o);
+	WM_INSTANCE_VERT(v, wm_full_screen_fragment_reflection, o);
 	o.vertex = UnityObjectToClipPos(v.vertex);
 	o.uv.xy = AdjustFullScreenUV(v.uv);
 	float2 cameraUV = (2.0 * v.uv.xy) - 1.0;
@@ -655,9 +864,9 @@ full_screen_fragment_reflection full_screen_vertex_shader_refl(full_screen_verte
 	return o;
 }
 
-full_screen_fragment_vertex_uv full_screen_vertex_shader_vertex_uv(full_screen_vertex v)
+wm_full_screen_fragment_vertex_uv full_screen_vertex_shader_vertex_uv(wm_full_screen_vertex v)
 {
-	WM_INSTANCE_VERT(v, full_screen_fragment_vertex_uv, o);
+	WM_INSTANCE_VERT(v, wm_full_screen_fragment_vertex_uv, o);
 	o.vertex = UnityObjectToClipPos(v.vertex);
 	o.uv = AdjustFullScreenUV(v.uv);
 	return o;

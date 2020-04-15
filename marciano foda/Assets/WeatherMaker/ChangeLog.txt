@@ -1,13 +1,89 @@
 ﻿Change Log:
+5.6.9	(2019-05-23)
+		- Remove hack for Unity 2019 VR, Unity fixed the problem in Unity 2019.1.3.
+
+5.6.8	(2019-05-21)
+		- Fix an issue with flat clouds causing outlines around geometry.
+		- Add proper lens flare blocking. Flat and volumetric clouds now block the lens flare for the sun by default. Compute shaders required.
+
+5.6.7	(2019-05-18)
+		- Fix WAPI compile error.
+		- Maintain prefab link when adding from menu.
+		- Add code and instructions to readme.txt for Crest Ocean integration.
+		- Improve ocean water profile appearance.
+		- Add auto-bounds option to water y depth script. Turn this off to manually tune the area sampled for depth and wave heights.
+
+5.6.6	(2019-05-14)
+		- Improve VR performance.
+		- Fix mirror script integration compile error.
+
+5.6.5	(2019-05-13)
+		- Change volumetric cloud min/max height to be ranges for more randomization.
+		- Add play maker integration for getting and setting both date and time along with weather profile by name.
+		- Add events to WeatherMakerScript for weather profile change, weather zone change and year, month, day, hour, minute, second, day/night, dawn/dusk and sunrise/sunset.
+		- Improve storm cloud profile appearance.
+
+5.6.4	(2019-05-10)
+		- Add weather api demo scene using open weather map. This syncs weather maker profile to weather conditions from an API - see DemoSceneWeatherApi and WeatherMakerLocationWeatherScript for an example.
+		- Improve additive scene loading.
+
+5.6.3	(2019-05-08)
+		- Add option to full screen fog shafts to add in the frame buffer color with intensity and tint.
+		- Optimize cloud shadows to not render for pixels that have a full screen space shadow already.
+		- Allow controlling cloud shadow distance fade (see cloud shadow material).
+		- HACK: Fix Unity 2019 VR rendering, work-around Unity 2019 bug that flips VR command buffers in some cases.
+		- Fix editor mode selection not working or always selecting the weather maker prefab.
+		- Fix fog full screen shafts and add performance profile option for shaft downsample scale.
+		- Fix null zone to work without soft particles.
+
+5.6.2	(2019-05-03)
+		- Reduce water texture samplers to 16, fixing issues on MAC and mobile.
+		- Fix water corruption and display issues.
+		- Add water caustics, foam and refraction to performance profiles.
+		- Add overcast cloud and weather profiles.
+		- Fix fog causing dir light scattering to show behind heavy clouds.
+		- Fix cloud shadows to not show as much for flat clouds like cirrus.
+		- Tweak moon to be less specular.
+		- Tweak fly-through cloud profile to remove some artifacts at bottom of clouds.
+		- Fix 2D sky.
+
+5.6.1	(2019-04-26)
+		- Eliminate GC alloc of WeatherMakerShaderPropertiesScript.
+		- Reduce GC alloc of access of gradient color keys.
+		- Fix dithering and halo around storm clouds.
+
+5.6.0	(2019-04-24)
+		- Volumetric cloud render performance improvements of 50-100%.
+		- Improved cloud shadow appearance.
+		- Added high detail cloud shadow texture to cloud shadow map material.
+		- Dither and blur cloud dir light rays, reduce banding.
+		- Improve appearance of volumetric heavy bright, heavy dark and storm cloud profiles.
+		- Improve fog sun and moon shafts. You may need to increase the brightness on your full screen fog profiles as a result of shader changes.
+		- Improve flat layer interactions with volumetric clouds.
+		- Cloud noise editor now scales to window height.
+		- Fix nested weather zones.
+		- Fix VR performance regression.
+		- Fix full screen fog.
+		- Fix underwater mode not triggering.
+		- Fix flat clouds not showing up when volumetric clouds are disabled.
+		- Fix flat cloud transitions.
+
+5.5.1	(2019-04-16)
+		- Improve cloud probe performance with gpu read async, on supported platforms.
+		- Fix sky sphere and weather map material to not change all the time, making git use easier.
+		- Code refactoring.
+
 5.5.0	(2019-04-13)
-		- Cloud gradients can now be edited in real-time.
+		- Cloud gradient heights (stratus, strato-cumuls, cumuls) can now be edited in real-time.
+		- Add method to probe volumetric cloud density. Source only or raycast density can be obtained, see WeatherMakerCloudProbeScript.cs (requires compute shaders).
+		- Fade cloud shadows near far plane.
 		- Reduce sky ambient for clouds that are closer.
 		- Add fog density gradient to fog profile to allow fog density multiplier based on time of day.
 		- Vary cloud density and curl noise based on cloud type.
 		- Add rolling storm performance profile and greatly improve look of rolling storm.
 		- Improve cloud shadow appearance.
 		- Improve fly-through cloud appearance.
-		- Add method to get cloud density at world position via script, see WeatherMakerCloudProbeScript.cs (requires compute shaders).
+		- Performance improvements.
 		- Unity 2019 fixes.
 
 5.4.1	(2019-03-29)

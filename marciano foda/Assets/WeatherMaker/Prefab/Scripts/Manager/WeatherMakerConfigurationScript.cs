@@ -148,6 +148,16 @@ namespace DigitalRuby.WeatherMaker
             {
                 UnityEngine.SceneManagement.SceneManager.LoadScene(0);
             }
+
+            /*
+            // test additive scene loading
+            if (Input.GetKeyDown(KeyCode.F1) && Input.GetKey(KeyCode.LeftShift))
+            {
+                UnityEngine.SceneManagement.SceneManager.LoadScene(1);
+                return;
+            }
+            */
+
             if (WeatherMapImage != null && Camera.main != null)
             {
                 if (Camera.main.orthographic)

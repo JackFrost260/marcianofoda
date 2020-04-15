@@ -42,7 +42,7 @@
 // WEATHER_MAKER_LIGHT_SPECULAR_SPARKLE - enable specular sparkle (if WEATHER_MAKER_LIGHT_NO_NORMALS is defined and WEATHER_MAKER_LIGHT_NO_SPECULAR is not defined)
 // WEATHER_MAKER_LIGHT_SPECULAR_TRANSLUCENT - allow specular translucency (i.e. water, glass, etc.) specular highlight on opposite side of surface
 // WEATHER_MAKER_SHADOWS_SCREEN allow screen space shadow lighting
-// WEATHER_MAKER_SHADOWS_DEPTH_EXTERNAL_FUNC - set to a float func(float3 worldPos) which returns shadow strength for a world pos
+// WEATHER_MAKER_SHADOWS_DEPTH_EXTERNAL_FUNC - set to a float func(float3 worldPos, int dirIndex, float existingShadow, bool sampleDetails) which returns shadow strength for a world pos
 
 #define MAX_LIGHT_COUNT 16
 
@@ -106,6 +106,26 @@ uniform fixed3 _WeatherMakerAmbientLightColorEquator;
 
 static const fixed3 weatherMakerAmbientLightColorCombined = (_WeatherMakerAmbientLightColor + _WeatherMakerAmbientLightColorSky + _WeatherMakerAmbientLightColorGround);
 
+static const float3 weatherMakerRandomCone[16] = // random vectors for cone sampling
+{
+	float3(-0.07864, -0.20610, 0.06905),
+	float3(0.07096, -0.19096, 0.12691),
+	float3(0.01922, 0.23669, 0.14018),
+	float3(-0.09469, -0.13924, -0.23133),
+	float3(-0.26556, 0.01159, 0.03149),
+	float3(-0.09375, -0.16036, -0.25845),
+	float3(-0.30011, 0.12470, 0.04241),
+	float3(0.01836, -0.30818, 0.03992),
+	float3(0.24588, -0.20103, 0.02396),
+	float3(-0.11921, -0.22320, -0.11015),
+	float3(0.11726, -0.18701, -0.04830),
+	float3(-0.01300, 0.02882, 0.08764),
+	float3(-0.10065, 0.17805, 0.10268),
+	float3(0.04206, -0.09293, -0.26513),
+	float3(-0.02481, -0.19277, 0.24655),
+	float3(-0.25913, 0.00741, 0.07627)
+};
+
 // dir lights
 uniform int _WeatherMakerDirLightCount;
 uniform float4 _WeatherMakerDirLightPosition[MAX_LIGHT_COUNT]; // to dir light
@@ -115,6 +135,7 @@ uniform float4 _WeatherMakerDirLightViewportPosition[MAX_LIGHT_COUNT];
 uniform float4 _WeatherMakerDirLightPower[MAX_LIGHT_COUNT]; // power, multiplier, shadow strength, 1 - shadow strength
 uniform float4 _WeatherMakerDirLightQuaternion[MAX_LIGHT_COUNT]; // convert from world space to light space
 uniform float4 _WeatherMakerDirLightVar1[MAX_LIGHT_COUNT]; // x = how much have dir light changed since the last frame, y = 0 for perspective, 1 for ortho, z = shaft multiplier, w = horizon intensity
+uniform float _WeatherMakerDirLightMultiplier;
 
 // point lights
 uniform int _WeatherMakerPointLightCount;
@@ -176,12 +197,12 @@ uniform fixed4 _WeatherMakerFogSunShaftsParam1;
 uniform fixed4 _WeatherMakerFogSunShaftsParam2;
 uniform fixed4 _WeatherMakerFogSunShaftsTintColor;
 uniform fixed4 _WeatherMakerFogSunShaftsDitherMagic;
+uniform fixed _WeatherMakerFogSunShaftsBackgroundIntensity;
+uniform fixed3 _WeatherMakerFogSunShaftsBackgroundTintColor;
+
 #define WM_FOG_SUN_SHAFT_ENABLE (_WeatherMakerFogSunShaftMode == 1)
 
-uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraGBufferTexture0);
-uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraGBufferTexture1);
-uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraGBufferTexture2);
-uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_CameraGBufferTexture3);
+uniform fixed _WeatherMakerDirectionalLightScatterMultiplier;
 
 inline fixed CalculateDirLightAtten(float3 lightDir
 	
@@ -342,8 +363,7 @@ inline float CalculateDirLightDepthShadowPower(float3 worldPos, int dirIndex)
 		
 #if defined(WEATHER_MAKER_SHADOWS_DEPTH_EXTERNAL_FUNC)
 
-		float externalShadowPower = WEATHER_MAKER_SHADOWS_DEPTH_EXTERNAL_FUNC(worldPos, dirIndex);
-		shadowPower = min(shadowPower, externalShadowPower);
+		shadowPower = WEATHER_MAKER_SHADOWS_DEPTH_EXTERNAL_FUNC(worldPos, dirIndex, shadowPower, false);
 
 #else
 
@@ -713,6 +733,9 @@ fixed3 CalculateLightColorWorldSpace(wm_world_space_light_params p)
 // pass specular.a of 0 to auto-detect roughness from gbuffer
 inline fixed3 ComputeReflectionColor(float3 worldPos, float3 rayDir, float3 normal, float2 screenUV, fixed4 specular)
 {
+
+#if defined(WEATHER_MAKER_ENABLE_TEXTURE_DEFINES)
+
 	// auto-detect specular
 	UNITY_BRANCH
 	if (specular.a <= 0.0)
@@ -720,6 +743,8 @@ inline fixed3 ComputeReflectionColor(float3 worldPos, float3 rayDir, float3 norm
 		specular = WM_SAMPLE_FULL_SCREEN_TEXTURE(_CameraGBufferTexture1, screenUV);
 		specular.a = saturate(UNITY_SPECCUBE_LOD_STEPS * specular.a);
 	}
+
+#endif
 
 	float3 reflVector = reflect(rayDir, normal);
 
@@ -751,14 +776,15 @@ inline fixed3 ComputeReflectionColor(float3 worldPos, float3 rayDir, float3 norm
 
 }
 
-fixed3 ComputeDirLightShaftColor(float2 screenUV, fixed fogFactor, float4 viewportPos, fixed3 shaftColor)
+fixed3 ComputeDirLightShaftColor(float2 screenUV, fixed fogFactor, float4 viewportPos, fixed4 shaftColor, fixed4 pixelColor)
 {
 	fixed3 color = fixed3Zero;
+	fixed3 shaftRGB = shaftColor.rgb * min(1.0, shaftColor.a * shaftColor.a * 10.0);
 
-#if defined(WEATHER_MAKER_IS_FULL_SCREEN_EFFECT)
+#if defined(WEATHER_MAKER_IS_FULL_SCREEN_EFFECT) && defined(WEATHER_MAKER_ENABLE_TEXTURE_DEFINES)
 
 	UNITY_BRANCH
-	if (WM_FOG_SUN_SHAFT_ENABLE && WM_CAMERA_RENDER_MODE_NORMAL && _WeatherMakerDirLightCount > 0 && _WeatherMakerFogSunShaftsParam1.y > 0)// && viewportPos.z >= 0.0)
+	if (WM_FOG_SUN_SHAFT_ENABLE && WM_CAMERA_RENDER_MODE_NORMAL && _WeatherMakerDirLightCount > 0 && _WeatherMakerFogSunShaftsParam1.y > 0 && viewportPos.z >= 0.0)
 	{
 
 #if defined(UNITY_COLORSPACE_GAMMA)
@@ -786,7 +812,7 @@ fixed3 ComputeDirLightShaftColor(float2 screenUV, fixed fogFactor, float4 viewpo
 		// start off with full step multiplier
 		fixed stepMultiplier = _WeatherMakerFogSunShaftsParam2.x;
 
-		fixed4 pixelColor = WM_SAMPLE_FULL_SCREEN_TEXTURE(_MainTex2, screenUV.xy);
+		fixed3 rgb;
 
 		// ray march sample count times
 		UNITY_LOOP
@@ -795,8 +821,14 @@ fixed3 ComputeDirLightShaftColor(float2 screenUV, fixed fogFactor, float4 viewpo
 			// march from center of sun pixel towards target pixel
 			screenUV += uvMarch;
 
-			// read camera target and sum up all colors and average them
-			fixed3 rgb = WM_SAMPLE_FULL_SCREEN_TEXTURE(_MainTex2, screenUV.xy).rgb;
+			// read target and sum up all colors and average them
+			rgb = WM_SAMPLE_FULL_SCREEN_TEXTURE(_MainTex2, screenUV.xy).rgb;
+
+			UNITY_BRANCH
+			if (_WeatherMakerFogSunShaftsBackgroundIntensity > 0.0)
+			{
+				rgb += (WM_SAMPLE_FULL_SCREEN_TEXTURE(_MainTex5, screenUV.xy).rgb * _WeatherMakerFogSunShaftsBackgroundTintColor * _WeatherMakerFogSunShaftsBackgroundIntensity);
+			}
 
 			// apply color using step multiplier and multiply by inverse sample count * weight
 			color += (rgb * stepMultiplier);
@@ -810,7 +842,7 @@ fixed3 ComputeDirLightShaftColor(float2 screenUV, fixed fogFactor, float4 viewpo
 		// multiply final color by brightness multiplier and reduce by fog factor and reduce for very thin fog factor
 		fixed fogFactorReducer1 = (1.0 - fogFactor);
 		fixed fogFactorReducer2 = min(1.0, lerp(0.0, 1.0, fogFactor * fogFactor * 1000.0));
-		color *= shaftColor * _WeatherMakerFogSunShaftsParam1.w * _WeatherMakerFogSunShaftsTintColor.rgb * viewportPos.w * shaftBrightness * fogFactorReducer1 * fogFactorReducer2;
+		color *= shaftRGB * _WeatherMakerFogSunShaftsParam1.w * _WeatherMakerFogSunShaftsTintColor.rgb * viewportPos.w * shaftBrightness * fogFactorReducer1 * fogFactorReducer2;
 	}
 
 #endif

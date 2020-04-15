@@ -46,21 +46,24 @@ namespace DigitalRuby.WeatherMaker
             {
                 for (int i = 0; i < noiseProfile.NoiseProfiles.Length; i++)
                 {
-                    noiseProfile.NoiseProfiles[i].ApplyToMaterial(materials[i]);
-                    materials[i].SetFloat(WMS._CloudNoiseFrame, frame);
-                    Graphics.Blit(null, renderTextures[i], materials[i], 0);
+                    if (noiseProfile.NoiseProfiles[i] != null)
+                    {
+                        noiseProfile.NoiseProfiles[i].ApplyToMaterial(materials[i]);
+                        materials[i].SetFloat(WMS._CloudNoiseFrame, frame);
+                        Graphics.Blit(null, renderTextures[i], materials[i], 0);
+                    }
                 }
                 if (animated)
                 {
                     frame += Time.deltaTime * 0.05f;
-                    Repaint();
                 }
+                Repaint();
             }
         }
 
         private void OnGUI()
         {
-            const float textureHeight = 180.0f;
+            float textureHeight = Mathf.Max(position.height - 80.0f, 180.0f);
             float fieldWidth = EditorGUIUtility.fieldWidth;
             EditorGUIUtility.fieldWidth = 800.0f;
             Rect rect = new Rect(4.0f, textureHeight + 8.0f, EditorGUIUtility.fieldWidth, EditorGUIUtility.singleLineHeight);

@@ -46,50 +46,6 @@ namespace DigitalRuby.WeatherMaker
         [MinMaxSlider(0.0f, 1000.0f, "Cloud noise height power, controls how uniform noise is. Lower values produce more uniform noise at lower heights.")]
         public RangeOfFloats CloudHeightNoisePowerVolumetric = new RangeOfFloats(100.0f, 100.0f);
 
-        [Header("Clouds - raymarch")]
-        [MinMaxSlider(16, 256, "Max sample count, higher values use more processing")]
-        public RangeOfIntegers CloudNoiseSampleCount = new RangeOfIntegers { Minimum = 64, Maximum = 128 };
-
-        [MinMaxSlider(0.0f, 10.0f, "Minimum and maximum lod for noise sampling")]
-        public RangeOfFloats CloudNoiseLod = new RangeOfFloats { Minimum = 0.0f, Maximum = 1.0f };
-
-        [Tooltip("Dir light sample count for shadows")]
-        [Range(0, 6)]
-        public int CloudDirLightSampleCount = 5;
-
-        [Tooltip("Max ray length multiplier, accumulates noise over longer distance, especially at horizon")]
-        [Range(1.0f, 100.0f)]
-        public float CloudMaxRayLengthMultiplier = 10.0f;
-
-        [Tooltip("Ray march multiplier. Greater than 1.0 improves performance but can reduce quality.")]
-        [Range(0.1f, 10.0f)]
-        public float CloudRaymarchMultiplier = 2.0f;
-
-        [Tooltip("Dither cloud ray direction to try and avoid banding, 0 for none.")]
-        [Range(0.0f, 1.0f)]
-        public float CloudRayDither = 0.0f;
-
-        [Header("Clouds - raymarch optimizations")]
-        [Tooltip("Number of ray marches with no cloud before increasing ray march step. 0 to disable this feature.")]
-        [Range(0, 256)]
-        public int CloudRaymarchSkipThreshold = 0;
-
-        [Tooltip("Reduce cloud raymarch by this amount while possibly in a cloud. Reduce for better cloud details but watch out for artifacts. Ignored if skip threshold is 0.")]
-        [Range(0.01f, 1.0f)]
-        public float CloudRaymarchMaybeInCloudStepMultiplier = 1.0f;
-
-        [Tooltip("Reduce cloud raymarch by this amount while in a cloud. Reduce for better cloud details but watch out for artifacts. Ignored if skip threshold is 0.")]
-        [Range(0.01f, 1.0f)]
-        public float CloudRaymarchInCloudStepMultiplier = 1.0f;
-
-        [Tooltip("Once skip threshold is reached, continually multiply step distance by this value. Ignored if skip threshold is 0.")]
-        [Range(1.01f, 2.0f)]
-        public float CloudRaymarchSkipMultiplier = 1.1f;
-
-        [Tooltip("The max number of times to multiply the raymarch distance, this ensures that the ray march step distance does not become so large that it misses clouds.")]
-        [Range(1, 64)]
-        public int CloudRaymarchSkipMultiplierMaxCount = 16;
-
         [Header("Clouds - appearance")]
         [Tooltip("Max optical depth multiplier, determines horizon fade and other sky blending effects")]
         [Range(1.0f, 100.0f)]
@@ -123,11 +79,7 @@ namespace DigitalRuby.WeatherMaker
 
         [Tooltip("Cloud dir light gradient color, where center of gradient is sun at horizon, right is 'noon'.")]
         public Gradient CloudDirLightGradientColor = new Gradient();
-
-        /// <summary>
-        /// Cached version of cloud gradient color
-        /// </summary>
-        public Gradient LerpCloudGradientColor { get; internal set; }
+        internal Color CloudDirLightGradientColorColor;
 
         [Header("Clouds - lights")]
         [Tooltip("Cloud dir light multiplier")]
@@ -137,10 +89,6 @@ namespace DigitalRuby.WeatherMaker
         [Tooltip("Point/spot light multiplier")]
         [Range(0.0f, 10.0f)]
         public float CloudPointSpotLightMultiplier = 1.0f;
-
-        [Tooltip("How far to march vs. cloud height when determining lighting/shadowing for clouds")]
-        [Range(0.01f, 1.0f)]
-        public float CloudLightStepMultiplier = 1.0f;
 
         [Tooltip("How much clouds absorb light, affects shadows in the clouds")]
         [Range(0.0f, 64.0f)]
@@ -221,10 +169,6 @@ namespace DigitalRuby.WeatherMaker
         public WeatherMakerVolumetricCloudsFlatLayerMask FlatLayerMask = WeatherMakerVolumetricCloudsFlatLayerMask.Four;
 
         [Header("Clouds - dir light rays")]
-        [Tooltip("The number of dir light ray samples. Set to 0 to disable dir light rays.")]
-        [Range(0, 100)]
-        public int CloudDirLightRaySampleCount = 0;
-
         [Tooltip("Dir light ray spread (0 - 1).")]
         [Range(0.0f, 1.0f)]
         public float CloudDirLightRaySpread = 0.65f;
@@ -244,12 +188,10 @@ namespace DigitalRuby.WeatherMaker
         [Tooltip("Dir light ray tint color. Alpha value determines tint intensity.")]
         public Color CloudDirLightRayTintColor = Color.white;
 
-        [Tooltip("Controls dithering intensity of dir light rays.")]
-        [Range(-1.0f, 1.0f)]
-        public float CloudDirLightRayDither = 0.075f;
-
-        [Tooltip("Controls dithering appearance of dir light rays.")]
-        public Vector4 CloudDirLightRayDitherMagic = new Vector4(2.34325f, 5.235345f, 1024.0f, 1024.0f);
+        /// <summary>
+        /// Magic dither values for cloud rays
+        /// </summary>
+        public static readonly Vector4 CloudDirLightRayDitherMagic = new Vector4(2.34325f, 5.235345f, 1024.0f, 1024.0f);
 
         /// <summary>
         /// Progress for all internal lerp variables
@@ -258,20 +200,21 @@ namespace DigitalRuby.WeatherMaker
 
         public static Vector4 CloudHeightGradientToVector4(Gradient gradient)
         {
-            int keyCount = gradient.colorKeys.Length;
+            GradientColorKey[] colorKeys = gradient.colorKeys;
+            int keyCount = colorKeys.Length;
             Vector4 vec;
             if (keyCount > 0)
             {
-                vec.x = gradient.colorKeys[0].time;
+                vec.x = colorKeys[0].time;
                 if (keyCount > 1)
                 {
-                    vec.y = gradient.colorKeys[1].time;
+                    vec.y = colorKeys[1].time;
                     if (keyCount > 2)
                     {
-                        vec.z = gradient.colorKeys[2].time;
+                        vec.z = colorKeys[2].time;
                         if (keyCount > 3)
                         {
-                            vec.w = gradient.colorKeys[3].time;
+                            vec.w = colorKeys[3].time;
                         }
                         else
                         {

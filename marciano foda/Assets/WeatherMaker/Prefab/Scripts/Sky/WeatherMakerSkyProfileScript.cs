@@ -53,6 +53,7 @@ namespace DigitalRuby.WeatherMaker
     }
 
     [CreateAssetMenu(fileName = "WeatherMakerSkyProfile", menuName = "WeatherMaker/Sky Profile", order = 30)]
+    [System.Serializable]
     public class WeatherMakerSkyProfileScript : ScriptableObject
     {
         [Header("Sky Rendering")]

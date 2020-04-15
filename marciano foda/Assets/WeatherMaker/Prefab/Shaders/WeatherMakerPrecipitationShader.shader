@@ -45,6 +45,7 @@ Shader "WeatherMaker/WeatherMakerPrecipitationShader"
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
 		
+		#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
 
 		ENDCG
 
@@ -147,19 +148,26 @@ Shader "WeatherMaker/WeatherMakerPrecipitationShader"
 			{       
 				WM_INSTANCE_FRAG(v);
 
-#if defined(SOFTPARTICLES_ON) && !defined(ORTHOGRAPHIC_MODE)
-
 				fixed nearFade = v.projPos.z - _ParticleZClip;
+
+				// clip out if entirely faded out, no point in continuing
 				clip(nearFade);
+
 				nearFade = min(1.0, nearFade * 0.5);
+
+#if defined(SOFTPARTICLES_ON) && !defined(ORTHOGRAPHIC_MODE)
 
 				float sceneZ = LinearEyeDepth(WM_SAMPLE_DEPTH_PROJ(v.projPos));
 				float partZ = v.projPos.z;
 				float diff = (sceneZ - partZ);
 				v.color.a *= saturate(_InvFade * diff);
+
+#endif
+
 				v.color.a *= nearFade * ClipWorldPosNullZonesAlpha(v.worldPos);
 
-#endif // defined(SOFTPARTICLES_ON)
+				// clip out if completely transparent, no point in expensive lighting and blending
+				clip(v.color.a - 0.001);
 
 #if defined(WEATHER_MAKER_PER_PIXEL_LIGHTING)
 
@@ -177,7 +185,7 @@ Shader "WeatherMaker/WeatherMakerPrecipitationShader"
 
 #endif
 
-#if UNITY_VERSION >= 201820
+#if UNITY_VERSION >= 201820 && UNITY_VERSION < 201900
 
 				color.rgb *= 3.0;
 

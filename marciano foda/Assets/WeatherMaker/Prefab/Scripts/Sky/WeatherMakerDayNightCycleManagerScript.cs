@@ -64,7 +64,7 @@ namespace DigitalRuby.WeatherMaker
         /// <summary>
         /// Time of day as a TimeSpan object
         /// </summary>
-        public TimeSpan TimeOfDayTimespan { get { return DayNightProfile.TimeOfDayTimespan; } }
+        public TimeSpan TimeOfDayTimespan { get { return DayNightProfile.TimeOfDayTimespan; } set { DayNightProfile.TimeOfDayTimeSpan = value; } }
 
         /// <summary>
         /// Time zone offset in seconds
@@ -85,6 +85,15 @@ namespace DigitalRuby.WeatherMaker
         /// Day
         /// </summary>
         public int Day { get { return DayNightProfile.Day; } set { DayNightProfile.Day = value; } }
+
+        /// <summary>
+        /// Get a date time object representing the current year, month, day and time of day in local time
+        /// </summary>
+        public DateTime DateTime
+        {
+            get { return DayNightProfile.DateTime; }
+            set { DayNightProfile.DateTime = value; }
+        }
 
         /// <summary>
         /// Latitude in degrees
@@ -137,7 +146,6 @@ namespace DigitalRuby.WeatherMaker
         private void Awake()
         {
             EnsureProfile();
-            DayNightProfile.Awake();
         }
 
         private void Start()

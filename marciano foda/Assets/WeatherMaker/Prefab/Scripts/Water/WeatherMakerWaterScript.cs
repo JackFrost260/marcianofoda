@@ -83,7 +83,10 @@ namespace DigitalRuby.WeatherMaker
                 depthScript.Renderer = MeshRenderer;
             }
             UpdateProfile();
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
+            }
             if (WaterProfile != null)
             {
                 foreach (AudioClip clip in WaterProfile.SplashAudioClips)
@@ -103,7 +106,10 @@ namespace DigitalRuby.WeatherMaker
 
         private void OnDestroy()
         {
-            WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
+            }
         }
 
         private void Update()
@@ -126,7 +132,8 @@ namespace DigitalRuby.WeatherMaker
 
         private void UpdateShader()
         {
-            if (WeatherMakerLightManagerScript.Instance == null || WaterProfile == null || MeshRenderer.sharedMaterial == null)
+            if (WeatherMakerScript.Instance == null || WeatherMakerScript.Instance.PerformanceProfile == null ||
+                WeatherMakerLightManagerScript.Instance == null || WaterProfile == null || MeshRenderer.sharedMaterial == null)
             {
                 return;
             }
@@ -143,23 +150,58 @@ namespace DigitalRuby.WeatherMaker
             {
                 materialBlock.SetFloat(WMS._WaterReflective, 0);
             }
+            if (!WeatherMakerScript.Instance.PerformanceProfile.WaterEnableRefraction)
+            {
+                materialBlock.SetFloat(WMS._WaterRefractionStrength, 0.0f);
+            }
+            if (!WeatherMakerScript.Instance.PerformanceProfile.WaterEnableCaustics)
+            {
+                materialBlock.SetColor(WMS._WaterCausticsTintColor, Color.clear);
+            }
+            if (!WeatherMakerScript.Instance.PerformanceProfile.WaterEnableFoam)
+            {
+                materialBlock.SetVector(WMS._WaterFoamParam1, Vector4.zero);
+            }
 
             if (isUnderwater)
             {
-                materialBlock.SetFloat(WMS._Cull, (int)UnityEngine.Rendering.CullMode.Front);
-                materialBlock.SetFloat(WMS._ZTest, (int)UnityEngine.Rendering.CompareFunction.Always);
-                materialBlock.SetFloat(WMS._Zwrite, 0);
+                // bug in Unity can't set via material property block the are ignored
+                //materialBlock.SetFloat(WMS._Cull, (float)UnityEngine.Rendering.CullMode.Front);
+                //materialBlock.SetFloat(WMS._ZTest, (float)UnityEngine.Rendering.CompareFunction.Always);
+                //materialBlock.SetFloat(WMS._ZWrite, 0);
+
+                MeshRenderer.sharedMaterial.SetFloat(WMS._Cull, (float)UnityEngine.Rendering.CullMode.Front);
+                MeshRenderer.sharedMaterial.SetFloat(WMS._ZTest, (float)UnityEngine.Rendering.CompareFunction.Always);
+                MeshRenderer.sharedMaterial.SetFloat(WMS._ZWrite, 0);
             }
             else
             {
-                materialBlock.SetFloat(WMS._Cull, (int)UnityEngine.Rendering.CullMode.Back);
-                materialBlock.SetFloat(WMS._ZTest, (int)UnityEngine.Rendering.CompareFunction.LessEqual);
-                materialBlock.SetFloat(WMS._Zwrite, 1);
+                // bug in Unity can't set via material property block the are ignored
+                //materialBlock.SetFloat(WMS._Cull, (float)UnityEngine.Rendering.CullMode.Back);
+                //materialBlock.SetFloat(WMS._ZTest, (float)UnityEngine.Rendering.CompareFunction.LessEqual);
+                //materialBlock.SetFloat(WMS._ZWrite, 1);
+                MeshRenderer.sharedMaterial.SetFloat(WMS._Cull, (float)UnityEngine.Rendering.CullMode.Back);
+                MeshRenderer.sharedMaterial.SetFloat(WMS._ZTest, (float)UnityEngine.Rendering.CompareFunction.LessEqual);
+
+                if (SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Metal)
+                {
+                    MeshRenderer.sharedMaterial.SetFloat(WMS._ZWrite, 1);
+                }
+                else
+                {
+                    // zwrite causes corruption on metal
+                    MeshRenderer.sharedMaterial.SetFloat(WMS._ZWrite, 0);
+                }
             }
 
-            materialBlock.SetFloat(WMS._SrcBlendMode, (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            materialBlock.SetFloat(WMS._DstBlendMode, (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            materialBlock.SetFloat(WMS._SrcBlendMode, (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            materialBlock.SetFloat(WMS._DstBlendMode, (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
             materialBlock.SetVector(WMS._WeatherMakerFogBoxMax, transform.position);
+            if (depthScript != null)
+            {
+                float b = (0.5f * (depthScript.autoOrthographicSize / depthScript.OrthographicSize)) - 0.5f;
+                materialBlock.SetVector(WMS._WeatherMakerWaterDepthMaxUV, new Vector4(-b, 1.0f + b, 0.0f, 0.0f));
+            }
 
             PrecomputeWaves(WMS._WaterWave1, WMS._WaterWave1_Precompute, WMS._WaterWave1_Params1);
             PrecomputeWaves(WMS._WaterWave2, WMS._WaterWave2_Precompute, WMS._WaterWave2_Params1);
@@ -193,7 +235,11 @@ namespace DigitalRuby.WeatherMaker
             if (depthScript != null)
             {
                 Bounds bounds = MeshRenderer.bounds;
-                depthScript.OrthographicSize = bounds.size.z * 0.5f;
+                depthScript.autoOrthographicSize = bounds.size.z * 0.5f;
+                if (depthScript.AutoBounds)
+                {
+                    depthScript.OrthographicSize = depthScript.autoOrthographicSize;
+                }
                 depthScript.AspectRatio = bounds.size.x / bounds.size.z;
             }
         }

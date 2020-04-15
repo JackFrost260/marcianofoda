@@ -33,13 +33,6 @@ namespace DigitalRuby.WeatherMaker
     [AddComponentMenu("Weather Maker/Weather/Weather Zone", 0)]
     public class WeatherMakerWeatherZoneScript : MonoBehaviour
     {
-        private class TriggerEnterEvent
-        {
-            public Transform Transform;
-            public readonly List<WeatherMakerWeatherZoneScript> Stack = new List<WeatherMakerWeatherZoneScript>();
-            public bool Popped;
-        }
-
         [Header("Weather Zone - Profile Group (Multiple Profiles)")]
         [Tooltip("Ignored if SingleProfile is not null, otherwise this is the weather profile group " +
             "for this weather zone. The collider (which must be a trigger) is used to determine whether " +
@@ -91,39 +84,19 @@ namespace DigitalRuby.WeatherMaker
         [MinMaxSlider(0.0f, 1000.0f, "(Seconds) override random duration for profiles to hold before transition to another profile (set to 0 to not override)")]
         public RangeOfFloats HoldDuration = new RangeOfFloats { Minimum = 0, Maximum = 0 };
 
-        private static readonly Dictionary<Transform, TriggerEnterEvent> activeZones = new Dictionary<Transform, TriggerEnterEvent>();
-        private static readonly List<TriggerEnterEvent> pendingTriggerEvents = new List<TriggerEnterEvent>();
+        private static readonly Dictionary<WeatherMakerWeatherZoneScript, List<Transform>> zonesAndPlayers = new Dictionary<WeatherMakerWeatherZoneScript, List<Transform>>();
+        private static readonly Dictionary<Transform, List<WeatherMakerWeatherZoneScript>> playersAndZones = new Dictionary<Transform, List<WeatherMakerWeatherZoneScript>>();
 
         private WeatherMakerProfileScript currentProfile;
         private WeatherMakerProfileScript currentProfileSingle;
         private float secondsRemainingTransition;
         private float secondsRemainingHold;
-        private readonly List<Transform> tempGameObjects = new List<Transform>();
 
         private void Cleanup()
         {
-            // cleanup destroyed dictionary entries
-            foreach (var key in activeZones.Keys)
-            {
-                if (key == null)
-                {
-                    tempGameObjects.Add(key);
-                }
-            }
-            foreach (Transform obj in tempGameObjects)
-            {
-                activeZones.Remove(obj);
-            }
-            tempGameObjects.Clear();
-        }
-
-        private void ProcessPendingTriggerEvents()
-        {
-            for (int i = 0; i < pendingTriggerEvents.Count; i++)
-            {
-                TransitionFrom(pendingTriggerEvents[i]);
-            }
-            pendingTriggerEvents.Clear();
+            // clear all dictionary entries, trigger events will re-fire when enable is called
+            zonesAndPlayers.Clear();
+            playersAndZones.Clear();
         }
 
         private void Awake()
@@ -148,9 +121,7 @@ namespace DigitalRuby.WeatherMaker
                 return;
             }
 
-            ProcessPendingTriggerEvents();
             UpdateProfile();
-            Cleanup();
         }
 
         private void OnEnable()
@@ -160,6 +131,7 @@ namespace DigitalRuby.WeatherMaker
 
         private void OnDisable()
         {
+            Cleanup();
         }
 
         private void OnDestroy()
@@ -169,25 +141,72 @@ namespace DigitalRuby.WeatherMaker
 
         private void OnTriggerEnter(Collider other)
         {
-            bool isServer = WeatherMakerScript.Instance != null && WeatherMakerScript.Instance.NetworkConnection.IsServer;
-            if (isServer && WeatherMakerScript.IsPlayer(other.transform))
+            if (SingleProfile == null && ProfileGroup == null)
             {
-                TriggerEnterEvent triggerEvent;
-                if (!activeZones.TryGetValue(other.transform, out triggerEvent))
-                {
-                    activeZones[other.transform] = triggerEvent = new TriggerEnterEvent();
-                }
-                if (!triggerEvent.Stack.Contains(this))
-                {
-                    triggerEvent.Transform = other.transform;
-                    WeatherMakerWeatherZoneScript previous = (triggerEvent.Stack.Count == 0 ? null : triggerEvent.Stack[triggerEvent.Stack.Count - 1]);
-                    triggerEvent.Stack.Add(this);
-                    pendingTriggerEvents.Add(triggerEvent);
+                return;
+            }
 
-                    string newName = (SingleProfile == null ? (ProfileGroup == null ? "None" : ProfileGroup.name) : SingleProfile.name);
-                    string oldName = (previous == null ? "None" : (previous.SingleProfile == null ? previous.ProfileGroup.name : previous.SingleProfile.name));
-                    Debug.LogFormat("{0} is entering weather zone {1} from zone {2}", other.transform.name, newName, oldName);
+            bool isServer = WeatherMakerScript.Instance != null && WeatherMakerScript.Instance.NetworkConnection.IsServer;
+            if (isServer && gameObject.activeInHierarchy && enabled && WeatherMakerScript.IsPlayer(other.transform))
+            {
+                // ensure we have player zones and zone players lists
+                List<WeatherMakerWeatherZoneScript> playerZones;
+                if (!playersAndZones.TryGetValue(other.transform, out playerZones))
+                {
+                    playersAndZones[other.transform] = playerZones = new List<WeatherMakerWeatherZoneScript>();
                 }
+
+                if (playerZones.Contains(this))
+                {
+                    // already in the zone, don't re-process, sometimes OnTriggerEnter is called twice in a row
+                    return;
+                }
+
+                List<Transform> zonePlayers;
+                if (!zonesAndPlayers.TryGetValue(this, out zonePlayers))
+                {
+                    zonesAndPlayers[this] = zonePlayers = new List<Transform>();
+                }
+
+                // remove player from their previous zone
+                WeatherMakerWeatherZoneScript prevZone = null;
+                if (playerZones.Count != 0)
+                {
+                    // remove player from previous weather zone
+                    prevZone = playerZones[playerZones.Count - 1];
+                    List<Transform> prevZonePlayers;
+                    if (zonesAndPlayers.TryGetValue(prevZone, out prevZonePlayers))
+                    {
+                        prevZonePlayers.Remove(other.transform);
+                    }
+                }
+
+                // see if we have a previous zone, if so we have a previous profile to transition from
+                WeatherMakerProfileScript previousProfile = (playerZones.Count == 0 ? null : playerZones[playerZones.Count - 1].currentProfile);
+                float transitionDuration = (previousProfile == null ? 0.001f : currentProfile.RandomTransitionDuration());
+
+                // add zone to the player zone stack
+                playerZones.Add(this);
+                
+                // add player to the zone player list
+                zonePlayers.Add(other.transform);
+
+                if (WeatherMakerScript.IsLocalPlayer(other.transform))
+                {
+                    WeatherMakerScript.Instance.LastLocalProfile = currentProfile;
+                    if (prevZone != this)
+                    {
+                        WeatherMakerScript.Instance.WeatherZoneChanged.Invoke(this);
+                    }
+                }
+
+                // pick a new duration for the transition
+                string connectionId = WeatherMakerScript.Instance.NetworkConnection.GetConnectionId(other.transform);
+
+                // transition to new weather zone
+                // if transition from another zone, multiply the transition duration so we get to the new weather zone weather more quickly
+                WeatherMakerScript.Instance.RaiseWeatherProfileChanged(previousProfile, currentProfile, transitionDuration * (previousProfile == null ? 1.0f : TransitionDurationMultiplier),
+                    secondsRemainingHold, false, (connectionId == null ? null : new string[1] { connectionId }));
             }
         }
 
@@ -199,84 +218,120 @@ namespace DigitalRuby.WeatherMaker
             }
 
             bool isServer = WeatherMakerScript.Instance != null && WeatherMakerScript.Instance.NetworkConnection.IsServer;
-            if (isServer && WeatherMakerScript.IsPlayer(other.transform))
+            if (isServer && gameObject.activeInHierarchy && enabled && WeatherMakerScript.IsPlayer(other.transform))
             {
-                // denote that we have left a weather zone and pop back to the previous weather zone
-                TriggerEnterEvent triggerEvent;
-                if (activeZones.TryGetValue(other.transform, out triggerEvent))
+                List<WeatherMakerWeatherZoneScript> playerZones;
+                if (!playersAndZones.TryGetValue(other.transform, out playerZones))
                 {
-                    triggerEvent.Popped = true;
-                    pendingTriggerEvents.Add(triggerEvent);
+                    playersAndZones[other.transform] = playerZones = new List<WeatherMakerWeatherZoneScript>();
                 }
+
+                if (!playerZones.Contains(this))
+                {
+                    // not in this zone, exit out - sometimes OnTriggerExit is called twice in a row
+                    return;
+                }
+
+                List<Transform> zonePlayers;
+                if (!zonesAndPlayers.TryGetValue(this, out zonePlayers))
+                {
+                    zonesAndPlayers[this] = zonePlayers = new List<Transform>();
+                }
+
+                // if entering a new zone, begin transition to the new zone's current weather
+                WeatherMakerProfileScript previousProfile = (playerZones.Count == 0 ? null : playerZones[playerZones.Count - 1].currentProfile);
+                WeatherMakerProfileScript newProfile = null;
+
+                // remove zone from the player zone stack
+                playerZones.Remove(this);
+
+                // remove player from the zone player list
+                zonePlayers.Remove(other.transform);
+
+                float transitionDuration = 0.0f;
+
+                // add the player to the previous weather zone if any
+                WeatherMakerWeatherZoneScript newZone = null;
+                if (playerZones.Count != 0)
+                {
+                    newZone = playerZones[playerZones.Count - 1];
+                    if (!zonesAndPlayers.TryGetValue(newZone, out zonePlayers))
+                    {
+                        zonePlayers = new List<Transform>();
+                    }
+                    zonePlayers.Add(other.transform);
+
+                    // pick a new duration for the transition
+                    if (newZone.currentProfile != null)
+                    {
+                        transitionDuration = newZone.currentProfile.RandomTransitionDuration();
+                        newProfile = newZone.currentProfile;
+                    }
+                }
+                else
+                {
+                    Debug.LogError("Exited weather zone into no more zones, please add a global weather zone as a catch all zone");
+                    return;
+                }
+
+                if (WeatherMakerScript.IsLocalPlayer(other.transform))
+                {
+                    WeatherMakerScript.Instance.LastLocalProfile = newProfile;
+                    WeatherMakerScript.Instance.WeatherZoneChanged.Invoke(newZone);
+                }
+
+                string connectionId = WeatherMakerScript.Instance.NetworkConnection.GetConnectionId(other.transform);
+
+                // transition to new weather zone
+                // if transition from another zone, multiply the transition duration so we get to the new weather zone weather more quickly
+                WeatherMakerScript.Instance.RaiseWeatherProfileChanged(previousProfile, newProfile, transitionDuration * (previousProfile == null ? 1.0f : TransitionDurationMultiplier),
+                    secondsRemainingHold, false, (connectionId == null ? null : new string[1] { connectionId }));
             }
         }
 
-        private void TransitionFrom(TriggerEnterEvent evt)
+        private bool PruneNulls<T>(List<T> list) where T : class
         {
-            // called when player moves from one weather zone to another
-            if (evt.Stack.Count == 0 || currentProfile == null)
+            if (list == null)
             {
-                return;
+                return false;
             }
 
-            WeatherMakerWeatherZoneScript currentScript, previousScript;
-            if (evt.Popped)
+            for (int i = list.Count - 1; i >= 0; i--)
             {
-                previousScript = evt.Stack[evt.Stack.Count - 1];
-                evt.Stack.RemoveAt(evt.Stack.Count - 1);
-                evt.Popped = false;
-
-                // if transition out of weather zone to no weather zone, stick with the previous weather script
-                currentScript = (evt.Stack.Count == 0 ? previousScript : evt.Stack[evt.Stack.Count - 1]);
-            }
-            else
-            {
-                previousScript = (evt.Stack.Count == 1 ? null : evt.Stack[evt.Stack.Count - 2]);
-                currentScript = evt.Stack[evt.Stack.Count - 1];
+                if (list[i] == null)
+                {
+                    list.RemoveAt(i);
+                }
             }
 
-            // if entering a new zone, begin transition to the new zone's current weather
-            WeatherMakerProfileScript previousProfile = (previousScript == null ? null : previousScript.currentProfile);
-            float transitionDuration = currentProfile.RandomTransitionDuration();
-
-            // pick a new duration for the transition
-            string connectionId = WeatherMakerScript.Instance.NetworkConnection.GetConnectionId(evt.Transform);
-
-            // transition to new weather zone
-            // if transition from another zone, multiply the transition duration so we get to the new weather zone weather more quickly
-            WeatherMakerScript.Instance.RaiseWeatherProfileChanged(previousProfile, currentScript.currentProfile, transitionDuration * (previousScript == null ? 1.0f : TransitionDurationMultiplier),
-                secondsRemainingHold, false, (connectionId == null ? null : new string[1] { connectionId }));
+            return (list.Count != 0);
         }
 
         private void NotifyThoseInZoneOfProfileChange(WeatherMakerProfileScript oldProfile, WeatherMakerProfileScript newProfile, float transitionDuration)
         {
             // anyone in this zone gets a new profile
-            List<string> connectionIds = null;
-            bool foundOne = false;
-            foreach (var kv in activeZones)
+            List<Transform> playersInZone;
+            if (!zonesAndPlayers.TryGetValue(this, out playersInZone) || !PruneNulls(playersInZone))
             {
-                // if the active zone is this zone
-                if (kv.Value.Stack.Count != 0 && kv.Value.Stack[kv.Value.Stack.Count - 1] == this)
-                {
-                    foundOne = true;
-
-                    // find a connection id
-                    string connectionId = WeatherMakerScript.Instance.NetworkConnection.GetConnectionId(kv.Value.Transform);
-                    if (connectionId != null)
-                    {
-                        // found connection id, add to list
-                        connectionIds = (connectionIds ?? new List<string>());
-                        connectionIds.Add(connectionId);
-                    }
-                }
+                // no players in zone, we are done
+                return;
+            }
+            List<string> connectionIds = new List<string>();
+            bool hasLocalPlayer = false;
+            foreach (Transform player in playersInZone)
+            {
+                hasLocalPlayer = WeatherMakerScript.IsLocalPlayer(player);
+                connectionIds.Add(WeatherMakerScript.Instance.NetworkConnection.GetConnectionId(player));
             }
 
-            if (foundOne)
+            if (hasLocalPlayer)
             {
-                // send notification that those in this zone need a new weather profile
-                WeatherMakerScript.Instance.RaiseWeatherProfileChanged(oldProfile, newProfile, secondsRemainingTransition,
-                    secondsRemainingHold, false, (connectionIds == null ? null : connectionIds.ToArray()));
+                WeatherMakerScript.Instance.LastLocalProfile = newProfile;
             }
+
+            // send notification that those in this zone need a new weather profile
+            WeatherMakerScript.Instance.RaiseWeatherProfileChanged(oldProfile, newProfile, secondsRemainingTransition,
+                secondsRemainingHold, false, connectionIds.ToArray());
         }
 
         private void CleanupProfile(WeatherMakerProfileScript profile)

@@ -55,7 +55,10 @@ namespace DigitalRuby.WeatherMaker
         private void OnEnable()
         {
             WeatherMakerScript.EnsureInstance(this, ref instance);
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
+            }
         }
 
         private void OnDisable()
@@ -64,7 +67,10 @@ namespace DigitalRuby.WeatherMaker
 
         private void OnDestroy()
         {
-            WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
+            }
             WeatherMakerScript.ReleaseInstance(ref instance);
         }
 

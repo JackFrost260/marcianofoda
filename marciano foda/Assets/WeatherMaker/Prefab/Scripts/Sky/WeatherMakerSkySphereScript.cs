@@ -27,22 +27,34 @@ namespace DigitalRuby.WeatherMaker
     {
         [Header("Sky sphere profile")]
         public WeatherMakerSkyProfileScript SkySphereProfile;
+        private readonly WeatherMakerMaterialCopy skySphereMaterial = new WeatherMakerMaterialCopy();
 
         private void OnEnable()
         {
             WeatherMakerScript.EnsureInstance(this, ref instance);
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPreRender(CameraPreRender, this);
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPostRender(CameraPostRender, this);
+            }
+            skySphereMaterial.Update(MeshRenderer.sharedMaterial);
         }
 
         private void OnDisable()
         {
-
+            skySphereMaterial.Dispose();
         }
 
         protected override void OnDestroy()
         {
             base.OnDestroy();
-            WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreRender(this);
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPostRender(this);
+            }
             WeatherMakerScript.ReleaseInstance(ref instance);
         }
 
@@ -67,8 +79,19 @@ namespace DigitalRuby.WeatherMaker
 
             if (SkySphereProfile != null && camera != null && isActiveAndEnabled && WeatherMakerLightManagerScript.Instance != null)
             {
-                SkySphereProfile.UpdateSkySphere(camera, MeshRenderer.sharedMaterial, gameObject, WeatherMakerLightManagerScript.Instance.SunPerspective);
+                SkySphereProfile.UpdateSkySphere(camera, skySphereMaterial, gameObject, WeatherMakerLightManagerScript.Instance.SunPerspective);
             }
+        }
+
+        private void CameraPreRender(Camera camera)
+        {
+            skySphereMaterial.Update(MeshRenderer.sharedMaterial);
+            MeshRenderer.sharedMaterial = skySphereMaterial;
+        }
+
+        private void CameraPostRender(Camera camera)
+        {
+            MeshRenderer.sharedMaterial = skySphereMaterial.Original;
         }
 
 #if UNITY_EDITOR
@@ -79,7 +102,7 @@ namespace DigitalRuby.WeatherMaker
 
             if (!Application.isPlaying && Camera.current != null && SkySphereProfile != null && WeatherMakerLightManagerScript.Instance != null)
             {
-                SkySphereProfile.UpdateSkySphere(Camera.current, MeshRenderer.sharedMaterial, gameObject, WeatherMakerLightManagerScript.Instance.SunPerspective);
+                SkySphereProfile.UpdateSkySphere(Camera.current, skySphereMaterial, gameObject, WeatherMakerLightManagerScript.Instance.SunPerspective);
             }
         }
 

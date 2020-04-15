@@ -23,6 +23,7 @@ using UnityEngine;
 namespace DigitalRuby.WeatherMaker
 {
     [CreateAssetMenu(fileName = "WeatherMakerAuroraProfile", menuName = "WeatherMaker/Aurora Profile", order = 35)]
+    [System.Serializable]
     public class WeatherMakerAuroraProfileScript : ScriptableObject
     {
         [Header("Aurora noise")]

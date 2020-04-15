@@ -23,6 +23,12 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
+#if UNITY_LWRP
+
+using UnityEngine.Rendering.LWRP;
+
+#endif
+
 namespace DigitalRuby.WeatherMaker
 {
     /// <summary>
@@ -122,8 +128,7 @@ namespace DigitalRuby.WeatherMaker
         private const string afterForwardOpaqueCommandBufferName = "WeatherMakerAfterForwardOpaque";
         private const string depthCommandBufferName = "WeatherMakerDepthDownsample";
         //private CommandBuffer afterForwardOpaqueCommandBuffer;
-        private CommandBuffer depthCommandBufferDeferred;
-        private CommandBuffer depthCommandBufferForward;
+        private CommandBuffer depthCommandBuffer;
 
 #if COPY_FULL_DEPTH_TEXTURE
 
@@ -302,20 +307,70 @@ namespace DigitalRuby.WeatherMaker
         private void OnEnable()
         {
             // use pre-render to give all other pre-cull scripts a chance to set properties, state, etc.
+
+#if UNITY_LWRP
+
+            RenderPipelineManager.beginCameraRendering += CameraBeginRendering;
+            RenderPipelineManager.endCameraRendering += CameraEndRendering;
+            RenderPipelineManager.beginFrameRendering += CameraBeginFrameRendering;
+            RenderPipelineManager.endFrameRendering += CameraEndFrameRendering;
+
+#else
+
             Camera.onPreCull += CameraPreCull;
             Camera.onPreRender += CameraPreRender;
             Camera.onPostRender += CameraPostRender;
+
+#endif
+
             CleanupDepthTextures();
         }
 
         private void OnDisable()
         {
             // use pre-render to give all other pre-cull scripts a chance to set properties, state, etc.
+
+#if UNITY_LWRP
+
+            RenderPipelineManager.beginCameraRendering -= CameraBeginRendering;
+            RenderPipelineManager.endCameraRendering -= CameraEndRendering;
+            RenderPipelineManager.beginFrameRendering -= CameraBeginFrameRendering;
+            RenderPipelineManager.endFrameRendering -= CameraEndFrameRendering;
+
+#else
+
             Camera.onPreCull -= CameraPreCull;
             Camera.onPreRender -= CameraPreRender;
             Camera.onPostRender -= CameraPostRender;
+
+#endif
+
             CleanupDepthTextures();
         }
+
+#if UNITY_LWRP
+
+        private void CameraBeginRendering(ScriptableRenderContext context, Camera camera)
+        {
+            CameraPreCull(camera);
+            CameraPreRender(camera);
+        }
+
+        private void CameraEndRendering(ScriptableRenderContext context, Camera camera)
+        {
+            CameraPostRender(camera);
+        }
+
+        private void CameraBeginFrameRendering(ScriptableRenderContext ctx, Camera[] cameras)
+        {
+
+        }
+
+        private void CameraEndFrameRendering(ScriptableRenderContext ctx, Camera[] cameras)
+        {
+        }
+
+#endif
 
         private bool ListHasScript(List<KeyValuePair<System.Action<Camera>, MonoBehaviour>> list, MonoBehaviour script)
         {
@@ -618,98 +673,50 @@ namespace DigitalRuby.WeatherMaker
             }
 
             bool deferred = (camera.actualRenderingPath == RenderingPath.DeferredLighting || camera.actualRenderingPath == RenderingPath.DeferredShading);
-            CommandBuffer depthCommandBuffer = (deferred ? depthCommandBufferDeferred : depthCommandBufferForward);
-
-            // create depth downsampler
-            if (depthCommandBuffer == null)
+            depthCommandBuffer = (depthCommandBuffer == null ? new CommandBuffer { name = "WeatherMakerDownsampleDepth" } : depthCommandBuffer);
+            camera.RemoveCommandBuffer(CameraEvent.AfterDepthTexture, depthCommandBuffer);
+            camera.RemoveCommandBuffer(CameraEvent.BeforeReflections, depthCommandBuffer);
+            depthCommandBuffer.Clear();
+            if (deferred && UnityEngine.XR.XRDevice.isPresent)
             {
-                depthCommandBuffer = new CommandBuffer { name = depthCommandBufferName + Time.unscaledTime };
-                if (deferred)
-                {
-                    depthCommandBufferDeferred = depthCommandBuffer;
-                    if (UnityEngine.XR.XRDevice.isPresent)
-                    {
-                        // bug in VR, deferred depth texture not set
-                        depthCommandBuffer.SetGlobalTexture(WMS._CameraDepthTexture, BuiltinRenderTextureType.ResolvedDepth);
-                    }
-                }
-                else
-                {
-                    depthCommandBufferForward = depthCommandBuffer;
-                }
+                // bug in VR, deferred depth texture not set
+                depthCommandBuffer.SetGlobalTexture(WMS._CameraDepthTexture, BuiltinRenderTextureType.ResolvedDepth);
+            }
 
 #if COPY_FULL_DEPTH_TEXTURE
 
-                depthCommandBuffer.SetGlobalFloat(WMS._DownsampleDepthScale, 1.0f);
-                depthCommandBuffer.Blit(HalfDepthBufferId, DepthBufferId, DownsampleDepthMaterial, 0);
+            depthCommandBuffer.SetGlobalFloat(WMS._DownsampleDepthScale, 1.0f);
+            depthCommandBuffer.Blit(HalfDepthBufferId, DepthBufferId, DownsampleDepthMaterial, 0);
 
 #endif
 
-                depthCommandBuffer.SetGlobalFloat(WMS._DownsampleDepthScale, 2.0f);
-                depthCommandBuffer.Blit(QuarterDepthBufferId, HalfDepthBufferId, DownsampleDepthMaterial, 1);
-                depthCommandBuffer.SetGlobalFloat(WMS._DownsampleDepthScale, 4.0f);
-                depthCommandBuffer.Blit(HalfDepthBufferId, QuarterDepthBufferId, DownsampleDepthMaterial, 2);
-                depthCommandBuffer.SetGlobalFloat(WMS._DownsampleDepthScale, 8.0f);
-                depthCommandBuffer.Blit(QuarterDepthBufferId, EighthDepthBufferId, DownsampleDepthMaterial, 3);
-                depthCommandBuffer.SetGlobalFloat(WMS._DownsampleDepthScale, 16.0f);
-                depthCommandBuffer.Blit(EighthDepthBufferId, SixteenthDepthBufferId, DownsampleDepthMaterial, 4);
-            }
-
-            CommandBuffer[] commandBuffersForward = camera.GetCommandBuffers(CameraEvent.AfterDepthTexture);
-            CommandBuffer[] commandBuffersDeferred = camera.GetCommandBuffers(CameraEvent.BeforeReflections);
-            bool needsCommandBuffer = true;
-            foreach (CommandBuffer buffer in commandBuffersForward)
+            depthCommandBuffer.SetGlobalFloat(WMS._DownsampleDepthScale, 2.0f);
+            depthCommandBuffer.Blit(QuarterDepthBufferId, HalfDepthBufferId, DownsampleDepthMaterial, 1);
+            depthCommandBuffer.SetGlobalFloat(WMS._DownsampleDepthScale, 4.0f);
+            depthCommandBuffer.Blit(HalfDepthBufferId, QuarterDepthBufferId, DownsampleDepthMaterial, 2);
+            depthCommandBuffer.SetGlobalFloat(WMS._DownsampleDepthScale, 8.0f);
+            depthCommandBuffer.Blit(QuarterDepthBufferId, EighthDepthBufferId, DownsampleDepthMaterial, 3);
+            depthCommandBuffer.SetGlobalFloat(WMS._DownsampleDepthScale, 16.0f);
+            depthCommandBuffer.Blit(EighthDepthBufferId, SixteenthDepthBufferId, DownsampleDepthMaterial, 4);
+            if (deferred)
             {
-                if (buffer.name.StartsWith(depthCommandBufferName, System.StringComparison.OrdinalIgnoreCase))
-                {
-                    if (buffer.name != depthCommandBuffer.name)
-                    {
-                        camera.RemoveCommandBuffer(CameraEvent.AfterDepthTexture, buffer);
-                    }
-                    else
-                    {
-                        needsCommandBuffer = false;
-                    }
-                }
+                camera.AddCommandBuffer(CameraEvent.BeforeReflections, depthCommandBuffer);
             }
-            foreach (CommandBuffer buffer in commandBuffersDeferred)
+            else
             {
-                if (buffer.name.StartsWith(depthCommandBufferName, System.StringComparison.OrdinalIgnoreCase))
-                {
-                    if (buffer.name != depthCommandBuffer.name)
-                    {
-                        camera.RemoveCommandBuffer(CameraEvent.BeforeReflections, buffer);
-                    }
-                    else
-                    {
-                        needsCommandBuffer = false;
-                    }
-                }
-            }
-            if (needsCommandBuffer)
-            {
-                if (deferred)
-                {
-                    camera.AddCommandBuffer(CameraEvent.BeforeReflections, depthCommandBuffer);
-                }
-                else
-                {
-                    camera.AddCommandBuffer(CameraEvent.AfterDepthTexture, depthCommandBuffer);
-                }
+                camera.AddCommandBuffer(CameraEvent.AfterDepthTexture, depthCommandBuffer);
             }
         }
 
         private RenderTargetIdentifier UpdateDepthDownsampler(ref RenderTexture tex, RenderTargetIdentifier id, int scale)
         {
             RenderTextureDescriptor desc = WeatherMakerFullScreenEffect.GetRenderTextureDescriptor(scale, 0, 1, RenderTextureFormat.RFloat);
-            if (tex == null || tex.width != desc.width)
+            if (tex == null || tex.width != desc.width || tex.height != desc.height)
             {
                 WeatherMakerFullScreenEffect.DestroyRenderTexture(ref tex);
                 tex = WeatherMakerFullScreenEffect.CreateRenderTexture(desc, FilterMode.Point, TextureWrapMode.Clamp);
                 tex.name = "WeatherMakerDepthTexture_" + scale;
                 id = new RenderTargetIdentifier(tex);
-                WeatherMakerFullScreenEffect.ReleaseCommandBuffer(ref depthCommandBufferDeferred);
-                WeatherMakerFullScreenEffect.ReleaseCommandBuffer(ref depthCommandBufferForward);
             }
 
             return id;
@@ -758,8 +765,7 @@ namespace DigitalRuby.WeatherMaker
             QuarterDepthBuffer = WeatherMakerFullScreenEffect.DestroyRenderTexture(QuarterDepthBuffer);
             EighthDepthBuffer = WeatherMakerFullScreenEffect.DestroyRenderTexture(EighthDepthBuffer);
             SixteenthDepthBuffer = WeatherMakerFullScreenEffect.DestroyRenderTexture(SixteenthDepthBuffer);
-            WeatherMakerFullScreenEffect.ReleaseCommandBuffer(ref depthCommandBufferDeferred);
-            WeatherMakerFullScreenEffect.ReleaseCommandBuffer(ref depthCommandBufferForward);
+            WeatherMakerFullScreenEffect.ReleaseCommandBuffer(ref depthCommandBuffer);
         }
 
         private void AttachDepthCommandBuffer(Camera camera)
@@ -788,9 +794,14 @@ namespace DigitalRuby.WeatherMaker
         private void CameraPreCull(Camera camera)
         {
             // avoid infinite loop
-            if (cameraStack.Contains(camera))
+            if (cameraStack.Contains(camera) || WeatherMakerScript.ShouldIgnoreCamera(this, camera, false))
             {
                 return;
+            }
+            else if (WeatherMakerScript.Instance.AllowCameras != null && !WeatherMakerScript.Instance.AllowCameras.Contains(camera))
+            {
+                // add to the allow camera list if not already in it
+                WeatherMakerScript.Instance.AllowCameras.Add(camera);
             }
 
             cameraStack.Add(camera);
@@ -799,18 +810,20 @@ namespace DigitalRuby.WeatherMaker
 
         private void CameraPreRender(Camera camera)
         {
-            if (!WeatherMakerScript.ShouldIgnoreCamera(this, camera, false))
+            if (cameraStack.Contains(camera))
             {
                 UpdateCommandBuffersForCamera(camera);
+                InvokeEvents(camera, preRenderEvents);
             }
-
-            InvokeEvents(camera, preRenderEvents);
         }
 
         private void CameraPostRender(Camera camera)
         {
-            cameraStack.Remove(camera);
-            InvokeEvents(camera, postRenderEvents);
+            if (cameraStack.Contains(camera))
+            {
+                cameraStack.Remove(camera);
+                InvokeEvents(camera, postRenderEvents);
+            }
         }
 
         private static WeatherMakerCommandBufferManagerScript instance;

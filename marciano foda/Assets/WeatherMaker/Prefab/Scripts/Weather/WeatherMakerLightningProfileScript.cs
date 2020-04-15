@@ -22,6 +22,7 @@ using UnityEngine;
 namespace DigitalRuby.WeatherMaker
 {
     [CreateAssetMenu(fileName = "WeatherMakerLightningProfile", menuName = "WeatherMaker/Lightning Profile", order = 27)]
+    [System.Serializable]
     public class WeatherMakerLightningProfileScript : WeatherMakerBaseScriptableObjectScript
     {
         [Tooltip("Probability lightning will be intense (close up and loud).")]

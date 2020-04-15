@@ -15,23 +15,17 @@ using UnityEditor;
 
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System;
+using System.Linq;
 
 namespace DigitalRuby.WeatherMaker
 {
     /// <summary>
     /// Pre-process define utility
     /// </summary>
-    public class WeatherMakerAssetPostprocessor : AssetPostprocessor
+    public class WeatherMakerPreProcessorManager : AssetPostprocessor
     {
-        // add list of asset files to key off of along with pre-processor definition
-        // asset name / pre processor value key / value pair
-        internal static readonly KeyValuePair<string, string>[] preProcessors = new KeyValuePair<string, string>[]
-        {
-            new KeyValuePair<string, string>("/WeatherMaker/Prefab/Scripts/Manager/WeatherMakerScript.cs", "WEATHER_MAKER_PRESENT"),
-            new KeyValuePair<string, string>("/Mirror/Runtime/NetworkIdentity.cs", "MIRROR_NETWORKING_PRESENT"),
-            new KeyValuePair<string, string>("/Scripts/CompleteTerrainShader.cs", "CTS_PRESENT")
-        };
-
         /// <summary>
         /// Update pre-processor
         /// </summary>
@@ -60,72 +54,6 @@ namespace DigitalRuby.WeatherMaker
             }
         }
 
-        internal static void ProcessImportedAssets(params string[] importedAssets)
-        {
-            if (importedAssets == null)
-            {
-                return;
-            }
-
-            foreach (string assetName in importedAssets)
-            {
-                foreach (var kv in preProcessors)
-                {
-                    if (assetName.EndsWith(kv.Key, System.StringComparison.OrdinalIgnoreCase))
-                    {
-                        UpdatePreProcessor(true, kv.Value);
-                        break;
-                    }
-                }
-            }
-        }
-
-        internal static void ProcessDeletedAssets(params string[] deletedAssets)
-        {
-            if (deletedAssets == null)
-            {
-                return;
-            }
-
-            foreach (string assetName in deletedAssets)
-            {
-                // this only gets called for the directory on deletion, not each file in the directory, so we have to manually scan the dir
-                // before it is deleted
-                if (Directory.Exists(assetName))
-                {
-                    foreach (string file in Directory.GetFiles(assetName, "*", SearchOption.AllDirectories))
-                    {
-                        string normFile = file.Replace("\\", "/");
-                        foreach (var kv in WeatherMakerAssetPostprocessor.preProcessors)
-                        {
-                            if (normFile.EndsWith(kv.Key, System.StringComparison.OrdinalIgnoreCase))
-                            {
-                                WeatherMakerAssetPostprocessor.UpdatePreProcessor(false, kv.Value);
-                                break;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    foreach (var kv in WeatherMakerAssetPostprocessor.preProcessors)
-                    {
-                        if (assetName.EndsWith(kv.Key, System.StringComparison.OrdinalIgnoreCase))
-                        {
-                            WeatherMakerAssetPostprocessor.UpdatePreProcessor(false, kv.Value);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
-        {
-            ProcessImportedAssets(importedAssets);
-            ProcessDeletedAssets(deletedAssets);
-        }
-
         private static void CleanupOldFiles()
         {
             string[] found = AssetDatabase.FindAssets("WeatherMakerAuroraShader");
@@ -139,49 +67,79 @@ namespace DigitalRuby.WeatherMaker
             }
         }
 
-        private static void UpdatePostProcessorFromExistingAssets()
+        private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            foreach (var kv in preProcessors)
+            if (deletedAssets != null && deletedAssets.Length != 0)
             {
-                string[] found = AssetDatabase.FindAssets(Path.GetFileNameWithoutExtension(kv.Key));
-                if (found != null && found.Length > 0)
+                int scriptCount = deletedAssets.Count(a => a.EndsWith(".cs", StringComparison.OrdinalIgnoreCase));
+                if (scriptCount > 0)
                 {
-                    for (int i = 0; i < found.Length; i++)
-                    {
-                        found[i] = AssetDatabase.GUIDToAssetPath(found[i]);
-                    }
-                    OnPostprocessAllAssets(found, new string[0], new string[0], new string[0]);
-                }
-                else
-                {
-                    OnPostprocessAllAssets(new string[0], new string[] { kv.Key }, new string[0], new string[0]);
+                    Debug.LogWarningFormat("{0} script{1} been deleted from the project. If you see compile errors, please edit your player settings, scripting define symbols and remove any defines that no longer exist in the project.",
+                        scriptCount, (scriptCount > 1 ? "s have" : " has"));
                 }
             }
+            DidReloadScripts();
         }
 
         [UnityEditor.Callbacks.DidReloadScripts]
-        [InitializeOnLoadMethod]
+        [UnityEditor.InitializeOnLoadMethod]
         private static void DidReloadScripts()
         {
-            // executes whenever code finishes compiling
+            // executes on first load or whenever code finishes compiling
 
             CleanupOldFiles();
-            UpdatePostProcessorFromExistingAssets();
             UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-        }
-    }
 
-    public class WeatherMakerAssetModificationProcessor : UnityEditor.AssetModificationProcessor
-    {
-        private static void OnWillCreateAsset(string assetName)
-        {
-            WeatherMakerAssetPostprocessor.ProcessImportedAssets(assetName);
-        }
+            bool hasWeatherMaker = false;
+            bool hasLWRP = false;
+            bool hasPostProcessV2 = false;
+            bool hasPlaymaker = false;
+            bool hasMirror = false;
+            bool hasCts = false;
+            bool hasCrest = false;
+            foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (Type type in a.GetTypes())
+                {
+                    switch (type.FullName.ToLowerInvariant())
+                    {
+                        case "digitalruby.weathermaker.weathermakerscript":
+                            hasWeatherMaker = true;
+                            break;
 
-        private static AssetDeleteResult OnWillDeleteAsset(string assetName, RemoveAssetOptions options)
-        {
-            WeatherMakerAssetPostprocessor.ProcessDeletedAssets(assetName);
-            return AssetDeleteResult.DidNotDelete;
+                        case "unityengine.rendering.lwrp.lightweightrenderpipeline":
+                            hasLWRP = true;
+                            break;
+
+                        case "unityengine.rendering.postprocessing.postprocesslayer":
+                            hasPostProcessV2 = true;
+                            break;
+
+                        case "hutonggames.playmaker.fsmprocessor":
+                            hasPlaymaker = true;
+                            break;
+
+                        case "mirror.networkidentity":
+                            hasMirror = true;
+                            break;
+
+                        case "cts.completeterrainshader":
+                            hasCts = true;
+                            break;
+
+                        case "crest.oceanrenderer":
+                            hasCrest = true;
+                            break;
+                    }
+                }
+            }
+            UpdatePreProcessor(hasWeatherMaker, "WEATHER_MAKER_PRESENT");
+            UpdatePreProcessor(hasLWRP, "UNITY_LWRP");
+            UpdatePreProcessor(hasPostProcessV2, "UNITY_POST_PROCESSING_STACK_V2");
+            UpdatePreProcessor(hasPlaymaker, "PLAYMAKER_PRESENT");
+            UpdatePreProcessor(hasMirror, "MIRROR_NETWORKING_PRESENT");
+            UpdatePreProcessor(hasCts, "CTS_PRESENT");
+            UpdatePreProcessor(hasCrest, "CREST_OCEAN_PRESENT");
         }
     }
 }

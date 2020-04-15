@@ -37,13 +37,13 @@ Shader "WeatherMaker/WeatherMakerFullScreenCloudsShader"
 		#pragma target 3.5
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
-		
 
 		#define WEATHER_MAKER_DEPTH_SHADOWS_OFF
 		#define WEATHER_MAKER_LIGHT_NO_DIR_LIGHT
 		#define WEATHER_MAKER_LIGHT_NO_NORMALS
 		#define WEATHER_MAKER_LIGHT_NO_SPECULAR
 		#define WEATHER_MAKER_IS_FULL_SCREEN_EFFECT
+		#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
 
 		// WARNING - THIS WILL BE VERY PERFORMANCE INTENSIVE AND CAN LOCK UP THE EDITOR
 		//#define VOLUMETRIC_CLOUD_REAL_TIME_NOISE
@@ -53,8 +53,10 @@ Shader "WeatherMaker/WeatherMakerFullScreenCloudsShader"
 		inline void GetDepthAndRay(float4 uv, inout float3 rayDir, float3 forwardLine, out float depth, out float depth01)
 		{
 			rayDir = GetFullScreenRayDir(rayDir);
-			depth01 = WM_SAMPLE_DEPTH_DOWNSAMPLED_01(uv.xy);
-			//depth01 = WM_SAMPLE_DEPTH_AREA_DOWNSAMPLED_TEMPORAL_REPROJECTION_01(uv.xy);
+			//depth01 = WM_SAMPLE_DEPTH_DOWNSAMPLED_01(uv.xy);
+
+			// ensure we draw crisp clouds behind enough of the background to avoid halos
+			depth01 = WM_SAMPLE_DEPTH_LARGE_AREA(uv.xy);
 
 #if defined(WEATHER_MAKER_ENABLE_VOLUMETRIC_CLOUDS)
 
@@ -88,7 +90,7 @@ Shader "WeatherMaker/WeatherMakerFullScreenCloudsShader"
 			#pragma fragment temporal_reprojection_fragment_custom
 			#pragma multi_compile_instancing
 
-			#define WEATHER_MAKER_TEMPORAL_REPROJECTION_FRAGMENT_TYPE full_screen_fragment
+			#define WEATHER_MAKER_TEMPORAL_REPROJECTION_FRAGMENT_TYPE wm_full_screen_fragment
 			#define WEATHER_MAKER_TEMPORAL_REPROJECTION_FRAGMENT_FUNC full_screen_clouds_frag_impl
 			#define WEATHER_MAKER_TEMPORAL_REPROJECTION_BLEND_FUNC blendCloudTemporal
 
@@ -100,13 +102,13 @@ Shader "WeatherMaker/WeatherMakerFullScreenCloudsShader"
 			// leave commented out unless testing performance, red areas are full shader runs, try to minimize these
 			//#define WEATHER_MAKER_TEMPORAL_REPROJECTION_SHOW_OVERDRAW fixed4(1,0,0,1)
 
-			inline fixed4 blendCloudTemporal(fixed4 prev, fixed4 cur, fixed4 diff, float4 uv, full_screen_fragment i);
-			inline fixed4 offScreenCloudTemporal(fixed4 prev, fixed4 cur, float4 uv, full_screen_fragment i);
-			fixed4 full_screen_clouds_frag_impl(full_screen_fragment i) : SV_Target;
+			inline fixed4 blendCloudTemporal(fixed4 prev, fixed4 cur, fixed4 diff, float4 uv, wm_full_screen_fragment i);
+			inline fixed4 offScreenCloudTemporal(fixed4 prev, fixed4 cur, float4 uv, wm_full_screen_fragment i);
+			fixed4 full_screen_clouds_frag_impl(wm_full_screen_fragment i) : SV_Target;
 
 			#include "WeatherMakerTemporalReprojectionShaderInclude.cginc"
 
-			inline fixed4 blendCloudTemporal(fixed4 prev, fixed4 cur, fixed4 diff, float4 uv, full_screen_fragment i)
+			inline fixed4 blendCloudTemporal(fixed4 prev, fixed4 cur, fixed4 diff, float4 uv, wm_full_screen_fragment i)
 			{
 				UNITY_BRANCH
 				if (prev.a < 0.003)
@@ -148,15 +150,17 @@ Shader "WeatherMaker/WeatherMakerFullScreenCloudsShader"
 				return prev;
 			}
 
-			inline fixed4 offScreenCloudTemporal(fixed4 prev, fixed4 cur, float4 uv, full_screen_fragment i)
+			inline fixed4 offScreenCloudTemporal(fixed4 prev, fixed4 cur, float4 uv, wm_full_screen_fragment i)
 			{
 				return cur;
 			}
 
-			fixed4 full_screen_clouds_frag_impl(full_screen_fragment i) : SV_Target
+			fixed4 full_screen_clouds_frag_impl(wm_full_screen_fragment i) : SV_Target
 			{
+				static const float flatTotal = min(1.0, 1.5 * ((_CloudCover[0] * _CloudDensity[0]) + (_CloudCover[1] * _CloudDensity[1]) + (_CloudCover[2] * _CloudDensity[2]) + (_CloudCover[3] * _CloudDensity[3])));
 				float depth, depth01;
 				GetDepthAndRay(i.uv, i.rayDir, i.forwardLine, depth, depth01);
+				//depth01 = 1.0 - depth01; return fixed4(depth01, depth01, depth01, 1.0);
 				float3 cloudRay = i.rayDir;
 				float3 worldPos;
 				fixed4 finalColor = fixed4Zero;
@@ -165,41 +169,37 @@ Shader "WeatherMaker/WeatherMakerFullScreenCloudsShader"
 
 				// top layer
 				UNITY_BRANCH
-				if (_CloudCover[3] > 0.0)
+				if (_CloudCover[3] > 0.001)
 				{
-					_CloudIndex = 3;
-					cloudColor = ComputeCloudColor(normalize(float3(cloudRay.x, cloudRay.y + _CloudRayOffset[3], cloudRay.z)), depth, _CloudNoise4, /*_CloudNoiseMask4,*/ i.uv, alphaAccum);
+					cloudColor = ComputeCloudColor(cloudRay, depth, _CloudNoise4, /*_CloudNoiseMask4,*/ i.uv, 3, alphaAccum);
 					blendClouds(cloudColor, finalColor);
 				}
 
 				// next layer
 				UNITY_BRANCH
-				if (_CloudCover[2] > 0.0)
+				if (_CloudCover[2] > 0.001)
 				{
-					_CloudIndex = 2;
-					cloudColor = ComputeCloudColor(normalize(float3(cloudRay.x, cloudRay.y + _CloudRayOffset[2], cloudRay.z)), depth, _CloudNoise3, /*_CloudNoiseMask3,*/ i.uv, alphaAccum);
+					cloudColor = ComputeCloudColor(cloudRay, depth, _CloudNoise3, /*_CloudNoiseMask3,*/ i.uv, 2, alphaAccum);
 					blendClouds(cloudColor, finalColor);
 				}
 
 				// next layer
 				UNITY_BRANCH
-				if (_CloudCover[1] > 0.0)
+				if (_CloudCover[1] > 0.001)
 				{
-					_CloudIndex = 1;
-					cloudColor = ComputeCloudColor(normalize(float3(cloudRay.x, cloudRay.y + _CloudRayOffset[1], cloudRay.z)), depth, _CloudNoise2, /*_CloudNoiseMask2,*/ i.uv, alphaAccum);
+					cloudColor = ComputeCloudColor(cloudRay, depth, _CloudNoise2, /*_CloudNoiseMask2,*/ i.uv, 1, alphaAccum);
 					blendClouds(cloudColor, finalColor);
 				}
 
 				// bottom layer
 				UNITY_BRANCH
-				if (_CloudCover[0] > 0.0)
+				if (_CloudCover[0] > 0.001)
 				{
-					_CloudIndex = 0;
-					cloudColor = ComputeCloudColor(normalize(float3(cloudRay.x, cloudRay.y + _CloudRayOffset[0], cloudRay.z)), depth, _CloudNoise1, /*_CloudNoiseMask1,*/ i.uv, alphaAccum);
+					cloudColor = ComputeCloudColor(cloudRay, depth, _CloudNoise1, /*_CloudNoiseMask1,*/ i.uv, 0, alphaAccum);
 					blendClouds(cloudColor, finalColor);
 				}
 
-				// pre-multiply flat layer clouds
+				// pre-multiply and soften flat layer clouds
 				finalColor *= finalColor.a;
 
 #if defined(WEATHER_MAKER_ENABLE_VOLUMETRIC_CLOUDS)
@@ -208,16 +208,30 @@ Shader "WeatherMaker/WeatherMakerFullScreenCloudsShader"
 				UNITY_BRANCH
 				if (_CloudCoverVolumetric > 0.0)
 				{
-					// volumetric cloud already correct rgb based on alpha
-					cloudColor = ComputeCloudColorVolumetric(cloudRay, i.uv, depth);
+					fixed3 backgroundSkyColor;
+
+					UNITY_BRANCH
+					if (_CloudBackgroundSkyIntensityVolumetric > 0.0)
+					{
+						backgroundSkyColor = lerp(CalculateSkyColorUnityStyleFragment(cloudRay).rgb, finalColor.rgb, flatTotal * finalColor.a);
+					}
+					else
+					{
+						backgroundSkyColor = finalColor.rgb;
+					}
+
+					// volumetric cloud color is already pre-multiplied
+					cloudColor = ComputeCloudColorVolumetric(cloudRay, i.uv, depth, backgroundSkyColor);
+
+					// double pre-multiply to soften up the clouds more
 					cloudColor *= cloudColor.a;
 
-					// custom blend
+					// pre-multiply blend
 					finalColor = cloudColor + (finalColor * (1.0 - cloudColor.a));
 				}
 
 				UNITY_BRANCH
-				if (finalColor.a < 0.999 && weatherMakerNightMultiplierSquared > 0.001)
+				if (finalColor.a < 1.0 && weatherMakerNightMultiplierSquared > 0.0)
 				{
 					// blend aurora borealis, the aurora is already pre-multiplied by alpha
 					fixed4 auroraColor = ComputeAurora(_WorldSpaceCameraPos, cloudRay, i.uv, depth) * weatherMakerNightMultiplierSquared;
@@ -242,7 +256,7 @@ Shader "WeatherMaker/WeatherMakerFullScreenCloudsShader"
 			#pragma fragment frag
 			#pragma multi_compile_instancing
 
-			float4 frag(full_screen_fragment i) : SV_Target
+			float4 frag(wm_full_screen_fragment i) : SV_Target
 			{ 
 				WM_INSTANCE_FRAG(i);
 
@@ -300,19 +314,24 @@ Shader "WeatherMaker/WeatherMakerFullScreenCloudsShader"
 			#pragma fragment frag
 			#pragma multi_compile_instancing
 
-			fixed4 frag(full_screen_fragment i) : SV_Target
+			fixed4 frag(wm_full_screen_fragment i) : SV_Target
 			{ 
 				WM_INSTANCE_FRAG(i);
 
 #if defined(WEATHER_MAKER_ENABLE_VOLUMETRIC_CLOUDS) && VOLUMETRIC_CLOUD_RENDER_MODE == 1
 				
 				fixed3 shaftColor = fixed3Zero;
+				fixed4 pixelColor = WM_SAMPLE_FULL_SCREEN_TEXTURE(_MainTex2, i.uv.xy);
 
 				// take advantage of the fact that dir lights are sorted by perspective/ortho and then by intensity
 				UNITY_LOOP
-				for (uint lightIndex = 0; lightIndex < uint(_WeatherMakerDirLightCount) && _WeatherMakerDirLightVar1[lightIndex].y == 0.0 && _WeatherMakerDirLightColor[lightIndex].a > 0.001; lightIndex++)
+				for (uint lightIndex = 0;
+					lightIndex < uint(_WeatherMakerDirLightCount) &&
+					_WeatherMakerDirLightVar1[lightIndex].y == 0.0 &&
+					_WeatherMakerDirLightColor[lightIndex].a > 0.001 &&
+					_WeatherMakerDirLightVar1[lightIndex].z > 0.001; lightIndex++)
 				{
-					shaftColor += ComputeDirLightShaftColor(i.uv.xy, 0.01, _WeatherMakerDirLightViewportPosition[lightIndex], _WeatherMakerDirLightColor[lightIndex].rgb * _WeatherMakerDirLightVar1[lightIndex].z);
+					shaftColor += ComputeDirLightShaftColor(i.uv.xy, 0.01, _WeatherMakerDirLightViewportPosition[lightIndex], _WeatherMakerDirLightColor[lightIndex] * _WeatherMakerDirLightVar1[lightIndex].z, pixelColor);
 				}
 				return fixed4(shaftColor, 0.0);
 
@@ -338,13 +357,23 @@ Shader "WeatherMaker/WeatherMakerFullScreenCloudsShader"
 			#pragma fragment frag
 			#pragma multi_compile_instancing
 
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex4);
-
-			fixed4 frag(full_screen_fragment i) : SV_Target
+			fixed4 frag(wm_full_screen_fragment i) : SV_Target
 			{ 
 				WM_INSTANCE_FRAG(i);
 
-				return WM_SAMPLE_FULL_SCREEN_TEXTURE(_MainTex4, i.uv);
+				// (0.4,-1.2) , (-1.2,-0.4) , (1.2,0.4) and (-0.4,1.2).
+				static const float4 offsets = float4
+				(
+					_MainTex4_TexelSize.x * 0.4,
+					_MainTex4_TexelSize.x * 1.2,
+					_MainTex4_TexelSize.y * 0.4,
+					_MainTex4_TexelSize.y * 1.2
+				);
+
+				fixed4 c;
+				GaussianBlur17Tap(c, _MainTex4, i.uv.xy, offsets, 1.0);
+				return c;
+				//return WM_SAMPLE_FULL_SCREEN_TEXTURE(_MainTex4, i.uv);
 			}
 
 			ENDCG

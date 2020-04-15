@@ -45,6 +45,7 @@ Shader "WeatherMaker/TerrainEngine/BillboardTree"
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
 		
+		#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
 
 		ENDCG
 

@@ -22,6 +22,7 @@ using UnityEngine;
 namespace DigitalRuby.WeatherMaker
 {
     [CreateAssetMenu(fileName = "WeatherMakerWindProfile", menuName = "WeatherMaker/Wind Profile", order = 25)]
+    [System.Serializable]
     public class WeatherMakerWindProfileScript : WeatherMakerBaseScriptableObjectScript
     {
         [MinMaxSlider(0.0f, 1000.0f, "The range of wind speed intensities. The wind zone wind main is set to WindIntensity * MaximumWindSpeed * WindMainMultiplier.")]

@@ -39,14 +39,20 @@ namespace DigitalRuby.WeatherMaker
             {
                 return b;
             }
-            else if (a.alphaKeys.Length == b.alphaKeys.Length && a.colorKeys.Length == b.colorKeys.Length)
+
+            GradientAlphaKey[] alphaKeys1 = a.alphaKeys;
+            GradientColorKey[] colorKeys1 = a.colorKeys;
+            GradientAlphaKey[] alphaKeys2 = b.alphaKeys;
+            GradientColorKey[] colorKeys2 = b.colorKeys;
+
+            if (alphaKeys1.Length == alphaKeys2.Length && colorKeys1.Length == colorKeys2.Length)
             {
                 // full compare of all keys, save allocating memory if both gradients are equal
                 bool equal = true;
-                for (int i = 0; i < a.alphaKeys.Length; i++)
+                for (int i = 0; i < alphaKeys1.Length; i++)
                 {
-                    if (a.alphaKeys[i].alpha != b.alphaKeys[i].alpha || a.alphaKeys[i].time != b.alphaKeys[i].time ||
-                        a.colorKeys[i].color != b.colorKeys[i].color || a.colorKeys[i].time != b.colorKeys[i].time)
+                    if (alphaKeys1[i].alpha != alphaKeys2[i].alpha || alphaKeys1[i].time != alphaKeys2[i].time ||
+                        colorKeys1[i].color != colorKeys2[i].color || colorKeys1[i].time != colorKeys2[i].time)
                     {
                         equal = false;
                         break;
@@ -57,12 +63,12 @@ namespace DigitalRuby.WeatherMaker
                     return b;
                 }
                 Gradient gradient = new Gradient();
-                GradientColorKey[] clrs = new GradientColorKey[a.colorKeys.Length];
-                GradientAlphaKey[] alphas = new GradientAlphaKey[a.colorKeys.Length];
-                for (int i = 0; i < a.colorKeys.Length; i++)
+                GradientColorKey[] clrs = new GradientColorKey[colorKeys1.Length];
+                GradientAlphaKey[] alphas = new GradientAlphaKey[colorKeys1.Length];
+                for (int i = 0; i < colorKeys1.Length; i++)
                 {
-                    clrs[i] = new GradientColorKey(Color.Lerp(a.colorKeys[i].color, b.colorKeys[i].color, t), Mathf.Lerp(a.colorKeys[i].time, b.colorKeys[i].time, t));
-                    alphas[i] = new GradientAlphaKey(Mathf.Lerp(a.alphaKeys[i].alpha, b.alphaKeys[i].alpha, t), Mathf.Lerp(a.alphaKeys[i].time, b.alphaKeys[i].time, t));
+                    clrs[i] = new GradientColorKey(Color.Lerp(colorKeys1[i].color, colorKeys2[i].color, t), Mathf.Lerp(colorKeys1[i].time, colorKeys2[i].time, t));
+                    alphas[i] = new GradientAlphaKey(Mathf.Lerp(alphaKeys1[i].alpha, alphaKeys2[i].alpha, t), Mathf.Lerp(alphaKeys1[i].time, alphaKeys2[i].time, t));
                 }
                 gradient.colorKeys = clrs;
                 gradient.alphaKeys = alphas;
@@ -70,35 +76,34 @@ namespace DigitalRuby.WeatherMaker
             }
             else
             {
-                for (int i = 0; i < a.colorKeys.Length; i++)
+                for (int i = 0; i < colorKeys1.Length; i++)
                 {
-                    float k = a.colorKeys[i].time;
+                    float k = colorKeys1[i].time;
                     if (!keysTimes.Contains(k))
                     {
                         keysTimes.Add(k);
                     }
                 }
 
-                for (int i = 0; i < b.colorKeys.Length; i++)
+                for (int i = 0; i < colorKeys2.Length; i++)
                 {
-                    float k = b.colorKeys[i].time;
+                    float k = colorKeys2[i].time;
                     if (!keysTimes.Contains(k))
                     {
                         keysTimes.Add(k);
                     }
                 }
-                for (int i = 0; i < a.alphaKeys.Length; i++)
+                for (int i = 0; i < alphaKeys1.Length; i++)
                 {
-                    float k = a.alphaKeys[i].time;
+                    float k = alphaKeys1[i].time;
                     if (!keysTimes.Contains(k))
                     {
                         keysTimes.Add(k);
                     }
                 }
-
-                for (int i = 0; i < b.alphaKeys.Length; i++)
+                for (int i = 0; i < alphaKeys2.Length; i++)
                 {
-                    float k = b.alphaKeys[i].time;
+                    float k = alphaKeys2[i].time;
                     if (!keysTimes.Contains(k))
                     {
                         keysTimes.Add(k);
@@ -116,9 +121,9 @@ namespace DigitalRuby.WeatherMaker
                     alphas[i] = new GradientAlphaKey(clr.a, key);
                 }
 
-                var g = new Gradient();
-                g.SetKeys(clrs, alphas);
-                return g;
+                Gradient gradient = new Gradient();
+                gradient.SetKeys(clrs, alphas);
+                return gradient;
             }
         }
     }

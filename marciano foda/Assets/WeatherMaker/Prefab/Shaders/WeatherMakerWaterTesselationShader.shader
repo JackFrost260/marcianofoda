@@ -26,7 +26,7 @@ Shader "WeatherMaker/WeatherMakerWaterTesselationShader"
 		[NoScaleOffset] _MainTex("Water color (RGBA)", 2D) = "white" {}
 		[NoScaleOffset] _WaterBumpMap("Water normals (Normal)", 2D) = "bump" {}
 		[NoScaleOffset] _WaterFoam("Water foam (RGBA)", 2D) = "clear" {}
-		[NoScaleOffset] _WaterFoamBumpMap("Water foam normals (Normal)", 2D) = "bump" {}
+		//[NoScaleOffset] _WaterFoamBumpMap("Water foam normals (Normal)", 2D) = "bump" {}
 		[NoScaleOffset] _CausticsTexture("Caustics Texture (A)", 3D) = "white" {}
 		[NoScaleOffset] _WaterDisplacementMap("Water Displacement Map (A)", 2D) = "clear" {}
 
@@ -37,7 +37,7 @@ Shader "WeatherMaker/WeatherMakerWaterTesselationShader"
 		_BumpDirection("Bump Direction & Speed", Vector) = (1.0 ,1.0, -1.0, 1.0)
 		_InvFadeParameter("Fade parameters (Depth fade, normal fade height, refl strength, normal fade distance)", Vector) = (10.0, 0.002, 1.0, 0.003)
 		_WaterDepthThreshold("Water depth threshold", Float) = 0.0
-		_RefractionStrength("Refraction strength", Range(0.0, 1.0)) = 1.0
+		_WaterRefractionStrength("Refraction strength", Range(0.0, 1.0)) = 1.0
 
 		[Header(Colors)]
 		_WaterColor("Surface color", Color) = (.54, .95, .99, 0.1)
@@ -55,7 +55,7 @@ Shader "WeatherMaker/WeatherMakerWaterTesselationShader"
 		[HideInInspector][NoScaleOffset] _SparkleNoise("Sparkle noise (unused)", 2D) = "white" {}
 
 		[Header(Caustics)]
-		_CausticsTintColor("Caustics Tint Color", Color) = (1.0, 1.0, 1.0, 1.0)
+		_WaterCausticsTintColor("Caustics Tint Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_CausticsScale("Caustics Scale (scale, intensity, depth fade, distort multiplier)", Vector) = (0.01, 0.5, 3.0, 1.0)
 		_CausticsVelocity("Caustics Animation Velocity (x, y, z, 0)", Vector) = (0.01, 0.02, 5.0, 0.0)
 
@@ -99,7 +99,7 @@ Shader "WeatherMaker/WeatherMakerWaterTesselationShader"
 		_DstBlendMode("Dest alpha blend", Int) = 10
 		_Cull("Cull", Int) = 2 // 0 = off, 1 = front, 2 = back
 		_ZTest("ZTest", Int) = 4
-		//_ZWrite("ZWrite", Int) = 1
+		_ZWrite("ZWrite", Int) = 1
 	}
 
 	
@@ -109,7 +109,7 @@ Shader "WeatherMaker/WeatherMakerWaterTesselationShader"
 
 		Cull[_Cull]
 		ZTest[_ZTest]
-		ZWrite Off //[_ZWrite] // zwrite causes artifacts on metal
+		ZWrite[_ZWrite]
 		Fog { Mode Off }
 
 		CGINCLUDE
@@ -118,6 +118,7 @@ Shader "WeatherMaker/WeatherMakerWaterTesselationShader"
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
 		
+		#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
 
 		ENDCG
 

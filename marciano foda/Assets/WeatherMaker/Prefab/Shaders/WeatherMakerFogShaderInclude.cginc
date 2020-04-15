@@ -22,7 +22,124 @@
 
 #include "WeatherMakerNullZoneShaderInclude.cginc"
 #include "WeatherMakerLightShaderInclude.cginc"
-#include "WeatherMakerFogExternalShaderInclude.cginc"
+
+#define FOG_LIGHT_POINT_SAMPLE_COUNT 5.0
+#define FOG_LIGHT_POINT_SAMPLE_COUNT_INVERSE (1.0 / FOG_LIGHT_POINT_SAMPLE_COUNT)
+#define FOG_LIGHT_SPOT_SAMPLE_COUNT 16.0
+#define FOG_LIGHT_SPOT_SAMPLE_COUNT_INVERSE (1.0 / FOG_LIGHT_SPOT_SAMPLE_COUNT)
+#define FOG_LIGHT_AREA_SAMPLE_COUNT 10.0
+#define FOG_LIGHT_AREA_SAMPLE_COUNT_INVERSE (1.0 / FOG_LIGHT_AREA_SAMPLE_COUNT)
+#define FOG_SHADOW_BASE_LIGHT_INTENSITY 0.5
+
+uniform sampler3D _WeatherMakerNoiseTexture3D;
+
+uniform float _WeatherMakerVolumetricPointSpotMultiplier = 1.0;
+
+uniform uint _WeatherMakerFogMode;
+uniform float _WeatherMakerFogStartDepth;
+uniform float _WeatherMakerFogEndDepth;
+uniform fixed _WeatherMakerFogLinearFogFactor;
+uniform fixed4 _WeatherMakerFogColor;
+uniform fixed4 _WeatherMakerFogEmissionColor;
+uniform fixed _WeatherMakerFogHeightFalloffPower;
+uniform fixed _WeatherMakerFogLightAbsorption;
+uniform fixed _WeatherMakerFogDitherLevel;
+uniform float _WeatherMakerFogNoisePercent; // percent of noise to use. 0 percent would be a noise value of 1, 1 would be the full noise value.
+uniform float _WeatherMakerFogNoiseScale;
+uniform float _WeatherMakerFogNoiseAdder;
+uniform float _WeatherMakerFogNoiseMultiplier;
+uniform float _WeatherMakerFogNoiseSampleCount;
+uniform float _WeatherMakerFogNoiseSampleCountInverse;
+uniform float3 _WeatherMakerFogNoiseVelocity;
+uniform float3 _WeatherMakerFogNoisePositionOffset;
+uniform float _WeatherMakerFogHeight;
+uniform float4 _WeatherMakerFogBoxCenter;
+uniform float3 _WeatherMakerFogBoxMin;
+uniform float3 _WeatherMakerFogBoxMax;
+uniform float3 _WeatherMakerFogBoxMinDir;
+uniform float3 _WeatherMakerFogBoxMaxDir;
+uniform float4 _WeatherMakerFogSpherePosition;
+uniform float4 _WeatherMakerFogVolumePower;
+uniform float _WeatherMakerFogFactorMax;
+uniform float _WeatherMakerFogCloudShadowStrength;
+uniform fixed _WeatherMakerFogDensity;
+uniform fixed _WeatherMakerFogFactorMultiplier;
+uniform fixed _WeatherMakerFogDensityScatter;
+
+uniform float _WeatherMakerFogLightShadowSampleCount;
+uniform float _WeatherMakerFogLightShadowInvSampleCount;
+uniform float _WeatherMakerFogLightShadowMaxRayLength;
+uniform float _WeatherMakerFogLightShadowMultiplier;
+uniform float _WeatherMakerFogLightShadowBrightness;
+uniform float _WeatherMakerFogLightShadowPower;
+uniform float _WeatherMakerFogLightShadowDecay;
+uniform float _WeatherMakerFogLightShadowDither;
+uniform float4 _WeatherMakerFogLightShadowDitherMagic;
+
+uniform fixed4 _WeatherMakerFogLightFalloff = fixed4(1.2, 0.0, 0.0, 0.0); // spot light radius light falloff, 0, 0, 0
+uniform fixed _WeatherMakerFogLightSunIntensityReducer = 0.8;
+uniform fixed _WeatherMakerFogDirectionalLightScatterIntensity = 5.0;
+
+uniform int _WeatherMakerFogNoiseEnabled;
+#define WM_FOG_NOISE_ENABLED (_WeatherMakerFogNoiseEnabled)
+#define WM_FOG_HEIGHT_ENABLED (_WeatherMakerFogHeight > 0.0)
+
+uniform int _WeatherMakerFogVolumetricLightMode;
+#define WM_FOG_VOLUMETRIC_LIGHT_MODE_NONE (_WeatherMakerFogVolumetricLightMode == 0)
+#define WM_FOG_VOLUMETRIC_LIGHT_MODE_NOT_NONE (_WeatherMakerFogVolumetricLightMode)
+#define WM_FOG_VOLUMETRIC_LIGHT_MODE_ENABLE (_WeatherMakerFogVolumetricLightMode == 1)
+#define WM_FOG_VOLUMETRIC_LIGHT_MODE_ENABLE_WITH_SHADOWS (_WeatherMakerFogVolumetricLightMode == 2)
+
+static const float fogLightDitherLevel = _WeatherMakerFogDitherLevel * 64.0;
+static const fixed3 fogColorWithIntensity = (_WeatherMakerFogColor.rgb * _WeatherMakerFogColor.a);
+static const float negativeWeatherMakerFogDensity = -_WeatherMakerFogDensity;
+
+inline float CalculateFogFactor(float depth)
+{
+	float fogFactor;
+	switch (_WeatherMakerFogMode)
+	{
+	case 1:
+		// constant
+		fogFactor = _WeatherMakerFogDensity * ceil(saturate(depth));
+		break;
+
+	case 2:
+		// linear
+		fogFactor = min(1.0, depth * _WeatherMakerFogLinearFogFactor);
+		break;
+
+	case 3:
+		// exponential
+		// simple height formula
+		// const float extinction = 0.01;
+		// float fogFactor = saturate((_WeatherMakerFogDensity * exp(-(_WorldSpaceCameraPos.y - _WeatherMakerFogHeight) * extinction) * (1.0 - exp(-depth * rayDir.y * extinction))) / rayDir.y);
+		//fogFactor = 1.0 - saturate(1.0 / (exp(depth * _WeatherMakerFogDensity)));
+		fogFactor = 1.0 - saturate(exp2(depth * negativeWeatherMakerFogDensity));
+		break;
+
+	case 4:
+		// exponetial squared
+		//float expFog = exp(depth * _WeatherMakerFogDensity);
+		//fogFactor = 1.0 - saturate(1.0 / (expFog * expFog));
+		float expFog = exp2(depth * negativeWeatherMakerFogDensity);
+		fogFactor = 1.0 - saturate((expFog * expFog));
+		break;
+
+	default:
+		fogFactor = 0.0;
+		break;
+	}
+	return min(_WeatherMakerFogFactorMax, fogFactor * _WeatherMakerFogFactorMultiplier);
+}
+
+inline fixed GetMieScattering(float cosAngle)
+{
+	const float MIEGV_COEFF = 0.1;
+	const float4 MIEGV = float4(1.0 - (MIEGV_COEFF * MIEGV_COEFF), 1.0 + (MIEGV_COEFF * MIEGV_COEFF), 2.0 * MIEGV_COEFF, 1.0f / (4.0f * 3.14159265358979323846));
+	return MIEGV.w * (MIEGV.x / (pow(MIEGV.y - (MIEGV.z * cosAngle), 1.5)));
+}
+
 
 inline float CalculateFogFactorWithDither(float depth, float2 screenUV)
 {
@@ -39,8 +156,12 @@ inline float CalculateFogDirectionalLightScatter(float3 rayDir, float3 lightDir,
 	return scatter * GetMieScattering(cosAngle) * _WeatherMakerFogLightAbsorption * _WeatherMakerFogDirectionalLightScatterIntensity * (1.0 - fogFactor) * multiplier * max(0.0, 1.0 - (_WeatherMakerFogDensity * 1.2));
 }
 
-fixed3 ComputeDirectionalLightFog(float3 rayOrigin, float3 rayDir, float rayLength, float fogFactor, float2 screenUV)
+fixed3 ComputeDirectionalLightFog(float3 rayOrigin, float3 rayDir, float rayLength, float fogFactor, float2 screenUV, bool volumetric)
 {
+	static const float cloudShadowSquared = lerp(1.0, _WeatherMakerCloudGlobalShadow2 * _WeatherMakerCloudGlobalShadow2, _WeatherMakerFogCloudShadowStrength);
+	static const float cloudShadowSquared2 = cloudShadowSquared * cloudShadowSquared;
+	static const float cloudShadow3 = min(1.0, _WeatherMakerCloudGlobalShadow2 * 4.0);
+
 	float fogFactorSquared = fogFactor * fogFactor;
 
 	// add full ambient as sun intensity approaches 0
@@ -50,12 +171,10 @@ fixed3 ComputeDirectionalLightFog(float3 rayOrigin, float3 rayDir, float rayLeng
 	// sun light + scatter
 	fixed3 sunLightColor = (_WeatherMakerSunColor.rgb * _WeatherMakerSunColor.a * _DirectionalLightMultiplier);
 	float scatter = CalculateFogDirectionalLightScatter(rayDir, _WeatherMakerSunDirectionUp, fogFactor, _WeatherMakerSunLightPower.x, _WeatherMakerFogDensityScatter);
-	static const float cloudShadowSquared = lerp(1.0, _WeatherMakerCloudGlobalShadow2 * _WeatherMakerCloudGlobalShadow2, _WeatherMakerFogCloudShadowStrength);
-	static const float cloudShadowSquared2 = cloudShadowSquared * cloudShadowSquared;
-	fixed3 baseScatter = (fogFactor * ((sunLightColor * _WeatherMakerCloudGlobalShadow2) + (sunLightColor * scatter * cloudShadowSquared)));
+	fixed3 baseScatter = (fogFactor * ((sunLightColor * cloudShadow3) + (sunLightColor * scatter * cloudShadowSquared)));
 
 	UNITY_BRANCH
-	if (WM_FOG_VOLUMETRIC_LIGHT_MODE_ENABLE_WITH_SHADOWS && WM_CAMERA_RENDER_MODE_NORMAL && _WeatherMakerFogLightShadowBrightness > 0.0 && cloudShadowSquared2 > 0.001)
+	if (WM_FOG_VOLUMETRIC_LIGHT_MODE_ENABLE_WITH_SHADOWS && WM_CAMERA_RENDER_MODE_NORMAL && _WeatherMakerFogLightShadowBrightness > 0.0 && cloudShadowSquared2 > 0.001 && volumetric)
 	{
 		float4 wpos = float4(rayOrigin, 1.0);
 		float shadowPower = 0.0;
@@ -63,7 +182,6 @@ fixed3 ComputeDirectionalLightFog(float3 rayOrigin, float3 rayDir, float rayLeng
 		float4 samplePos;
 		float shadowDepth;
 		float lightDot = max(_WeatherMakerFogLightShadowDecay, dot(_WeatherMakerSunDirectionUp, rayDir));
-		//float dither = 1.0 + (_WeatherMakerFogLightShadowDither * (tex2Dlod(_WeatherMakerBlueNoiseTexture, float4(screenUV + (_WeatherMakerTime.y), 0.0, 0.0)) - 0.5));
 
 		// dithering
 		float dither = (1.0 + (_WeatherMakerFogLightShadowDither / max(0.4, fogFactor + (2 * lightDot)) * frac(cos(dot(screenUV * _WeatherMakerTime.x, ditherMagic.xy)) * ditherMagic.z) *
@@ -91,7 +209,7 @@ fixed3 ComputeDirectionalLightFog(float3 rayOrigin, float3 rayDir, float rayLeng
 
 		float fogShadowInfluence = saturate(1.0 - (2.0 * fogFactor));
 		float shadowing = FOG_SHADOW_BASE_LIGHT_INTENSITY + (fogShadowInfluence * shadowPower * invSampleCount * lightDot * _WeatherMakerFogLightShadowBrightness);
-		lightColor += (baseScatter * shadowing * cloudShadowSquared2);
+		lightColor += (baseScatter * shadowing * _WeatherMakerDirectionalLightScatterMultiplier);
 	}
 	else
 	{
@@ -440,7 +558,7 @@ fixed3 ComputeAreaLightFog(float3 rayOrigin, float3 rayDir, float rayLength, flo
 }
 
 // f is fog factor, rayLength is distance of fog in ray, savedDepth is depth buffer
-fixed4 ComputeFogLighting(float3 rayOrigin, float3 rayDir, float rayLength, float fogFactor, float2 screenUV, float noise)
+fixed4 ComputeFogLighting(float3 rayOrigin, float3 rayDir, float rayLength, float fogFactor, float2 screenUV, float noise, bool volumetric)
 {
 	// TODO: Null zones do not eliminate light, they just reduce fog amount for pixel,
 	// is there an optimized way to determine how much of a light volume is null zoned out?
@@ -455,23 +573,16 @@ fixed4 ComputeFogLighting(float3 rayOrigin, float3 rayDir, float rayLength, floa
 		fixed4 lightColor = fixed4Zero;
 
 		// directional light / ambient
-		lightColor.rgb += ComputeDirectionalLightFog(rayOrigin, rayDir, rayLength, fogFactor, screenUV);
+		lightColor.rgb += ComputeDirectionalLightFog(rayOrigin, rayDir, rayLength, fogFactor, screenUV, volumetric);
 
 		UNITY_BRANCH
-		if (WM_FOG_VOLUMETRIC_LIGHT_MODE_NOT_NONE)
+		if (WM_FOG_VOLUMETRIC_LIGHT_MODE_NOT_NONE && volumetric)
 		{
 			float lightMultiplier = _PointSpotLightMultiplier * _WeatherMakerVolumetricPointSpotMultiplier;
 			float3 ditherColor = float3One;
 			lightColor.rgb += ComputePointLightFog(rayOrigin, rayDir, rayLength, fogFactor, lightMultiplier, ditherColor);
 			lightColor.rgb += ComputeSpotLightFog(rayOrigin, rayDir, rayLength, fogFactor, lightMultiplier, ditherColor);
 			lightColor.rgb += ComputeAreaLightFog(rayOrigin, rayDir, rayLength, fogFactor, lightMultiplier, ditherColor);
-		}
-
-		// take advantage of the fact that dir lights are sorted by perspective/ortho and then by intensity
-		UNITY_LOOP
-		for (uint lightIndex = 0; lightIndex < uint(_WeatherMakerDirLightCount) && _WeatherMakerDirLightVar1[lightIndex].y == 0.0 && _WeatherMakerDirLightColor[lightIndex].a > 0.001; lightIndex++)
-		{
-			lightColor.rgb += ComputeDirLightShaftColor(screenUV, fogFactor, _WeatherMakerDirLightViewportPosition[lightIndex], _WeatherMakerFogColor * _WeatherMakerDirLightColor[lightIndex].rgb * _WeatherMakerDirLightVar1[lightIndex].z);
 		}
 
 		lightColor.rgb += _WeatherMakerFogEmissionColor.rgb; // _WeatherMakerFogEmissionColor.a is already built into the shader property
@@ -519,14 +630,9 @@ inline float CalculateFogNoise3DOne(float3 pos, float scale, float3 velocity)
 	return tex3Dlod(_WeatherMakerNoiseTexture3D, float4((pos * scale) + velocity, -999.0)).a;
 }
 
-inline void RaycastFogBoxFullScreen(float3 rayDir, float3 forwardLine, inout float depth, out float3 startPos, out float noise)
+// depth comes in as 0-1
+inline void RaycastFogBoxFullScreen(float3 rayDir, float depth, float3 depthPos, out float3 startPos, out float noise)
 {
-	// depth is 0-1 value, which needs to be changed to world space distance
-	float3 endPos = lerp(_WorldSpaceCameraPos + (depth * forwardLine), _WorldSpaceCameraPos + (rayDir * depth * _ProjectionParams.z), WM_CAMERA_RENDER_MODE_CUBEMAP);
-
-	// calculate depth exactly in world space
-	depth = distance(endPos, _WorldSpaceCameraPos);
-
 	UNITY_BRANCH
 	if (WM_FOG_HEIGHT_ENABLED)
 	{
@@ -685,11 +791,14 @@ inline void RaycastFogSphere(float3 rayDir, float3 normal, inout float depth, ou
 	}
 }
 
+#if 0
+
 // sphere is xyz, w = radius squared, returns clarity
-inline float RayMarchFogSphere(volumetric_data i, int iterations, float4 sphere, float density, float outerDensity, out float clarity, out float3 rayDir, out float3 sphereCenterViewSpace, out float maxDistance)
+inline float RayMarchFogSphere(wm_volumetric_data i, int iterations, float4 sphere, float eyeDepth, float density, float outerDensity, out float clarity, out float3 rayDir, out float3 sphereCenterViewSpace, out float maxDistance)
 {
+	// eyeDepth = DECODE_EYEDEPTH(WM_SAMPLE_DEPTH(screenUV));
 	float2 screenUV = i.projPos.xy / i.projPos.w;
-	maxDistance = length(DECODE_EYEDEPTH(WM_SAMPLE_DEPTH(screenUV)) / normalize(i.viewPos).z);
+	maxDistance = length(eyeDepth / normalize(i.viewPos).z);
 	rayDir = normalize(i.viewPos.xyz);
 	sphereCenterViewSpace = mul((float3x3)UNITY_MATRIX_V, (_WorldSpaceCameraPos - sphere.xyz));
 	float invSphereRadiusSquared = 1.0 / sphere.w;
@@ -740,120 +849,6 @@ inline float RayMarchFogSphere(volumetric_data i, int iterations, float4 sphere,
 	return clarity;
 }
 
-inline void PreFogFragment(volumetric_data i, out float depth, out float depth01, out float2 screenUV, out float3 rayDir)
-{
-	// get the depth of this pixel
-	screenUV = i.projPos.xy / i.projPos.w;
-	depth = WM_SAMPLE_DEPTH(screenUV);
-	depth01 = WM_LINEAR_DEPTH_01(depth);
-	depth = length(DECODE_EYEDEPTH(depth) / normalize(i.viewPos).z);
-	rayDir = normalize(i.rayDir);
-}
-
-inline fixed4 PostFogFragment(float3 startPos, float3 rayDir, float amount, float noise, float2 screenUV, out float fogFactor)
-{
-	GetNullZonesDepth(startPos, rayDir, amount);
-	fogFactor = saturate(CalculateFogFactor(amount) * noise);
-	return ComputeFogLighting(startPos, rayDir, amount, fogFactor, screenUV, noise);
-}
-
-inline fixed ComputeFullScreenFogAlphaTemporalReprojection(full_screen_fragment i)
-{
-	UNITY_BRANCH
-	if (_WeatherMakerFogMode == 0)
-	{
-		return 0.0;
-	}
-	else
-	{
-		float3 rayDir = GetFullScreenRayDir(i.rayDir);
-		float depth01 = WM_SAMPLE_DEPTH_DOWNSAMPLED_TEMPORAL_REPROJECTION_01(i.uv.xy);
-		float noise;
-		float3 startPos;
-		float depth = depth01; // gets set to the fog amount on the ray
-		RaycastFogBoxFullScreen(rayDir, i.forwardLine, depth, startPos, noise);
-		return saturate(CalculateFogFactorWithDither(depth, i.uv) * noise);
-	}
-}
-
-// VERTEX AND FRAGMENT SHADERS ----------------------------------------------------------------------------------------------------
-
-volumetric_data fog_volume_vertex_shader(appdata_base v)
-{
-	return GetVolumetricData(v);
-}
-
-fixed4 fog_box_full_screen_fragment_shader(full_screen_fragment i) : SV_Target
-{
-	UNITY_BRANCH
-	if (_WeatherMakerFogMode == 0)
-	{
-		return fixed4Zero;
-	}
-	float3 rayDir = GetFullScreenRayDir(i.rayDir);
-	float depth01 = WM_SAMPLE_DEPTH_DOWNSAMPLED_TEMPORAL_REPROJECTION_01(i.uv.xy);
-	float noise;
-	float3 startPos;
-	float depth = depth01; // gets set to the fog amount on the ray
-	RaycastFogBoxFullScreen(rayDir, i.forwardLine, depth, startPos, noise);
-	float fogFactor = saturate(CalculateFogFactorWithDither(depth, i.uv) * noise);
-	return ComputeFogLighting(startPos, rayDir, depth, fogFactor, i.uv, noise);
-}
-
-fixed4 fog_box_fragment(volumetric_data i, out float depth, out float fogFactor, out float3 rayDir)
-{
-	WM_INSTANCE_FRAG(i);
-	float noise;
-	float2 screenUV;
-	float depth01;
-	PreFogFragment(i, depth, depth01, screenUV, rayDir);
-	float3 startPos;
-	RaycastFogBox(rayDir, i.normal, screenUV, depth, startPos, noise);
-
-	UNITY_BRANCH
-	if (_WeatherMakerFogMode == 0)
-	{
-		fogFactor = 0.0;
-		return fixed4Zero;
-	}
-	else
-	{
-		return PostFogFragment(startPos, rayDir, depth, noise, screenUV, fogFactor);
-	}
-}
-
-fixed4 fog_box_fragment_shader(volumetric_data i) : SV_TARGET
-{
-	WM_INSTANCE_FRAG(i);
-
-	UNITY_BRANCH
-	if (_WeatherMakerFogMode == 0)
-	{
-		return fixed4Zero;
-	}
-
-	float depth, fogFactor;
-	float3 rayDir;
-	return fog_box_fragment(i, depth, fogFactor, rayDir);
-}
-
-fixed4 fog_sphere_fragment_shader(volumetric_data i) : SV_TARGET
-{
-	WM_INSTANCE_FRAG(i);
-
-	UNITY_BRANCH
-	if (_WeatherMakerFogMode == 0)
-	{
-		return fixed4Zero;
-	}
-
-	float noise, fogFactor;
-	float2 screenUV;
-	float3 startPos, rayDir;
-	float depth, depth01;
-	PreFogFragment(i, depth, depth01, screenUV, rayDir);
-	RaycastFogSphere(rayDir, i.normal, depth, startPos, noise);
-	return PostFogFragment(startPos, rayDir, depth, noise, screenUV, fogFactor);
-}
+#endif
 
 #endif

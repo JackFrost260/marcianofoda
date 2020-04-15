@@ -405,8 +405,11 @@ namespace DigitalRuby.WeatherMaker
                 return;
             }
 
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPostRender(CameraPostRender, this);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPostRender(CameraPostRender, this);
+            }
             ParticleSystemRenderer = (ParticleSystem == null ? null : ParticleSystem.gameObject.GetComponent<ParticleSystemRenderer>());
             MistParticleSystemRenderer = (MistParticleSystem == null ? null : MistParticleSystem.gameObject.GetComponent<ParticleSystemRenderer>());
             ExplosionParticleSystemRenderer = (ExplosionParticleSystem == null ? null : ExplosionParticleSystem.gameObject.GetComponent<ParticleSystemRenderer>());
@@ -446,7 +449,12 @@ namespace DigitalRuby.WeatherMaker
 
         protected virtual void OnDestroy()
         {
-            if (Application.isPlaying)
+            if (!Application.isPlaying)
+            {
+                return;
+            }
+
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
             {
                 WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
                 WeatherMakerCommandBufferManagerScript.Instance.UnregisterPostRender(this);

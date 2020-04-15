@@ -46,7 +46,6 @@ Shader "WeatherMaker/WeatherMakerLightningBoltShader"
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
 		
-
 		#include "UnityCG.cginc"
 
 		#pragma vertex vert

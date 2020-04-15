@@ -92,9 +92,6 @@ namespace DigitalRuby.WeatherMaker
         public WeatherMakerDownsampleScale DownsampleScalePostProcess = WeatherMakerDownsampleScale.QuarterResolution;
         private WeatherMakerDownsampleScale lastDownSampleScalePostProcess = (WeatherMakerDownsampleScale)(-1);
 
-        [Tooltip("Name of the texture to set if sampling the render buffer")]
-        public string DownsampleRenderBufferTextureName = "_MainTex2";
-
         [Tooltip("Blur shader type")]
         public BlurShaderType BlurShaderType = BlurShaderType.None;
         private BlurShaderType lastBlurShaderType = (BlurShaderType)0x7FFFFFFF;
@@ -125,6 +122,42 @@ namespace DigitalRuby.WeatherMaker
         /// </summary>
         public System.Action<WeatherMakerCommandBuffer> UpdateMaterialProperties { get; set; }
 
+        private static Mesh quad;
+
+        /// <summary>
+        /// Quad for command buffer DrawQuad
+        /// </summary>
+        public static Mesh Quad
+        {
+            get
+            {
+                if (quad != null)
+                {
+                    return quad;
+                }
+                Vector2[] uvs = new Vector2[4]
+                {
+                    new Vector2(0.0f, 0.0f),
+                    new Vector2(1.0f, 1.0f),
+                    new Vector2(1.0f, 0.0f),
+                    new Vector2(0.0f, 1.0f)
+                };
+                Vector3[] vertices = new Vector3[4]
+                {
+                    new Vector3(0.0f, 0.0f, 0.0f),
+                    new Vector3(1.0f, 1.0f, 0.0f),
+                    new Vector3(1.0f, 0.0f, 0.0f),
+                    new Vector3(0.0f, 1.0f, 0.0f)
+                };
+                quad = new Mesh();
+                quad.vertices = vertices;
+                quad.uv = uvs;
+                quad.triangles = new int[] { 0, 1, 2, 1, 0, 3 };
+                quad.RecalculateBounds();
+                return quad;
+            }
+        }
+
         private WeatherMakerCommandBuffer weatherMakerCommandBuffer;
         internal bool needsToBeRecreated;
 
@@ -132,6 +165,7 @@ namespace DigitalRuby.WeatherMaker
 
         public static RenderTextureDescriptor GetRenderTextureDescriptor(int scale, int mod, int scale2, RenderTextureFormat format, int depth = 0, Camera camera = null)
         {
+            scale = Mathf.Clamp(scale, 1, 16);
             RenderTextureDescriptor desc;
             if (UnityEngine.XR.XRDevice.isPresent && (camera == null || camera.stereoEnabled))
             {
@@ -240,7 +274,7 @@ namespace DigitalRuby.WeatherMaker
                     {
                         if ((int)DownsampleScale < (int)DownsampleScalePostProcess)
                         {
-                            // downsample main texture to 4
+                            // downsample main texture
                             commandBuffer.GetTemporaryRT(downsampleMain, GetRenderTextureDescriptor((int)postScale, 0, 1, defaultFormat, 0, camera), FilterMode.Bilinear);
                             commandBuffer.GetTemporaryRT(postSourceId, GetRenderTextureDescriptor((int)postScale, 0, 1, defaultFormat, 0, camera), FilterMode.Bilinear);
                             commandBuffer.SetGlobalTexture(WMS._MainTex2, downsampleMain);
@@ -326,8 +360,63 @@ namespace DigitalRuby.WeatherMaker
             commandBuffer.SetGlobalFloat(WMS._WeatherMakerTemporalReprojectionEnabled, 0.0f);
         }
 
+        internal static void AttachBilateralBlur(CommandBuffer commandBuffer, Material blurMaterial, RenderTargetIdentifier sourceIdentifier,
+            RenderTargetIdentifier targetIdentifier, RenderTextureFormat format, WeatherMakerDownsampleScale downsampleScale, Camera camera)
+        {
+            int scale = (int)downsampleScale;
+            RenderTextureDescriptor desc = GetRenderTextureDescriptor(scale, 0, 1, format, 0, camera);
+            commandBuffer.GetTemporaryRT(WMS._MainTex4, desc, FilterMode.Bilinear);
+            int blurPass;
+            int blitPass;
+            switch (scale)
+            {
+                default:
+                    blurPass = 0;
+                    blitPass = 10;
+                    break;
+
+                case 2:
+                    blurPass = 2;
+                    blitPass = 11;
+                    break;
+
+                case 4:
+                    blurPass = 4;
+                    blitPass = 12;
+                    break;
+
+                case 8:
+                    blurPass = 6;
+                    blitPass = 13;
+                    break;
+
+                case 16:
+                    blurPass = 8;
+                    blitPass = 14;
+                    break;
+            }
+
+            // horizontal blur
+            commandBuffer.Blit(sourceIdentifier, WMS._MainTex4, blurMaterial, blurPass);
+            //commandBuffer.DrawQuad(sourceIdentifier, temporaryBufferId, blurMaterial, blurPass);
+
+            // vertical blur
+            commandBuffer.Blit(WMS._MainTex4, sourceIdentifier, blurMaterial, blurPass + 1);
+            //commandBuffer.DrawQuad(temporaryBufferId, sourceIdentifier, blurMaterial, blurPass + 1);
+
+            if (sourceIdentifier != targetIdentifier)
+            {
+                // upsample
+                commandBuffer.Blit(sourceIdentifier, targetIdentifier, blurMaterial, blitPass);
+                //commandBuffer.DrawQuad(sourceIdentifier, targetIdentifier, blurMaterial, blitPass);
+            }
+
+            // cleanup
+            commandBuffer.ReleaseTemporaryRT(WMS._MainTex4);
+        }
+
         private void AttachBlurBlit(CommandBuffer commandBuffer, RenderTargetIdentifier renderedImageId, RenderTargetIdentifier depthTextureId,
-            Material material, BlurShaderType blur, RenderTextureFormat defaultFormat)
+            Material material, BlurShaderType blur, RenderTextureFormat defaultFormat, Camera camera)
         {
             if (material.passCount > 1)
             {
@@ -362,51 +451,7 @@ namespace DigitalRuby.WeatherMaker
                 }
                 else
                 {
-                    int tmp = WMS._MainTex4;
-                    int scale = (int)DownsampleScale;
-                    RenderTargetIdentifier tmpId = new RenderTargetIdentifier(tmp);
-                    RenderTextureDescriptor desc = GetRenderTextureDescriptor(scale, 0, 1, defaultFormat);
-                    commandBuffer.GetTemporaryRT(tmp, desc, FilterMode.Bilinear);
-                    int blurPass;
-                    int blitPass;
-                    switch (scale)
-                    {
-                        default:
-                            blurPass = 0;
-                            blitPass = 10;
-                            break;
-
-                        case 2:
-                            blurPass = 2;
-                            blitPass = 11;
-                            break;
-
-                        case 4:
-                            blurPass = 4;
-                            blitPass = 12;
-                            break;
-
-                        case 8:
-                            blurPass = 6;
-                            blitPass = 13;
-                            break;
-
-                        case 16:
-                            blurPass = 8;
-                            blitPass = 14;
-                            break;
-                    }
-
-                    // horizontal blur
-                    commandBuffer.Blit(renderedImageId, tmpId, BlurMaterial, blurPass);
-
-                    // vertical blur
-                    commandBuffer.Blit(tmp, renderedImageId, BlurMaterial, blurPass + 1);
-
-                    // upsample
-                    commandBuffer.Blit(renderedImageId, BuiltinRenderTextureType.CameraTarget, BlurMaterial, blitPass);
-
-                    commandBuffer.ReleaseTemporaryRT(tmp);
+                    AttachBilateralBlur(commandBuffer, BlurMaterial, renderedImageId, BuiltinRenderTextureType.CameraTarget, defaultFormat, DownsampleScale, camera);
                 }
             }
         }
@@ -434,9 +479,7 @@ namespace DigitalRuby.WeatherMaker
             RenderTextureFormat defaultFormat = (camera.allowHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
             CommandBuffer commandBuffer = new CommandBuffer { name = CommandBufferName };
 
-            int frameBufferSourceId = -1;
             int postSourceId = -1;
-            RenderTargetIdentifier frameBufferSource = frameBufferSourceId;
             RenderTargetIdentifier postSource = postSourceId;
             Material material = Material;
 
@@ -449,7 +492,39 @@ namespace DigitalRuby.WeatherMaker
             int scale = (int)downsampleScale;
             if (reprojState != null && reprojState.BlendMode == WeatherMakerTemporalReprojectionState.TemporalReprojectionBlendMode.Blur)
             {
-                commandBuffer.SetGlobalFloat(WMS._WeatherMakerDownsampleScale, (float)Mathf.Min(16, (scale * reprojState.ReprojectionSize)));
+                int totalDownScale = (scale * reprojState.ReprojectionSize);
+                switch (totalDownScale)
+                {
+                    case 0:
+                    case 1:
+                        totalDownScale = 1;
+                        break;
+
+                    case 2:
+                    case 3:
+                        totalDownScale = 2;
+                        break;
+
+                    case 4:
+                    case 5:
+                        totalDownScale = 4;
+                        break;
+
+                    case 6:
+                    case 7:
+                    case 8:
+                    case 9:
+                    case 10:
+                    case 11:
+                        totalDownScale = 8;
+                        break;
+
+                    default:
+                        totalDownScale = 16;
+                        break;
+                }
+                //Debug.LogFormat("Total down scale: {0}, {1}, {2}", totalDownScale, scale, reprojState.ReprojectionSize);
+                commandBuffer.SetGlobalFloat(WMS._WeatherMakerDownsampleScale, (float)totalDownScale);
             }
             else
             {
@@ -459,10 +534,8 @@ namespace DigitalRuby.WeatherMaker
             if (DownsampleRenderBufferScale != WeatherMakerDownsampleScale.Disabled)
             {
                 // render camera target to texture, performing separate down-sampling
-                frameBufferSourceId = Shader.PropertyToID(DownsampleRenderBufferTextureName);
-                frameBufferSource = new RenderTargetIdentifier(frameBufferSourceId);
-                commandBuffer.GetTemporaryRT(frameBufferSourceId, GetRenderTextureDescriptor((int)DownsampleRenderBufferScale, 0, 1, defaultFormat, 0, camera), FilterMode.Bilinear);
-                commandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, frameBufferSource);
+                commandBuffer.GetTemporaryRT(WMS._MainTex5, GetRenderTextureDescriptor((int)DownsampleRenderBufferScale, 0, 1, defaultFormat, 0, camera), FilterMode.Bilinear);
+                commandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, WMS._MainTex5);
             }
 
             commandBuffer.SetGlobalFloat(WMS._WeatherMakerTemporalReprojectionEnabled, 0.0f);
@@ -474,7 +547,7 @@ namespace DigitalRuby.WeatherMaker
                 // set blend mode for blitting to camera target
                 commandBuffer.SetGlobalFloat(WMS._SrcBlendMode, (float)SourceBlendMode);
                 commandBuffer.SetGlobalFloat(WMS._DstBlendMode, (float)DestBlendMode);
-                commandBuffer.Blit(frameBufferSource, BuiltinRenderTextureType.CameraTarget, material, 0);
+                commandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, BuiltinRenderTextureType.CameraTarget, material, 0);
             }
             else
             {
@@ -517,13 +590,13 @@ namespace DigitalRuby.WeatherMaker
                     AttachTemporalReprojection(commandBuffer, reprojState, renderTargetDepthTextureId, renderTargetRenderedImage, material, scale, defaultFormat);
                 }
 
-                if (cameraType == WeatherMakerCameraType.Normal)
+                if (cameraType == WeatherMakerCameraType.Normal && DownsampleScalePostProcess != WeatherMakerDownsampleScale.Disabled)
                 {
                     AttachPostProcessing(commandBuffer, material, 0, 0, defaultFormat, renderTargetRenderedImage, reprojState, camera, ref postSourceId, ref postSource);
                     //AttachPostProcessing(commandBuffer, material, w, h, defaultFormat, renderTargetRenderedImageId, reprojState, ref postSourceId, ref postSource);
                 }
 
-                AttachBlurBlit(commandBuffer, renderTargetRenderedImage, renderTargetDepthTexture, material, blur, defaultFormat);
+                AttachBlurBlit(commandBuffer, renderTargetRenderedImage, renderTargetDepthTexture, material, blur, defaultFormat, camera);
 
                 // cleanup
                 commandBuffer.ReleaseTemporaryRT(renderTargetRenderedImageId);
@@ -535,7 +608,7 @@ namespace DigitalRuby.WeatherMaker
             if (DownsampleRenderBufferScale != WeatherMakerDownsampleScale.Disabled)
             {
                 // cleanup
-                commandBuffer.ReleaseTemporaryRT(frameBufferSourceId);
+                commandBuffer.ReleaseTemporaryRT(WMS._MainTex5);
             }
 
             // add to manager
@@ -600,10 +673,14 @@ namespace DigitalRuby.WeatherMaker
                     needsToBeRecreated = true;
                     TemporalReprojectionMaterial = temporalReprojectionMaterial;
                 }
+                if (DownsampleScalePostProcess != downsampleScalePostProcess)
+                {
+                    needsToBeRecreated = true;
+                    DownsampleScalePostProcess = downsampleScalePostProcess;
+                }
                 BlurShaderType = blurShaderType;
                 DownsampleScale = (downSampleScale == WeatherMakerDownsampleScale.Disabled ? WeatherMakerDownsampleScale.FullResolution : downSampleScale);
                 DownsampleRenderBufferScale = downsampleRenderBufferScale;
-                DownsampleScalePostProcess = downsampleScalePostProcess;
                 TemporalReprojection = temporalReprojection;
                 if (UpdateMaterialProperties != updateMaterialProperties)
                 {
@@ -769,6 +846,16 @@ namespace DigitalRuby.WeatherMaker
             temporalStates.Clear();
             Enabled = false;
             needsToBeRecreated = true;
+        }
+    }
+
+    public static class CommandBufferExtensions
+    {
+        public static void DrawQuad(this CommandBuffer commandBuffer, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material mat, int pass)
+        {
+            commandBuffer.SetGlobalTexture(WMS._MainTex, source);
+            commandBuffer.SetRenderTarget(dest);
+            commandBuffer.DrawMesh(WeatherMakerFullScreenEffect.Quad, Matrix4x4.identity, mat, 0, pass);
         }
     }
 }

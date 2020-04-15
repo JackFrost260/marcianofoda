@@ -15,13 +15,20 @@
 // *** END NOTE ABOUT PIRACY ***
 //
 
+#if UNITY_2018_3_OR_NEWER
+
+#define ENABLE_CLOUD_PROBE
+
+#endif
+
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 
 using System;
 using System.Collections.Generic;
-using UnityEngine.Serialization;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace DigitalRuby.WeatherMaker
 {
@@ -81,6 +88,7 @@ namespace DigitalRuby.WeatherMaker
         [Header("Full Screen Clouds - weather map")]
         [Tooltip("Weather map material (volumetric clouds)")]
         public Material WeatherMapMaterial;
+        private readonly WeatherMakerMaterialCopy weatherMapMaterialCopy = new WeatherMakerMaterialCopy();
 
         [Tooltip("Override the weather map no matter what the clodu profile is specifying.")]
         public Texture2D WeatherMapOverride;
@@ -90,14 +98,6 @@ namespace DigitalRuby.WeatherMaker
 
         [Tooltip("Whether to regenerate a weather map seed when the script is enabled. Set this to false if you don't want the weather map to change when the script is re-enabled.")]
         public bool WeatherMapRegenerateSeedOnEnable = true;
-
-        [Header("Full Screen Clouds - lens flare")]
-        [Tooltip("Used to block lens flare if clouds are over the sun. Just needs to be a sphere collider.")]
-        public GameObject CloudLensFlareBlocker;
-
-        [Tooltip("Minimum cloud cover to block the lens flare.")]
-        [Range(0.0f, 1.0f)]
-        public float MinimumCloudCoverToBlockLensFlare = 0.5f;
 
         [Header("Full Screen Clouds - Other")]
         [Tooltip("Additional offset to cloud ray to bring clouds up or down.")]
@@ -109,7 +109,6 @@ namespace DigitalRuby.WeatherMaker
 
         private static float currentWeatherMapSeed = 0.0f;
 
-        private Material origWeatherMapMaterial;
         private bool animatingAurora;
         private WeatherMakerShaderPropertiesScript shaderProps;
 
@@ -129,47 +128,161 @@ namespace DigitalRuby.WeatherMaker
         private System.Action<WeatherMakerCommandBuffer> updateShaderPropertiesAction;
         private static WeatherMakerCloudProfileScript emptyProfile;
         private Collider cloudCollider;
-        private ComputeShader cloudProbeShader;
-        private int cloudProbeShaderKernel;
 
-        private readonly List<KeyValuePair<Camera, Dictionary<Transform, float>>> cloudProbes = new List<KeyValuePair<Camera, Dictionary<Transform, float>>>();
-        private readonly List<Transform> cloudProbeRequests = new List<Transform>();
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private struct CloudProbe
+        {
+            public Vector4 Source;
+            public Vector4 Target;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public struct CloudProbeResult
+        {
+            /// <summary>
+            /// Cloud density at the source (0 - 1)
+            /// </summary>
+            public float DensitySource;
+
+            /// <summary>
+            /// Cloud density at the target (0 - 1)
+            /// </summary>
+            public float DensityTarget;
+
+            /// <summary>
+            /// Cloud density ray average (64 samples, 0 - 1)
+            /// </summary>
+            public float DensityRayAverage;
+
+            /// <summary>
+            /// Cloud density ray sum (64 samples, 0 - 64)
+            /// </summary>
+            public float DensityRaySum;
+        }
+
+#if ENABLE_CLOUD_PROBE
+
+        private class CloudProbeComputeRequest : IDisposable
+        {
+            public Camera Camera;
+            public CloudProbeRequest[] UserRequests;
+            public ComputeShader Shader;
+            public ComputeBuffer Result;
+            public AsyncGPUReadbackRequest Request;
+            public Unity.Collections.NativeArray<CloudProbe> Samples;
+            public void Dispose()
+            {
+                if (Result != null)
+                {
+                    Result.Dispose();
+                }
+                if (Samples.IsCreated)
+                {
+                    Samples.Dispose();
+                }
+            }
+        }
+
+        private class CloudProbeRequest
+        {
+            public Camera Camera;
+            public Transform Source;
+            public Transform Target;
+
+            public override int GetHashCode()
+            {
+                return Camera.GetHashCode() + Source.GetHashCode() + Target.GetHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (base.Equals(obj))
+                {
+                    return true;
+                }
+                else
+                {
+                    CloudProbeRequest other = obj as CloudProbeRequest;
+                    if (other == null)
+                    {
+                        return false;
+                    }
+                    return (Camera == other.Camera && Source == other.Source && Target == other.Target);
+                }
+            }
+        }
+
+        private const float oneOver64 = 0.015625f;
+        private ComputeShader cloudProbeShader;
+        private readonly List<CloudProbeComputeRequest> cloudProbeComputeRequests = new List<CloudProbeComputeRequest>();
+        private int cloudProbeShaderKernel;
+        private readonly List<CloudProbeRequest> cloudProbeUserRequests = new List<CloudProbeRequest>();
+        private readonly List<KeyValuePair<CloudProbeRequest, CloudProbeResult>> cloudProbeResults = new List<KeyValuePair<CloudProbeRequest, CloudProbeResult>>();
+
+#endif
+
+        private CommandBuffer weatherMapCommandBuffer;
 
         private void GenerateWeatherMap(Camera camera)
         {
-            if (currentRenderCloudProfile == null)
+            if (currentRenderCloudProfile == null || weatherMapCommandBuffer == null || camera == null)
             {
                 return;
             }
-            else if (WeatherMapMaterial == null)
+
+            weatherMapMaterialCopy.Update(WeatherMapMaterial);
+
+            if (weatherMapMaterialCopy.Copy == null)
             {
                 Debug.LogError("Must set weather map material on full screen cloud script");
                 return;
             }
+
             CreateWeatherMapTextures();
-            currentRenderCloudProfile.UpdateWeatherMap(WeatherMapMaterial, camera, cloudProbeShader, WeatherMapRenderTexture, currentWeatherMapSeed);
+
+#if ENABLE_CLOUD_PROBE
+
+            currentRenderCloudProfile.UpdateWeatherMap(weatherMapMaterialCopy, camera, cloudProbeShader, WeatherMapRenderTexture, currentWeatherMapSeed);
+
+#else
+
+            currentRenderCloudProfile.UpdateWeatherMap(weatherMapMaterialCopy, camera, null, WeatherMapRenderTexture, currentWeatherMapSeed);
+
+#endif
+
+            camera.RemoveCommandBuffer(CameraEvent.BeforeReflections, weatherMapCommandBuffer);
+            camera.RemoveCommandBuffer(CameraEvent.BeforeDepthTexture, weatherMapCommandBuffer);
+            weatherMapCommandBuffer.Clear();
             if (WeatherMapRenderTexture != null)
             {
                 WeatherMapRenderTexture.DiscardContents();
                 if (WeatherMapOverride != null)
                 {
-                    Graphics.Blit(WeatherMapOverride, WeatherMapRenderTexture);
+                    weatherMapCommandBuffer.Blit(WeatherMapOverride, WeatherMapRenderTexture);
                 }
                 else if (currentRenderCloudProfile.WeatherMapRenderTextureOverride == null)
                 {
                     Texture mask = (WeatherMapMaskOverride == null ? currentRenderCloudProfile.WeatherMapRenderTextureMask : WeatherMapMaskOverride);
-                    Graphics.Blit(mask, WeatherMapRenderTexture, WeatherMapMaterial, 0);
+                    weatherMapCommandBuffer.Blit(mask, WeatherMapRenderTexture, weatherMapMaterialCopy, 0);
                 }
                 else
                 {
-                    Graphics.Blit(currentRenderCloudProfile.WeatherMapRenderTextureOverride, WeatherMapRenderTexture);
+                    weatherMapCommandBuffer.Blit(currentRenderCloudProfile.WeatherMapRenderTextureOverride, WeatherMapRenderTexture);
+                }
+                if (camera.actualRenderingPath == RenderingPath.DeferredShading)
+                {
+                    camera.AddCommandBuffer(CameraEvent.BeforeReflections, weatherMapCommandBuffer);
+                }
+                else
+                {
+                    camera.AddCommandBuffer(CameraEvent.BeforeDepthTexture, weatherMapCommandBuffer);
                 }
             }
         }
 
         private void UpdateShaderProperties(WeatherMakerCommandBuffer b)
         {
-            if (currentRenderCloudProfile == null)
+            if (currentRenderCloudProfile == null || WeatherMakerScript.Instance == null || WeatherMakerScript.Instance.PerformanceProfile == null)
             {
                 return;
             }
@@ -180,7 +293,7 @@ namespace DigitalRuby.WeatherMaker
             }
 
             WeatherMakerCloudVolumetricProfileScript vol = currentRenderCloudProfile.CloudLayerVolumetric1;
-            int sampleCount = (WeatherMakerScript.Instance == null ? vol.CloudDirLightRaySampleCount : WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudDirLightRaySampleCount);
+            int sampleCount = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudDirLightRaySampleCount;
             SetShaderCloudParameters(b.Material, b.Camera);
 
             // check if shafts are disabled
@@ -208,43 +321,23 @@ namespace DigitalRuby.WeatherMaker
             if (atLeastOneLightHasShafts)
             {
                 // sun shafts are visible
+                Vector4 dm = WeatherMakerCloudVolumetricProfileScript.CloudDirLightRayDitherMagic;
+                float dither = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudDirLightRayDither;
                 b.Material.SetInt(WMS._WeatherMakerFogSunShaftMode, 1);
                 bool gamma = (QualitySettings.activeColorSpace == ColorSpace.Gamma);
                 float brightness = vol.CloudDirLightRayBrightness * (gamma ? 1.0f : 0.33f);
                 b.Material.SetVector(WMS._WeatherMakerFogSunShaftsParam1, new Vector4(vol.CloudDirLightRaySpread / (float)sampleCount, (float)sampleCount, brightness, 1.0f / (float)sampleCount));
-                b.Material.SetVector(WMS._WeatherMakerFogSunShaftsParam2, new Vector4(vol.CloudDirLightRayStepMultiplier, vol.CloudDirLightRayDecay, vol.CloudDirLightRayDither, 0.0f));
+                b.Material.SetVector(WMS._WeatherMakerFogSunShaftsParam2, new Vector4(vol.CloudDirLightRayStepMultiplier, vol.CloudDirLightRayDecay, dither, 0.0f));
                 b.Material.SetVector(WMS._WeatherMakerFogSunShaftsTintColor, new Vector4(vol.CloudDirLightRayTintColor.r * vol.CloudDirLightRayTintColor.a, vol.CloudDirLightRayTintColor.g * vol.CloudDirLightRayTintColor.a,
                     vol.CloudDirLightRayTintColor.b * vol.CloudDirLightRayTintColor.a, vol.CloudDirLightRayTintColor.a));
-                b.Material.SetVector(WMS._WeatherMakerFogSunShaftsDitherMagic, new Vector4(vol.CloudDirLightRayDitherMagic.x * Screen.width, vol.CloudDirLightRayDitherMagic.y * Screen.height,
-                    vol.CloudDirLightRayDitherMagic.z * Screen.width, vol.CloudDirLightRayDitherMagic.w * Screen.height));
+                b.Material.SetVector(WMS._WeatherMakerFogSunShaftsDitherMagic, new Vector4(dm.x * Screen.width, dm.y * Screen.height,
+                    dm.z * Screen.width, dm.w * Screen.height));
+                b.Material.SetFloat(WMS._WeatherMakerFogSunShaftsBackgroundIntensity, 0.0f);
+                b.Material.SetColor(WMS._WeatherMakerFogSunShaftsBackgroundTintColor, Color.clear);
             }
             else
             {
                 b.Material.SetInt(WMS._WeatherMakerFogSunShaftMode, 0);
-            }
-        }
-
-        private void UpdateLensFlare(Camera c)
-        {
-            if (WeatherMakerLightManagerScript.Instance == null || WeatherMakerLightManagerScript.Instance.SunPerspective == null ||
-                CloudProfile == null || CloudLensFlareBlocker == null)
-            {
-                return;
-            }
-            LensFlare flare = WeatherMakerLightManagerScript.Instance.SunPerspective.GetComponent<LensFlare>();
-            if (flare == null)
-            {
-                return;
-            }
-            if (CloudProfile.CloudCoverTotal < MinimumCloudCoverToBlockLensFlare)
-            {
-                CloudLensFlareBlocker.SetActive(false);
-            }
-            else
-            {
-                CloudLensFlareBlocker.SetActive(true);
-                Vector3 toSun = (c.transform.position - WeatherMakerLightManagerScript.Instance.SunPerspective.transform.position).normalized;
-                CloudLensFlareBlocker.transform.position = c.transform.position + (toSun * 16.0f);
             }
         }
 
@@ -345,13 +438,18 @@ namespace DigitalRuby.WeatherMaker
                     newProfile.AnimateFrom(oldProfile, AuroraAnimationDuration, "WeatherMakerFullScreenCloudsScriptAurora", () => animatingAurora = false);
                 }
                 CloudProfile.additionalCloudRayOffset = CloudRayOffset;
+                CloudGlobalShadow = CloudProfile.CloudGlobalShadow;
             }
             if (AuroraProfile != null && !animatingAurora)
             {
                 AuroraProfile.UpdateAnimationProperties();
             }
 
+#if ENABLE_CLOUD_PROBE
+
             CleanupCloudProbes();
+
+#endif
 
             // debug only
             if (CloudRealtimeNoiseProfile != null)
@@ -362,16 +460,22 @@ namespace DigitalRuby.WeatherMaker
 
         private void LateUpdate()
         {
-            if (WeatherMakerScript.Instance != null && WeatherMakerScript.Instance.PerformanceProfile != null)
+            // ensure cover is 0 in case no one else sets it
+            Shader.SetGlobalFloat(WMS._CloudCoverVolumetric, 0.0f);
+            Shader.SetGlobalFloatArray(WMS._CloudCover, emptyFloatArray);
+
+            if (WeatherMakerScript.Instance == null || WeatherMakerScript.Instance.PerformanceProfile == null)
             {
-                DownSampleScale = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudDownsampleScale;
-                DownSampleScalePostProcess = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudDownsampleScalePostProcess;
-                TemporalReprojection = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudTemporalReprojectionSize;
-                if (!WeatherMakerScript.Instance.PerformanceProfile.EnableVolumetricClouds)
-                {
-                    // don't use temporal reprojection for flat clouds
-                    TemporalReprojection = WeatherMakerTemporalReprojectionSize.None;
-                }
+                return;
+            }
+
+            DownSampleScale = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudDownsampleScale;
+            DownSampleScalePostProcess = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudDownsampleScalePostProcess;
+            TemporalReprojection = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudTemporalReprojectionSize;
+            if (!WeatherMakerScript.Instance.PerformanceProfile.EnableVolumetricClouds)
+            {
+                // don't use temporal reprojection for flat clouds
+                TemporalReprojection = WeatherMakerTemporalReprojectionSize.None;
             }
 
             if (CloudProfile != lastProfile)
@@ -387,42 +491,23 @@ namespace DigitalRuby.WeatherMaker
             if (currentRenderCloudProfile != null)
             {
                 currentRenderCloudProfile.Update();
-                effect.SetupEffect(Material, FullScreenMaterial, BlurMaterial, BlurShader, DownSampleScale, WeatherMakerDownsampleScale.Disabled, DownSampleScalePostProcess,
+                effect.SetupEffect(Material, FullScreenMaterial, BlurMaterial, BlurShader, DownSampleScale, WeatherMakerDownsampleScale.Disabled,
+                    (WeatherMakerScript.Instance.PerformanceProfile.EnableVolumetricClouds ? DownSampleScalePostProcess : WeatherMakerDownsampleScale.Disabled),
                     TemporalReprojectionMaterial, TemporalReprojection, updateShaderPropertiesAction, CloudProfile.CloudsEnabled);
-            }
-        }
-
-        private void CleanupCloudProbes()
-        {
-            if (cloudProbeRequests.Count == 0)
-            {
-                cloudProbes.Clear();
-            }
-            else
-            {
-                for (int i = cloudProbes.Count - 1; i >= 0; i--)
-                {
-                    if (cloudProbes[i].Key == null)
-                    {
-                        cloudProbes.RemoveAt(i);
-                    }
-                }
-                for (int i = cloudProbeRequests.Count - 1; i >= 0; i--)
-                {
-                    if (cloudProbeRequests[i] == null)
-                    {
-                        cloudProbeRequests.RemoveAt(i);
-                    }
-                }
             }
         }
 
         private void CreateWeatherMapTextures()
         {
-            if (WeatherMapRenderTexture == null || (WeatherMakerScript.Instance != null && WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudWeatherMapSize != WeatherMapRenderTexture.width))
+            if (WeatherMakerScript.Instance == null)
+            {
+                return;
+            }
+
+            if (WeatherMapRenderTexture == null || WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudWeatherMapSize != WeatherMapRenderTexture.width)
             {
                 WeatherMapRenderTexture = WeatherMakerFullScreenEffect.DestroyRenderTexture(WeatherMapRenderTexture);
-                int size = (WeatherMakerScript.Instance == null ? 1024 : WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudWeatherMapSize);
+                int size = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudWeatherMapSize;
                 WeatherMapRenderTexture = new RenderTexture(size, size, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.sRGB);
                 WeatherMapRenderTexture.name = "WeatherMakerWeatherMapRenderTexture";
                 WeatherMapRenderTexture.wrapMode = TextureWrapMode.Repeat;
@@ -449,15 +534,10 @@ namespace DigitalRuby.WeatherMaker
 
         private void OnEnable()
         {
-            if (WeatherMapMaterial != null)
-            {
-                origWeatherMapMaterial = WeatherMapMaterial;
-                if (Application.isPlaying)
-                {
-                    WeatherMapMaterial = new Material(WeatherMapMaterial);
-                }
-            }
-            if (cloudProbeShader == null && SystemInfo.supportsComputeShaders)
+
+#if ENABLE_CLOUD_PROBE
+
+            if (cloudProbeShader == null && SystemInfo.supportsComputeShaders && SystemInfo.supportsAsyncGPUReadback)
             {
                 cloudProbeShader = Resources.Load("WeatherMakerCloudProbeShader") as ComputeShader;
                 if (cloudProbeShader != null)
@@ -465,16 +545,25 @@ namespace DigitalRuby.WeatherMaker
                     cloudProbeShaderKernel = cloudProbeShader.FindKernel("CSMain");
                 }
             }
+
+#endif
+
             shaderProps = new WeatherMakerShaderPropertiesScript();
             WeatherMakerScript.EnsureInstance(this, ref instance);
             EnsureProfile();
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPreRender(CameraPreRender, this);
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPostRender(CameraPostRender, this);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPreRender(CameraPreRender, this);
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPostRender(CameraPostRender, this);
+            }
             cloudCollider = GetComponent<Collider>();
-            GenerateWeatherMap(null);
             ClearWeatherMap();
             Shader.SetGlobalFloat(WMS._WeatherMakerAuroraSeed, UnityEngine.Random.Range(-65536.0f, 65536.0f));
+            if (weatherMapCommandBuffer == null)
+            {
+                weatherMapCommandBuffer = new CommandBuffer { name = "WeatherMap" };
+            }
         }
 
         private void OnDisable()
@@ -484,10 +573,18 @@ namespace DigitalRuby.WeatherMaker
                 effect.Dispose();
             }
             WeatherMapRenderTexture = WeatherMakerFullScreenEffect.DestroyRenderTexture(WeatherMapRenderTexture);
-            if (WeatherMapMaterial != null && WeatherMapMaterial.name.IndexOf("(Clone)") >= 0)
+            weatherMapMaterialCopy.Dispose();
+
+#if ENABLE_CLOUD_PROBE
+
+            DisposeCloudProbes();
+
+#endif
+
+            if (weatherMapCommandBuffer != null)
             {
-                Destroy(WeatherMapMaterial);
-                WeatherMapMaterial = origWeatherMapMaterial;
+                weatherMapCommandBuffer.Release();
+                weatherMapCommandBuffer = null;
             }
         }
 
@@ -498,28 +595,48 @@ namespace DigitalRuby.WeatherMaker
                 effect.Dispose();
             }
             DeleteAndTransitionRenderProfile(null);
-            WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
-            WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreRender(this);
-            WeatherMakerCommandBufferManagerScript.Instance.UnregisterPostRender(this);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreRender(this);
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPostRender(this);
+            }
             WeatherMakerScript.ReleaseInstance(ref instance);
         }
 
+        private static readonly float[] emptyFloatArray = new float[4] { 0.0f, 0.0f, 0.0f, 0.0f };
         internal void SetShaderCloudParameters(Material material, Camera camera)
         {
             if (WeatherMakerLightManagerScript.Instance != null && currentRenderCloudProfile != null)
             {
+
+#if ENABLE_CLOUD_PROBE
+
                 currentRenderCloudProfile.SetShaderCloudParameters(material, cloudProbeShader, camera, WeatherMapRenderTexture);
-                if (currentRenderCloudProfile.CloudsEnabled)
-                {
-                    shaderProps.Update(material);
-                    WeatherMakerLightManagerScript.Instance.UpdateShaderVariables(null, shaderProps, cloudCollider);
-                }
+                DispatchCloudProbes(camera);
+
+#else
+
+                currentRenderCloudProfile.SetShaderCloudParameters(material, null, camera, WeatherMapRenderTexture);
+
+#endif
+
+                shaderProps.Update(material);
+                WeatherMakerLightManagerScript.Instance.UpdateShaderVariables(null, shaderProps, cloudCollider);
             }
         }
 
         private bool DisallowCamera(Camera camera)
         {
-            bool allowReflections = (WeatherMakerScript.Instance == null ? AllowReflections : WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudAllowReflections);
+            bool allowReflections;
+            if (WeatherMakerScript.Instance == null || WeatherMakerScript.Instance.PerformanceProfile == null)
+            {
+                allowReflections = AllowReflections;
+            }
+            else
+            {
+                allowReflections = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudAllowReflections;
+            }
             return (effect == null || camera.orthographic || WeatherMakerScript.ShouldIgnoreCamera(this, camera, !allowReflections));
         }
 
@@ -537,54 +654,118 @@ namespace DigitalRuby.WeatherMaker
             }
 
             effect.PreCullCamera(camera);
-            if (Application.isPlaying)
-            {
-                UpdateLensFlare(camera);
-            }
         }
 
-        private void ProcessCloudProbes(Camera camera)
+#if ENABLE_CLOUD_PROBE
+
+        private void DisposeCloudProbes()
         {
-            if (cloudProbeShader != null && cloudProbeRequests.Count != 0 && WeatherMakerScript.GetCameraType(camera) == WeatherMakerCameraType.Normal)
+            lock (cloudProbeComputeRequests)
             {
-                Vector4[] samples = new Vector4[cloudProbeRequests.Count];
-                int index = 0;
-                foreach (Transform t in cloudProbeRequests)
+                foreach (CloudProbeComputeRequest request in cloudProbeComputeRequests)
                 {
-                    samples[index++] = (t == null ? Vector4.zero : (Vector4)t.position);
+                    request.Dispose();
                 }
-                using (ComputeBuffer buffer = new ComputeBuffer(samples.Length, 16))
+                cloudProbeComputeRequests.Clear();
+            }
+
+            cloudProbeUserRequests.Clear();
+            cloudProbeResults.Clear();
+        }
+
+        private void HandleCloudProbeResult(CloudProbeComputeRequest request)
+        {
+            Unity.Collections.NativeArray<CloudProbe> samples = request.Request.GetData<CloudProbe>();
+            for (int userRequestIndex = 0; userRequestIndex < request.UserRequests.Length; userRequestIndex++)
+            {
+                int existingResultIndex = -1;
+                for (int resultIndex = 0; resultIndex < cloudProbeResults.Count; resultIndex++)
                 {
-                    buffer.SetData(samples);
-                    cloudProbeShader.SetBuffer(cloudProbeShaderKernel, "probe", buffer);
-                    cloudProbeShader.Dispatch(cloudProbeShaderKernel, samples.Length, 1, 1);
-                    buffer.GetData(samples);
-                }
-                Dictionary<Transform, float> results = new Dictionary<Transform, float>();
-                index = 0;
-                foreach (Vector4 sample in samples)
-                {
-                    results[cloudProbeRequests[index++]] = sample.w;
-                }
-                index = -1;
-                for (int i = 0; i < cloudProbes.Count; i++)
-                {
-                    if (cloudProbes[i].Key == camera)
+                    if (cloudProbeResults[resultIndex].Key.Camera == request.Camera)
                     {
-                        index = i;
+                        existingResultIndex = resultIndex;
                         break;
                     }
                 }
-                if (index == -1)
+                CloudProbeResult result = new CloudProbeResult
                 {
-                    cloudProbes.Add(new KeyValuePair<Camera, Dictionary<Transform, float>>(camera, results));
+                    DensitySource = samples[userRequestIndex].Source.x,
+                    DensityTarget = samples[userRequestIndex].Source.y,
+                    DensityRaySum = samples[userRequestIndex].Source.z,
+                    DensityRayAverage = samples[userRequestIndex].Source.z * oneOver64
+                };
+                if (existingResultIndex == -1)
+                {
+                    cloudProbeResults.Add(new KeyValuePair<CloudProbeRequest, CloudProbeResult>(request.UserRequests[userRequestIndex], result));
                 }
                 else
                 {
-                    cloudProbes[index] = new KeyValuePair<Camera, Dictionary<Transform, float>>(camera, results);
+                    cloudProbeResults[existingResultIndex] = new KeyValuePair<CloudProbeRequest, CloudProbeResult>(request.UserRequests[userRequestIndex], result);
+                }
+            }
+            lock (cloudProbeComputeRequests)
+            {
+                request.Dispose();
+                cloudProbeComputeRequests.Remove(request);
+            }
+        }
+
+        private void CleanupCloudProbes()
+        {
+            cloudProbeUserRequests.Clear();
+            for (int i = cloudProbeResults.Count - 1; i >= 0; i--)
+            {
+                if (cloudProbeResults[i].Key == null || cloudProbeResults[i].Key.Camera == null || cloudProbeResults[i].Key.Source == null || !cloudProbeResults[i].Key.Source.gameObject.activeInHierarchy)
+                {
+                    cloudProbeResults.RemoveAt(i);
                 }
             }
         }
+
+        private void DispatchCloudProbes(Camera camera)
+        {
+            if (cloudProbeShader != null && cloudProbeUserRequests.Count != 0)
+            {
+                CloudProbeComputeRequest existingRequest;
+                lock (cloudProbeComputeRequests)
+                {
+                    // if we have a pending request, don't stack requests, just wait for it to be done
+                    existingRequest = cloudProbeComputeRequests.FirstOrDefault(r => r.Camera == camera);
+                    if (existingRequest != null)
+                    {
+                        return;
+                    }
+                }
+                CloudProbeRequest[] requests = cloudProbeUserRequests.Where(r => r.Camera == camera).ToArray();
+                if (requests.Length == 0)
+                {
+                    return;
+                }
+
+                existingRequest = new CloudProbeComputeRequest();
+                existingRequest.Camera = camera;
+                existingRequest.UserRequests = requests;
+                existingRequest.Shader = cloudProbeShader;
+                existingRequest.Result = new ComputeBuffer(requests.Length, 32);
+                CloudProbe[] samples = new CloudProbe[requests.Length];
+                for (int i = 0; i < requests.Length; i++)
+                {
+                    samples[i].Source = (requests[i].Source == null ? Vector4.zero : (Vector4)requests[i].Source.position);
+                    samples[i].Target = (requests[i].Target == null ? Vector4.zero : (Vector4)requests[i].Target.position);
+                }
+                existingRequest.Result.SetData(samples);
+                existingRequest.Shader.SetBuffer(cloudProbeShaderKernel, "probe", existingRequest.Result);
+                existingRequest.Shader.Dispatch(cloudProbeShaderKernel, samples.Length, 1, 1);
+                existingRequest.Samples = new Unity.Collections.NativeArray<CloudProbe>(samples, Unity.Collections.Allocator.Persistent);
+                lock (cloudProbeComputeRequests)
+                {
+                    cloudProbeComputeRequests.Add(existingRequest);
+                }
+                existingRequest.Request = AsyncGPUReadback.Request(existingRequest.Result, (req) => HandleCloudProbeResult(existingRequest));
+            }
+        }
+
+#endif
 
         private void CameraPreRender(Camera camera)
         {
@@ -594,7 +775,6 @@ namespace DigitalRuby.WeatherMaker
             }
 
             effect.PreRenderCamera(camera);
-            ProcessCloudProbes(camera);
         }
 
         private void CameraPostRender(Camera camera)
@@ -605,43 +785,83 @@ namespace DigitalRuby.WeatherMaker
             }
 
             effect.PostRenderCamera(camera);
-        }
 
-        /// <summary>
-        /// Sample cloud density at world position, returns 0.0f if compute shaders are not supported
-        /// </summary>
-        /// <param name="camera">The camera to get cloud density with</param>
-        /// <param name="transform">The transform to get cloud density with</param>
-        /// <returns>Cloud density</returns>
-        public float GetCloudDensity(Camera camera, Transform transform)
-        {
-            foreach (var kv in cloudProbes)
+            if (weatherMapCommandBuffer != null)
             {
-                if (kv.Key == camera)
+                // make sure weather map command buffer gets removed, don't want it hanging around
+                if (camera.actualRenderingPath == RenderingPath.DeferredShading)
                 {
-                    float density;
-                    kv.Value.TryGetValue(transform, out density);
-                    return density;
+                    camera.RemoveCommandBuffer(CameraEvent.BeforeGBuffer, weatherMapCommandBuffer);
+                }
+                else
+                {
+                    camera.RemoveCommandBuffer(CameraEvent.BeforeForwardOpaque, weatherMapCommandBuffer);
                 }
             }
-            return 0.0f;
         }
 
         /// <summary>
-        /// Request a cloud probe for a transform
+        /// Get cloud probe results
         /// </summary>
-        /// <param name="transform">Transform to request</param>
-        /// <param name="add">True to add, false to remove</param>
-        public void RequestCloudProbe(Transform transform, bool add = true)
+        /// <param name="camera">The camera to get cloud density with</param>
+        /// <param name="source">The source transform to get cloud density with</param>
+        /// <param name="dest">The destination transform to get cloud density with, set to null or source if sampling just a single point</param>
+        /// <returns>Cloud probe result</returns>
+        public CloudProbeResult GetCloudProbe(Camera camera, Transform source, Transform dest)
         {
-            if (add)
+
+#if ENABLE_CLOUD_PROBE
+
+            if (cloudProbeShader != null)
             {
-                cloudProbeRequests.Add(transform);
+                dest = (dest == null ? source : dest);
+                foreach (var kv in cloudProbeResults)
+                {
+                    if (kv.Key.Camera == camera && kv.Key.Source == source && kv.Key.Target == dest)
+                    {
+                        return kv.Value;
+                    }
+                }
             }
-            else
+
+#endif
+
+            return new CloudProbeResult();
+        }
+
+        /// <summary>
+        /// Request a cloud probe for a transform, must be called every frame as these are cleared every frame. Call from camera pre cull event.
+        /// </summary>
+        /// <param name="camera">Current camera</param>
+        /// <param name="source">Transform to request</param>
+        /// <param name="target">Target or null for just the point of the transform. If target is set, a ray is cast out and a cloud density sample accumulated.</param>
+        /// <returns>True if added, false if failure or there are already pending requests for this camera</returns>
+        public bool RequestCloudProbe(Camera camera, Transform source, Transform target)
+        {
+
+#if ENABLE_CLOUD_PROBE
+
+            if (source == null || cloudProbeShader == null || WeatherMakerScript.GetCameraType(camera) != WeatherMakerCameraType.Normal || !enabled || !gameObject.activeInHierarchy)
             {
-                cloudProbeRequests.Remove(transform);
+                return false;
             }
+
+            // if we have a pending request for this camera, source and target, do not add new request
+            target = (target == null ? source : target);
+            if (cloudProbeUserRequests.FirstOrDefault(u => u.Camera == camera && u.Source == source && u.Target == target) != null)
+            {
+                return false;
+            }
+
+            cloudProbeUserRequests.Add(new CloudProbeRequest { Camera = camera, Source = source, Target = target });
+            return true;
+
+#else
+
+            return false;
+
+#endif
+
         }
 
         /// <summary>
@@ -664,12 +884,14 @@ namespace DigitalRuby.WeatherMaker
         /// <param name="tweenKey">Tween key</param>
         public void ShowCloudsAnimated(WeatherMakerCloudProfileScript newProfile, float transitionDelay, float transitionDuration, string tweenKey = null)
         {
-            if (!isActiveAndEnabled || currentRenderCloudProfile == null)
+            if (!isActiveAndEnabled || currentRenderCloudProfile == null || WeatherMakerScript.Instance == null || WeatherMakerScript.Instance.PerformanceProfile == null ||
+                WeatherMakerLightManagerScript.Instance == null || WeatherMakerLightManagerScript.Instance.SunPerspective == null)
             {
                 Debug.LogError("Full screen cloud script must be enabled to show clouds");
                 return;
             }
 
+            WeatherMakerCelestialObjectScript sun = WeatherMakerLightManagerScript.Instance.SunPerspective;
             tweenKey = (tweenKey ?? string.Empty);
             WeatherMakerCloudProfileScript oldProfile = currentRenderCloudProfile;
             // set to empty profile if null passed in
@@ -686,8 +908,8 @@ namespace DigitalRuby.WeatherMaker
             float endSharpness1, endSharpness2, endSharpness3, endSharpness4;
             float startLightAbsorption1, startLightAbsorption2, startLightAbsorption3, startLightAbsorption4;
             float endLightAbsorption1, endLightAbsorption2, endLightAbsorption3, endLightAbsorption4;
-            float startHorizonFade1, startHorizonFade2, startHorizonFade3, startHorizonFade4;
-            float endHorizonFade1, endHorizonFade2, endHorizonFade3, endHorizonFade4;
+            float startRayOffset1, startRayOffset2, startRayOffset3, startRayOffset4;
+            float endRayOffset1, endRayOffset2, endRayOffset3, endRayOffset4;
             Vector4 startScale1, startScale2, startScale3, startScale4;
             Vector4 endScale1, endScale2, endScale3, endScale4;
             Vector4 startMultiplier1, startMultiplier2, startMultiplier3, startMultiplier4;
@@ -704,9 +926,8 @@ namespace DigitalRuby.WeatherMaker
             float oldVolCoverSecondary = oldVol.CloudCoverSecondary.LastValue;
             float oldVolDensity = oldVol.CloudDensity.LastValue;
             float oldVolNoiseHeightPower = oldVol.CloudHeightNoisePowerVolumetric.LastValue;
-            float oldVolHeight = oldProfile.CloudHeight;
-            float oldVolHeightTop = oldProfile.CloudHeightTop;
-            float oldVolLightStepMultiplier = oldVol.CloudLightStepMultiplier;
+            float oldVolHeight = oldProfile.CloudHeight.LastValue;
+            float oldVolHeightTop = oldProfile.CloudHeightTop.LastValue;
             float oldVolPlanetRadius = oldProfile.CloudPlanetRadius;
             float oldVolRayOffset = oldVol.CloudRayOffset;
             float oldVolMinRayY = oldVol.CloudMinRayY;
@@ -741,21 +962,17 @@ namespace DigitalRuby.WeatherMaker
             float oldVolShapeNoiseMax = oldVol.CloudShapeNoiseMax.LastValue;
             float oldVolPowderMultiplier = oldVol.CloudPowderMultiplier.LastValue;
             float oldVolBottomFade = oldVol.CloudBottomFade.LastValue;
-            float oldVolMaxRayLengthMultiplier = oldVol.CloudMaxRayLengthMultiplier;
             float oldVolOpticalDistanceMultiplier = oldVol.CloudOpticalDistanceMultiplier;
             float oldVolHorizonFadeMultiplier = oldVol.CloudHorizonFadeMultiplier;
-            float oldVolRayDither = oldVol.CloudRayDither;
             Vector4 oldVolNoiseScale = oldVol.CloudNoiseScale;
             float oldVolNoiseScalar = oldVol.CloudNoiseScalar.LastValue;
             float oldVolNoiseDetailPower = oldVol.CloudNoiseDetailPower.LastValue;
-            Gradient oldVolDirLightGradientColor = oldVol.CloudDirLightGradientColor;
+            Color oldVolDirLightGradientColor = oldVol.CloudDirLightGradientColorColor;
             float oldVolDirLightRayBrightness = oldVol.CloudDirLightRayBrightness;
             float oldVolDirLightRayDecay = oldVol.CloudDirLightRayDecay;
             float oldVolDirLightRaySpread = oldVol.CloudDirLightRaySpread;
             float oldVolDirLightRayStepMultiplier = oldVol.CloudDirLightRayStepMultiplier;
             Color oldVolDirLightRayTintColor = oldVol.CloudDirLightRayTintColor;
-            int oldVolDirLightRaySampleCount = oldVol.CloudDirLightRaySampleCount;
-            float oldVolVolumetricShadow = oldProfile.CloudVolumetricShadow;
             Vector3 oldVolWeatherMapScale = oldProfile.WeatherMapScale;
 
             Color newVolColor = newVol.CloudColor;
@@ -764,9 +981,8 @@ namespace DigitalRuby.WeatherMaker
             float newVolCoverSecondary = newVol.CloudCoverSecondary.Random();
             float newVolDensity = newVol.CloudDensity.Random();
             float newVolNoiseHeightPower = newVol.CloudHeightNoisePowerVolumetric.Random();
-            float newVolHeight = newProfile.CloudHeight;
-            float newVolHeightTop = newProfile.CloudHeightTop;
-            float newVolLightStepMultiplier = newVol.CloudLightStepMultiplier;
+            float newVolHeight = newProfile.CloudHeight.Random();
+            float newVolHeightTop = newProfile.CloudHeightTop.Random();
             float newVolPlanetRadius = newProfile.CloudPlanetRadius;
             float newVolRayOffset = newVol.CloudRayOffset;
             float newVolMinRayY = newVol.CloudMinRayY;
@@ -801,20 +1017,17 @@ namespace DigitalRuby.WeatherMaker
             float newVolShapeNoiseMax = newVol.CloudShapeNoiseMax.Random();
             float newVoPowderMultiplier = newVol.CloudPowderMultiplier.Random();
             float newVolBottomFade = newVol.CloudBottomFade.Random();
-            float newVolMaxRayLengthMultiplier = newVol.CloudMaxRayLengthMultiplier;
             float newVolOpticalDistanceMultiplier = newVol.CloudOpticalDistanceMultiplier;
             float newVolHorizonFadeMultiplier = newVol.CloudHorizonFadeMultiplier;
-            float newVolRayDither = newVol.CloudRayDither;
             Vector4 newVolNoiseScale = newVol.CloudNoiseScale;
             float newVolNoiseScalar = newVol.CloudNoiseScalar.Random();
             float newVolNoiseDetailPower = newVol.CloudNoiseDetailPower.Random();
+            Color newVolDirLightGradientColor = sun.GetGradientColor(newVol.CloudDirLightGradientColor);
             float newVolDirLightRayBrightness = newVol.CloudDirLightRayBrightness;
             float newVolDirLightRayDecay = newVol.CloudDirLightRayDecay;
             float newVolDirLightRaySpread = newVol.CloudDirLightRaySpread;
             float newVolDirLightRayStepMultiplier = newVol.CloudDirLightRayStepMultiplier;
             Color newVolDirLightRayTintColor = newVol.CloudDirLightRayTintColor;
-            int newVolDirLightRaySampleCount = newVol.CloudDirLightRaySampleCount;
-            float newVolVolumetricShadow = newProfile.CloudVolumetricShadow;
             Vector3 newVolWeatherMapScale = newProfile.WeatherMapScale;
 
             // apply end cover and density
@@ -862,7 +1075,7 @@ namespace DigitalRuby.WeatherMaker
             Vector4 startRotation = new Vector4(oldProfile.CloudLayer1.CloudNoiseRotation.LastValue, oldProfile.CloudLayer2.CloudNoiseRotation.LastValue, oldProfile.CloudLayer3.CloudNoiseRotation.LastValue, oldProfile.CloudLayer4.CloudNoiseRotation.LastValue);
             //Vector4 startMaskRotation = new Vector4(oldProfile.CloudLayer1.CloudNoiseMaskRotation.LastValue, oldProfile.CloudLayer2.CloudNoiseMaskRotation.LastValue, oldProfile.CloudLayer3.CloudNoiseMaskRotation.LastValue, oldProfile.CloudLayer4.CloudNoiseMaskRotation.LastValue);
             float startDirectionalLightIntensityMultiplier = oldProfile.DirectionalLightIntensityMultiplier;
-            float startDirectionalLightShadowStrengthMultiplier = oldProfile.DirectionalLightShadowStrengthMultiplier;
+            float startDirectionalLightScatterMultiplier = oldProfile.DirectionalLightScatterMultiplier;
 
             Color endColor1 = newProfile.CloudLayer1.CloudColor;
             Color endColor2 = newProfile.CloudLayer2.CloudColor;
@@ -891,7 +1104,7 @@ namespace DigitalRuby.WeatherMaker
             Vector4 endRotation = new Vector4(newProfile.CloudLayer1.CloudNoiseRotation.Random(), newProfile.CloudLayer2.CloudNoiseRotation.Random(), newProfile.CloudLayer3.CloudNoiseRotation.Random(), newProfile.CloudLayer4.CloudNoiseRotation.Random());
             //Vector4 endMaskRotation = new Vector4(newProfile.CloudLayer1.CloudNoiseMaskRotation.Random(), newProfile.CloudLayer2.CloudNoiseMaskRotation.Random(), newProfile.CloudLayer3.CloudNoiseMaskRotation.Random(), newProfile.CloudLayer4.CloudNoiseMaskRotation.Random());
             float endDirectionalLightIntensityMultiplier = newProfile.DirectionalLightIntensityMultiplier;
-            float endDirectionalLightShadowStrengthMultiplier = newProfile.DirectionalLightShadowStrengthMultiplier;
+            float endDirectionalLightScatterMultiplier = newProfile.DirectionalLightScatterMultiplier;
 
             if (startCover1 == 0.0f && startCover2 == 0.0f && startCover3 == 0.0f && startCover4 == 0.0f)
             {
@@ -904,10 +1117,6 @@ namespace DigitalRuby.WeatherMaker
                 startLightAbsorption2 = endLightAbsorption2 = newProfile.CloudLayer2.CloudLightAbsorption;
                 startLightAbsorption3 = endLightAbsorption3 = newProfile.CloudLayer3.CloudLightAbsorption;
                 startLightAbsorption4 = endLightAbsorption4 = newProfile.CloudLayer4.CloudLightAbsorption;
-                startHorizonFade1 = endHorizonFade1 = newProfile.CloudLayer1.CloudHorizonFade;
-                startHorizonFade2 = endHorizonFade2 = newProfile.CloudLayer2.CloudHorizonFade;
-                startHorizonFade3 = endHorizonFade3 = newProfile.CloudLayer3.CloudHorizonFade;
-                startHorizonFade4 = endHorizonFade4 = newProfile.CloudLayer4.CloudHorizonFade;
                 startScale1 = endScale1 = newProfile.CloudLayer1.CloudNoiseScale;
                 startScale2 = endScale2 = newProfile.CloudLayer2.CloudNoiseScale;
                 startScale3 = endScale3 = newProfile.CloudLayer3.CloudNoiseScale;
@@ -937,10 +1146,6 @@ namespace DigitalRuby.WeatherMaker
                 startLightAbsorption2 = endLightAbsorption2 = oldProfile.CloudLayer2.CloudLightAbsorption;
                 startLightAbsorption3 = endLightAbsorption3 = oldProfile.CloudLayer3.CloudLightAbsorption;
                 startLightAbsorption4 = endLightAbsorption4 = oldProfile.CloudLayer4.CloudLightAbsorption;
-                startHorizonFade1 = endHorizonFade1 = oldProfile.CloudLayer1.CloudHorizonFade;
-                startHorizonFade2 = endHorizonFade2 = oldProfile.CloudLayer2.CloudHorizonFade;
-                startHorizonFade3 = endHorizonFade3 = oldProfile.CloudLayer3.CloudHorizonFade;
-                startHorizonFade4 = endHorizonFade4 = oldProfile.CloudLayer4.CloudHorizonFade;
                 startScale1 = endScale1 = oldProfile.CloudLayer1.CloudNoiseScale;
                 startScale2 = endScale2 = oldProfile.CloudLayer2.CloudNoiseScale;
                 startScale3 = endScale3 = oldProfile.CloudLayer3.CloudNoiseScale;
@@ -1004,14 +1209,6 @@ namespace DigitalRuby.WeatherMaker
                 endLightAbsorption2 = newProfile.CloudLayer2.CloudLightAbsorption;
                 endLightAbsorption3 = newProfile.CloudLayer3.CloudLightAbsorption;
                 endLightAbsorption4 = newProfile.CloudLayer4.CloudLightAbsorption;
-                startHorizonFade1 = oldProfile.CloudLayer1.CloudHorizonFade;
-                startHorizonFade2 = oldProfile.CloudLayer2.CloudHorizonFade;
-                startHorizonFade3 = oldProfile.CloudLayer3.CloudHorizonFade;
-                startHorizonFade4 = oldProfile.CloudLayer4.CloudHorizonFade;
-                endHorizonFade1 = newProfile.CloudLayer1.CloudHorizonFade;
-                endHorizonFade2 = newProfile.CloudLayer2.CloudHorizonFade;
-                endHorizonFade3 = newProfile.CloudLayer3.CloudHorizonFade;
-                endHorizonFade4 = newProfile.CloudLayer4.CloudHorizonFade;
                 startHeight1 = oldProfile.CloudLayer1.CloudHeight;
                 startHeight2 = oldProfile.CloudLayer2.CloudHeight;
                 startHeight3 = oldProfile.CloudLayer3.CloudHeight;
@@ -1024,6 +1221,14 @@ namespace DigitalRuby.WeatherMaker
                 // use new profile for transition
                 _CloudProfile = newProfile;
             }
+            startRayOffset1 = oldProfile.CloudLayer1.CloudRayOffset;
+            startRayOffset2 = oldProfile.CloudLayer2.CloudRayOffset;
+            startRayOffset3 = oldProfile.CloudLayer3.CloudRayOffset;
+            startRayOffset4 = oldProfile.CloudLayer4.CloudRayOffset;
+            endRayOffset1 = newProfile.CloudLayer1.CloudRayOffset;
+            endRayOffset2 = newProfile.CloudLayer2.CloudRayOffset;
+            endRayOffset3 = newProfile.CloudLayer3.CloudRayOffset;
+            endRayOffset4 = newProfile.CloudLayer4.CloudRayOffset;
 
             float startCloudDither = oldProfile.CloudDitherLevel;
             float endCloudDither = newProfile.CloudDitherLevel;
@@ -1037,47 +1242,34 @@ namespace DigitalRuby.WeatherMaker
             }
             lastProfile = currentRenderCloudProfile = _CloudProfile;
 
-            if (WeatherMakerScript.Instance != null && WeatherMakerScript.Instance.PerformanceProfile != null)
+            if (!WeatherMakerScript.Instance.PerformanceProfile.EnableVolumetricClouds)
             {
-                if (WeatherMakerScript.Instance.PerformanceProfile.EnableVolumetricClouds)
-                {
-                    currentRenderCloudProfile.CloudLayerVolumetric1.CloudNoiseLod = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudLod;
-                    currentRenderCloudProfile.CloudLayerVolumetric1.CloudNoiseSampleCount = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudSampleCount;
-                    currentRenderCloudProfile.CloudLayerVolumetric1.CloudRaymarchSkipThreshold = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudRaymarchSkipThreshold;
-                    currentRenderCloudProfile.CloudLayerVolumetric1.CloudRaymarchMaybeInCloudStepMultiplier = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudRaymarchMaybeInCloudStepMultiplier;
-                    currentRenderCloudProfile.CloudLayerVolumetric1.CloudRaymarchInCloudStepMultiplier = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudRaymarchInCloudStepMultiplier;
-                    currentRenderCloudProfile.CloudLayerVolumetric1.CloudRaymarchSkipMultiplier = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudRaymarchSkipMultiplier;
-                    currentRenderCloudProfile.CloudLayerVolumetric1.CloudRaymarchSkipMultiplierMaxCount = WeatherMakerScript.Instance.PerformanceProfile.VolumetricCloudRaymarchSkipMultiplierMaxCount;
-                }
-                else
-                {
-                    // turn off volumetric clouds if not allowed
-                    currentRenderCloudProfile.CloudLayerVolumetric1.CloudCover.LastValue = oldVolCover = newVolCover = 0.0f;
-                }
+                // turn off volumetric clouds if not allowed
+                currentRenderCloudProfile.CloudLayerVolumetric1.CloudCover.LastValue = oldVolCover = newVolCover = 0.0f;
             }
 
             if (newVolCover > 0.0f)
             {
                 if ((currentRenderCloudProfile.CloudLayerVolumetric1.FlatLayerMask & WeatherMakerVolumetricCloudsFlatLayerMask.One) != WeatherMakerVolumetricCloudsFlatLayerMask.One)
                 {
-                    startCover1 = endCover1 = currentRenderCloudProfile.CloudLayer1.CloudCover = 0.0f;
+                    endCover1 = currentRenderCloudProfile.CloudLayer1.CloudCover = 0.0f;
                 }
                 if ((currentRenderCloudProfile.CloudLayerVolumetric1.FlatLayerMask & WeatherMakerVolumetricCloudsFlatLayerMask.Two) != WeatherMakerVolumetricCloudsFlatLayerMask.Two)
                 {
-                    startCover2 = endCover2 = currentRenderCloudProfile.CloudLayer2.CloudCover = 0.0f;
+                    endCover2 = currentRenderCloudProfile.CloudLayer2.CloudCover = 0.0f;
                 }
                 if ((currentRenderCloudProfile.CloudLayerVolumetric1.FlatLayerMask & WeatherMakerVolumetricCloudsFlatLayerMask.Three) != WeatherMakerVolumetricCloudsFlatLayerMask.Three)
                 {
-                    startCover3 = endCover3 = currentRenderCloudProfile.CloudLayer3.CloudCover = 0.0f;
+                    endCover3 = currentRenderCloudProfile.CloudLayer3.CloudCover = 0.0f;
                 }
                 if ((currentRenderCloudProfile.CloudLayerVolumetric1.FlatLayerMask & WeatherMakerVolumetricCloudsFlatLayerMask.Four) != WeatherMakerVolumetricCloudsFlatLayerMask.Four)
                 {
-                    startCover4 = endCover4 = currentRenderCloudProfile.CloudLayer4.CloudCover = 0.0f;
+                    endCover4 = currentRenderCloudProfile.CloudLayer4.CloudCover = 0.0f;
                 }
             }
 
-            currentRenderCloudProfile.CloudLayerVolumetric1.LerpCloudGradientColor = oldVolDirLightGradientColor;
             currentRenderCloudProfile.Aurora = (currentRenderCloudProfile.Aurora ?? oldProfile.Aurora); // copy aurora profile straight over if new clouds have no aurora profile
+            currentRenderCloudProfile.isAnimating = true;
 
             // animate animatable properties
             FloatTween tween = TweenFactory.Tween("WeatherMakerClouds_" + GetInstanceID() + tweenKey, 0.0f, 1.0f, transitionDuration, TweenScaleFunctions.QuadraticEaseInOut, (ITween<float> c) =>
@@ -1128,10 +1320,6 @@ namespace DigitalRuby.WeatherMaker
                 currentRenderCloudProfile.CloudLayer2.CloudLightAbsorption = Mathf.Lerp(startLightAbsorption2, endLightAbsorption2, progress);
                 currentRenderCloudProfile.CloudLayer3.CloudLightAbsorption = Mathf.Lerp(startLightAbsorption3, endLightAbsorption3, progress);
                 currentRenderCloudProfile.CloudLayer4.CloudLightAbsorption = Mathf.Lerp(startLightAbsorption4, endLightAbsorption4, progress);
-                currentRenderCloudProfile.CloudLayer1.CloudHorizonFade = Mathf.Lerp(startHorizonFade1, endHorizonFade1, progress);
-                currentRenderCloudProfile.CloudLayer2.CloudHorizonFade = Mathf.Lerp(startHorizonFade2, endHorizonFade2, progress);
-                currentRenderCloudProfile.CloudLayer3.CloudHorizonFade = Mathf.Lerp(startHorizonFade3, endHorizonFade3, progress);
-                currentRenderCloudProfile.CloudLayer4.CloudHorizonFade = Mathf.Lerp(startHorizonFade4, endHorizonFade4, progress);
                 currentRenderCloudProfile.CloudLayer1.CloudColor = Color.Lerp(startColor1, endColor1, progress);
                 currentRenderCloudProfile.CloudLayer2.CloudColor = Color.Lerp(startColor2, endColor2, progress);
                 currentRenderCloudProfile.CloudLayer3.CloudColor = Color.Lerp(startColor3, endColor3, progress);
@@ -1152,8 +1340,10 @@ namespace DigitalRuby.WeatherMaker
                 currentRenderCloudProfile.CloudLayer2.CloudHeight = Mathf.Lerp(startHeight2, endHeight2, progress);
                 currentRenderCloudProfile.CloudLayer3.CloudHeight = Mathf.Lerp(startHeight3, endHeight3, progress);
                 currentRenderCloudProfile.CloudLayer4.CloudHeight = Mathf.Lerp(startHeight4, endHeight4, progress);
-                currentRenderCloudProfile.DirectionalLightIntensityMultiplier = Mathf.Lerp(startDirectionalLightIntensityMultiplier, endDirectionalLightIntensityMultiplier, progress);
-                currentRenderCloudProfile.DirectionalLightShadowStrengthMultiplier = Mathf.Lerp(startDirectionalLightShadowStrengthMultiplier, endDirectionalLightShadowStrengthMultiplier, progress);
+                currentRenderCloudProfile.CloudLayer1.CloudRayOffset = Mathf.Lerp(startRayOffset1, endRayOffset1, progress);
+                currentRenderCloudProfile.CloudLayer2.CloudRayOffset = Mathf.Lerp(startRayOffset2, endRayOffset2, progress);
+                currentRenderCloudProfile.CloudLayer3.CloudRayOffset = Mathf.Lerp(startRayOffset3, endRayOffset3, progress);
+                currentRenderCloudProfile.CloudLayer4.CloudRayOffset = Mathf.Lerp(startRayOffset4, endRayOffset4, progress);
 
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudColor = Color.Lerp(oldVolColor, newVolColor, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudCover.LastValue = Mathf.Lerp(oldVolCover, newVolCover, progress);
@@ -1161,8 +1351,8 @@ namespace DigitalRuby.WeatherMaker
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudDensity.LastValue = Mathf.Lerp(oldVolDensity, newVolDensity, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudHeightNoisePowerVolumetric.LastValue = Mathf.Lerp(oldVolNoiseHeightPower, newVolNoiseHeightPower, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudEmissionColor = Color.Lerp(oldVolEmissionColor, newVolEmissionColor, progress);
-                currentRenderCloudProfile.CloudHeight = Mathf.Lerp(oldVolHeight, newVolHeight, progress);
-                currentRenderCloudProfile.CloudHeightTop = Mathf.Lerp(oldVolHeightTop, newVolHeightTop, progress);
+                currentRenderCloudProfile.CloudHeight.LastValue = Mathf.Lerp(oldVolHeight, newVolHeight, progress);
+                currentRenderCloudProfile.CloudHeightTop.LastValue = Mathf.Lerp(oldVolHeightTop, newVolHeightTop, progress);
                 currentRenderCloudProfile.CloudPlanetRadius = Mathf.Lerp(oldVolPlanetRadius, newVolPlanetRadius, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudHenyeyGreensteinPhase = Vector4.Lerp(oldVolHPhase, newVolHPhase, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudDirLightMultiplier = Mathf.Lerp(oldVolDirLightMultiplier, newVolDirLightMultiplier, progress);
@@ -1178,14 +1368,12 @@ namespace DigitalRuby.WeatherMaker
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudShapeNoiseMax.LastValue = Mathf.Lerp(oldVolShapeNoiseMax, newVolShapeNoiseMax, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudPowderMultiplier.LastValue = Mathf.Lerp(oldVolPowderMultiplier, newVoPowderMultiplier, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudBottomFade.LastValue = Mathf.Lerp(oldVolBottomFade, newVolBottomFade, progress);
-                currentRenderCloudProfile.CloudLayerVolumetric1.CloudMaxRayLengthMultiplier = Mathf.Lerp(oldVolMaxRayLengthMultiplier, newVolMaxRayLengthMultiplier, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudOpticalDistanceMultiplier = Mathf.Lerp(oldVolOpticalDistanceMultiplier, newVolOpticalDistanceMultiplier, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudHorizonFadeMultiplier = Mathf.Lerp(oldVolHorizonFadeMultiplier, newVolHorizonFadeMultiplier, progress);
-                currentRenderCloudProfile.CloudLayerVolumetric1.CloudRayDither = Mathf.Lerp(oldVolRayDither, newVolRayDither, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudShapeAnimationVelocity = Vector4.Lerp(oldVolShapeAnimationVelocity, newVolShapeAnimationVelocity, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudDetailAnimationVelocity = Vector4.Lerp(oldVolDetailAnimationVelocity, newVolDetailAnimationVelocity, progress);
-                currentRenderCloudProfile.CloudLayerVolumetric1.CloudLightStepMultiplier = Mathf.Lerp(oldVolLightStepMultiplier, newVolLightStepMultiplier, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudNoiseScale = Vector4.Lerp(oldVolNoiseScale, newVolNoiseScale, progress);
+                currentRenderCloudProfile.CloudLayerVolumetric1.CloudDirLightGradientColorColor = Color.Lerp(oldVolDirLightGradientColor, newVolDirLightGradientColor, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudNoiseScalar.LastValue = Mathf.Lerp(oldVolNoiseScalar, newVolNoiseScalar, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudNoiseDetailPower.LastValue = Mathf.Lerp(oldVolNoiseDetailPower, newVolNoiseDetailPower, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.lerpProgress = progress;
@@ -1198,10 +1386,10 @@ namespace DigitalRuby.WeatherMaker
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudDirLightRaySpread = Mathf.Lerp(oldVolDirLightRaySpread, newVolDirLightRaySpread, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudDirLightRayStepMultiplier = Mathf.Lerp(oldVolDirLightRayStepMultiplier, newVolDirLightRayStepMultiplier, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudDirLightRayTintColor = Color.Lerp(oldVolDirLightRayTintColor, newVolDirLightRayTintColor, progress);
-                currentRenderCloudProfile.CloudLayerVolumetric1.CloudDirLightRaySampleCount = (int)Mathf.Lerp((float)oldVolDirLightRaySampleCount, (float)newVolDirLightRaySampleCount, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudGradientStratusVector = Vector4.Lerp(oldVolStratusVector, newVolStratusVector, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudGradientStratoCumulusVector = Vector4.Lerp(oldVolStratoCumulusVector, newVolStratoCumulusVector, progress);
                 currentRenderCloudProfile.CloudLayerVolumetric1.CloudGradientCumulusVector = Vector4.Lerp(oldVolCumulusVector, newVolCumulusVector, progress);
+
                 currentRenderCloudProfile.WeatherMapCloudCoverageAdder.LastValue = Mathf.Lerp(oldVolCoverageAdder, newVolCoverageAdder, progress);
                 //currentRenderCloudProfile.cloudCoverageOffset = Vector3.Lerp(oldVolCoverageOffset, newVolCoverageOffset, progress);
                 currentRenderCloudProfile.WeatherMapCloudCoveragePower.LastValue = Mathf.Lerp(oldVolCoveragePower, newVolCoveragePower, progress);
@@ -1212,12 +1400,13 @@ namespace DigitalRuby.WeatherMaker
                 currentRenderCloudProfile.WeatherMapCloudTypePower.LastValue = Mathf.Lerp(oldVolTypePower, newVolTypePower, progress);
                 currentRenderCloudProfile.WeatherMapCloudTypeRotation.LastValue = Mathf.Lerp(oldVolTypeRotation, newVolTypeRotation, progress);
                 currentRenderCloudProfile.WeatherMapCloudTypeScale.LastValue = Mathf.Lerp(oldVolTypeScale, newVolTypeScale, progress);
-                currentRenderCloudProfile.CloudVolumetricShadow = Mathf.Lerp(oldVolVolumetricShadow, newVolVolumetricShadow, progress);
                 currentRenderCloudProfile.WeatherMapScale = Vector3.Lerp(oldVolWeatherMapScale, newVolWeatherMapScale, progress);
+
+                currentRenderCloudProfile.DirectionalLightIntensityMultiplier = Mathf.Lerp(startDirectionalLightIntensityMultiplier, endDirectionalLightIntensityMultiplier, progress);
+                currentRenderCloudProfile.DirectionalLightScatterMultiplier = Mathf.Lerp(startDirectionalLightScatterMultiplier, endDirectionalLightScatterMultiplier, progress);
             }, (ITween<float> c) =>
             {
-                // stop lerping gradients
-                currentRenderCloudProfile.CloudLayerVolumetric1.LerpCloudGradientColor = null;
+                currentRenderCloudProfile.isAnimating = false;
             });
             tween.Delay = transitionDelay;
         }
@@ -1230,6 +1419,21 @@ namespace DigitalRuby.WeatherMaker
         {
             ShowCloudsAnimated((WeatherMakerCloudProfileScript)null, 0.0f, duration);
         }
+
+#if ENABLE_CLOUD_PROBE
+
+        public static bool CloudProbeEnabled
+        {
+            get { return SystemInfo.supportsComputeShaders && SystemInfo.supportsAsyncGPUReadback; }
+        }
+
+#else
+
+        public static bool CloudProbeEnabled { get { return false; } }
+
+#endif
+
+        public float CloudGlobalShadow { get; private set; }
 
         private static WeatherMakerFullScreenCloudsScript instance;
         /// <summary>

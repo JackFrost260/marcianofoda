@@ -1157,25 +1157,6 @@ namespace DigitalRuby.WeatherMaker
 
         private void Initialize()
         {
-            if (Application.isPlaying)
-            {
-                // Create3DNoiseTexture();
-                // CreateDitherTexture();
-
-                if (UnityEngine.XR.XRDevice.isPresent)
-                {
-                    if (ScreenSpaceShadowMode == BuiltinShaderMode.UseBuiltin)
-                    {
-                        UnityEngine.Rendering.GraphicsSettings.SetCustomShader(BuiltinShaderType.ScreenSpaceShadows, ScreenSpaceShadowShader);
-                    }
-                    else
-                    {
-                        Debug.LogWarning("Screen space shadow shader is not using the integrated Weather Maker shader, clouds will not cast shadows and snow overlay will not receive shadows. " +
-                            "Set ScreenSpaceShadowShader on WeatherMakerLightManager to WeatherMakerScreenSpaceShadowsShader to fix.");
-                    }
-                }
-            }
-
             NoiseTexture3DInstance = NoiseTexture3D;
             nullZoneSorterReference = NullZoneSorter;
             lightSorterReference = LightSorter;
@@ -1234,8 +1215,11 @@ namespace DigitalRuby.WeatherMaker
             WeatherMakerScript.EnsureInstance(this, ref instance);
             Initialize();
 
-            // light manager pre-render is high priority as it sets a lot of global state
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPreRender(CameraPreRender, this, true);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                // light manager pre-render is high priority as it sets a lot of global state
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPreRender(CameraPreRender, this, true);
+            }
         }
 
         private void OnDisable()
@@ -1245,7 +1229,10 @@ namespace DigitalRuby.WeatherMaker
 
         private void OnDestroy()
         {
-            WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreRender(this);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreRender(this);
+            }
             WeatherMakerScript.ReleaseInstance(ref instance);
         }
 
@@ -1495,7 +1482,7 @@ namespace DigitalRuby.WeatherMaker
         }
 
         /// <summary>
-        /// Current set of lights
+        /// Current set of lights sorted by importance
         /// </summary>
         public IEnumerable<LightState> Lights
         {
@@ -1508,6 +1495,15 @@ namespace DigitalRuby.WeatherMaker
         public static BuiltinShaderMode ScreenSpaceShadowMode
         {
             get { return UnityEngine.Rendering.GraphicsSettings.GetShaderMode(UnityEngine.Rendering.BuiltinShaderType.ScreenSpaceShadows); }
+        }
+
+        /// <summary>
+        /// The amount of global shadow from Weather Maker fog, clouds, etc.
+        /// </summary>
+        public float GlobalShadow
+        {
+            get { return (WeatherMakerFullScreenCloudsScript.Instance != null && WeatherMakerFullScreenFogScript.Instance != null ?
+                Mathf.Min(WeatherMakerFullScreenCloudsScript.Instance.CloudGlobalShadow, WeatherMakerFullScreenFogScript.Instance.FogGlobalShadow) : 1.0f); }
         }
 
         private static WeatherMakerLightManagerScript instance;

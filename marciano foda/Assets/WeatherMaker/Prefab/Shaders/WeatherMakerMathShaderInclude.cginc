@@ -237,8 +237,8 @@ inline float PointPlaneDistanceSquared(float3 planeNormal, float3 planePos, floa
 inline float RayPlaneIntersect(float3 rayOrigin, float3 rayDir, float3 planeNormal, float3 planePos, out float distanceToPlane)
 {
 	float denom = dot(planeNormal, rayDir);
-	distanceToPlane = dot(planePos - rayOrigin, planeNormal) / denom;
-	return (denom > 0.0001 && distanceToPlane > 0.0001);
+	distanceToPlane = dot(planePos - rayOrigin, planeNormal) / max(0.00001, denom);
+	return (denom > 0.0 && distanceToPlane > 0.0);
 }
 
 // distanceToPlane becomes distance to disc center
@@ -395,7 +395,30 @@ inline float3 RotatePointZeroOriginQuaternion(float3 position, float4 quat)
 inline float4 QuaternionFromAxisAngle(float3 axis, float angle)
 {
 	float half_angle = angle * 0.5;
-	return float4(axis.xyz * sin(half_angle), cos(half_angle));
+	float s, c;
+	sincos(half_angle, s, c);
+	return float4(axis.xyz * s, c);
+}
+
+inline float4 QuaternionFromEuler(float3 angles)
+{
+	/* // broken
+	float3 s, c;
+	sincos(angles * 0.5, s, c);
+	float4 qx = float4(s.x, 0.0f, 0.0f, c.x);
+	float4 qy = float4(0.0f, s.y, 0.0f, c.y);
+	float4 qz = float4(0.0f, 0.0f, s.z, c.z);
+	float4 q = (qy * qx) * qz;
+	return q;
+	*/
+	float3 s, c;
+	sincos(angles * 0.5, s, c);
+	float4 q;
+	q.x = s.x * c.y * c.z + c.x * s.y * s.z;
+	q.y = c.x * s.y * c.z - s.x * c.y * s.z;
+	q.z = c.x * c.y * s.z - s.x * s.y * c.z;
+	q.w = c.x * c.y * c.z + s.x * s.y * s.z;
+	return q;
 }
 
 // only works for wrapping coordinates, sin / cos
@@ -440,6 +463,39 @@ inline float3 RotatePoint(float3 pointToRotate, float3 angles)
 		rotatedPoint = mul(rotatedPoint, rotateZMatrix);
 	}
 	return rotatedPoint;
+}
+
+inline float4x4 InverseMatrix(float4x4 input)
+{
+
+#define wm_minor(a,b,c) determinant(float3x3(input.a, input.b, input.c))
+
+	float4x4 cofactors = float4x4
+	(
+		wm_minor(_22_23_24, _32_33_34, _42_43_44),
+		-wm_minor(_21_23_24, _31_33_34, _41_43_44),
+		wm_minor(_21_22_24, _31_32_34, _41_42_44),
+		-wm_minor(_21_22_23, _31_32_33, _41_42_43),
+
+		-wm_minor(_12_13_14, _32_33_34, _42_43_44),
+		wm_minor(_11_13_14, _31_33_34, _41_43_44),
+		-wm_minor(_11_12_14, _31_32_34, _41_42_44),
+		wm_minor(_11_12_13, _31_32_33, _41_42_43),
+
+		wm_minor(_12_13_14, _22_23_24, _42_43_44),
+		-wm_minor(_11_13_14, _21_23_24, _41_43_44),
+		wm_minor(_11_12_14, _21_22_24, _41_42_44),
+		-wm_minor(_11_12_13, _21_22_23, _41_42_43),
+
+		-wm_minor(_12_13_14, _22_23_24, _32_33_34),
+		wm_minor(_11_13_14, _21_23_24, _31_33_34),
+		-wm_minor(_11_12_14, _21_22_24, _31_32_34),
+		wm_minor(_11_12_13, _21_22_23, _31_32_33)
+	);
+
+#undef wm_minor
+
+	return transpose(cofactors) / determinant(input);
 }
 
 uint SetupPlanetRaymarch(float3 worldSpaceCameraPos, float3 rayDir, float depth, float depth2,

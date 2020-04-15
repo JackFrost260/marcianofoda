@@ -28,6 +28,7 @@ CGINCLUDE
 
 #include "UnityCG.cginc"
 #include "TerrainEngine.cginc"
+
 #pragma glsl_no_auto_normalization
 
 struct v2f {

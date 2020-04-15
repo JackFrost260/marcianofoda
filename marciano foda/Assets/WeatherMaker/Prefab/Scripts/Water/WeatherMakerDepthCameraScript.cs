@@ -39,9 +39,14 @@ namespace DigitalRuby.WeatherMaker
         [Tooltip("Layer mask")]
         public LayerMask LayerMask = ~(1 << 4);
 
+        [Tooltip("Whether to auto-detect orthographic size. If false, you must manually specify the orthographic size")]
+        public bool AutoBounds = true;
+
         [Tooltip("Orthographic size")]
         [Range(1.0f, 1000.0f)]
         public float OrthographicSize = 10.0f;
+
+        internal float autoOrthographicSize { get; set; }
 
         [Tooltip("Aspect ratio")]
         [Range(0.01f, 10.0f)]

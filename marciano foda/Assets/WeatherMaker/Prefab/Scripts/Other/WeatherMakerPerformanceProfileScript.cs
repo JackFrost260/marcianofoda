@@ -24,7 +24,7 @@ namespace DigitalRuby.WeatherMaker
     [CreateAssetMenu(fileName = "WeatherMakerPerformanceProfile", menuName = "WeatherMaker/Performance Profile", order = 999)]
     public class WeatherMakerPerformanceProfileScript : ScriptableObject
     {
-        [Header("Clouds")]
+        [Header("Volumetric Clouds - Setup")]
         [Tooltip("Whether to allow volumetric clouds, if false the volumetric cloud member of any cloud profile will be nulled before being set.")]
         public bool EnableVolumetricClouds = true;
 
@@ -37,10 +37,11 @@ namespace DigitalRuby.WeatherMaker
         [Tooltip("Downsample scale for cloud post process (dir light rays, etc.)")]
         public WeatherMakerDownsampleScale VolumetricCloudDownsampleScalePostProcess = WeatherMakerDownsampleScale.QuarterResolution;
 
-        [Tooltip("Volumetric cloud weather map size. Higher weather maps allow smoother clouds and movement at the cost of a larger weather map texture.")]
+        [Tooltip("Volumetric cloud weather map size. Higher weather maps allow smoother clouds and movement at the cost of a larger weather map texture. This should be a power of 2.")]
         [Range(128, 4096)]
         public int VolumetricCloudWeatherMapSize = 1024;
 
+        [Header("Volumetric Clouds - Raymarch")]
         [MinMaxSlider(16, 256, "Volumetric cloud sample count range")]
         public RangeOfIntegers VolumetricCloudSampleCount = new RangeOfIntegers { Minimum = 64, Maximum = 256 };
 
@@ -76,20 +77,45 @@ namespace DigitalRuby.WeatherMaker
         [Range(1, 64)]
         public int VolumetricCloudRaymarchSkipMultiplierMaxCount = 16;
 
-        [MinMaxSlider(0.0f, 10.0f, "Volumetric cloud noise lod, used to increase mip level during noise sampling")]
+        [Tooltip("Allows increasing noise values taken with volumetric clouds to get out of raymarching faster. Makes thicker, heavier, less whispy clouds.")]
+        [Range(1.0f, 4.0f)]
+        public float VolumetricCloudNoiseMultiplier = 1.0f;
+
+        [Header("Volumetric Clouds - Dir Light")]
+        [MinMaxSlider(-10.0f, 10.0f, "Volumetric cloud noise lod, used to increase mip level during noise sampling.")]
         public RangeOfFloats VolumetricCloudLod = new RangeOfFloats { Minimum = 0.0f, Maximum = 1.0f };
 
-        [Tooltip("Volumetric cloud dir light sample count")]
-        [Range(0, 6)]
+        [Tooltip("Volumetric cloud dir light sample count for cloud self shadowing.")]
+        [Range(0, 16)]
         public int VolumetricCloudDirLightSampleCount = 5;
 
+        [Tooltip("Multiplier for directional light ray march distance for cloud self shadowing.")]
+        [Range(0.001f, 1.0f)]
+        public float VolumetricCloudDirLightStepMultiplier = 1.0f;
+
+        [Tooltip("LOD to add to dir light samples.")]
+        [Range(0.0f, 4.0f)]
+        public float VolumetricCloudDirLightLod = 1.0f;
+
+        [Tooltip("Whether to sample volumetric cloud details for dir light self shadowing")]
+        public bool VolumetricCloudDirLightSampleDetails = true;
+
+        [Tooltip("Number of samples for volumetric cloud self shadowing")]
+        [Range(0, 16)]
+        public int VolumetricCloudShadowSampleCount = 5;
+
+        [Header("Volumetric Clouds - Dir Light God Rays")]
         [Tooltip("Sample count for volumetric cloud dir light rays. Set to 0 to disable.")]
         [Range(0, 64)]
         public int VolumetricCloudDirLightRaySampleCount = 16;
 
-        [Tooltip("Number of samples for volumetric cloud shadows")]
-        [Range(0, 16)]
-        public int VolumetricCloudShadowSampleCount = 8;
+        [Tooltip("Dithering intensity for dir light rays.")]
+        [Range(-1.0f, 1.0f)]
+        public float VolumetricCloudDirLightRayDither = 0.1f;
+
+        [Header("Volumetric Clouds - Shadows")]
+        [Tooltip("Volumetric cloud shadow downsample scale")]
+        public WeatherMakerDownsampleScale VolumetricCloudShadowDownsampleScale = WeatherMakerDownsampleScale.FullResolution;
 
         [Tooltip("Whether to allow volumetric cloud reflections.")]
         public bool VolumetricCloudAllowReflections = true;
@@ -115,6 +141,9 @@ namespace DigitalRuby.WeatherMaker
         [Tooltip("Downsample scale for fog")]
         public WeatherMakerDownsampleScale FogDownsampleScale = WeatherMakerDownsampleScale.HalfResolution;
 
+        [Tooltip("Downsample scale for fog full screen shafts")]
+        public WeatherMakerDownsampleScale FogDownsampleScaleFullScreenShafts = WeatherMakerDownsampleScale.HalfResolution;
+
         [Tooltip("Temporal reprojection size for fog")]
         public WeatherMakerTemporalReprojectionSize FogTemporalReprojectionSize = WeatherMakerTemporalReprojectionSize.TwoByTwo;
 
@@ -132,6 +161,16 @@ namespace DigitalRuby.WeatherMaker
         [Tooltip("Fog dir light shadow sample count, 0 to disable fog shadows.")]
         [Range(0, 128)]
         public int FogShadowSampleCount = 0;
+
+        [Header("Water")]
+        [Tooltip("Whether to enable water caustics")]
+        public bool WaterEnableCaustics = true;
+
+        [Tooltip("Whether to enable water refraction")]
+        public bool WaterEnableRefraction = true;
+
+        [Tooltip("Whether to enable water foam")]
+        public bool WaterEnableFoam = true;
 
         [Header("Reflections")]
         [Tooltip("Whether to ignore reflection probe cameras. For an indoor scene or if you don't care to reflect clouds, fog, etc. set this to true.")]

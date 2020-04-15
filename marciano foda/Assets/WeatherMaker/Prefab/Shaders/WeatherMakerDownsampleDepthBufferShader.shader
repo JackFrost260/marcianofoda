@@ -30,85 +30,64 @@ Shader "WeatherMaker/WeatherMakerDownsampleDepthBufferShader"
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
 
+		#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
 		#define WEATHER_MAKER_IS_FULL_SCREEN_EFFECT
 		#define DEPTH_SAMPLE_MODE 0 // 0 = max, 1 = min, 2 = alternate max/min
-
+		
 		#include "WeatherMakerCoreShaderInclude.cginc"
 
 		uniform float _DownsampleDepthScale;
 
-#define TEX_OFF 0.5
+		static const float2 texelSizeDepth = _CameraDepthTexture_TexelSize.xy * _DownsampleDepthScale;
+		static const float2 tapsDepth1 = (float2(-0.4, -0.4) * texelSizeDepth);
+		static const float2 tapsDepth2 = (float2(0.4, -0.4) * texelSizeDepth);
+		static const float2 tapsDepth3 = (float2(-0.4, 0.4) * texelSizeDepth);
+		static const float2 tapsDepth4 = (float2(0.4, 0.4) * texelSizeDepth);
 
-		static const float2 texelSizeDepth = _CameraDepthTexture_TexelSize.xy;
-		static const float2 tapsDepth[4] =
-		{
-			//(-texelSizeDepth),
-			//(-texelSizeDepth) + float2(texelSizeDepth.x * 2.0, 0.0),
-			//(-texelSizeDepth) + float2(0.0, texelSizeDepth.y * 2.0),
-			//(-texelSizeDepth) + (texelSizeDepth.x * 2.0)
-			float2(-TEX_OFF, -TEX_OFF) * texelSizeDepth,
-			float2(-TEX_OFF, TEX_OFF) * texelSizeDepth,
-			float2(TEX_OFF, -TEX_OFF) * texelSizeDepth,
-			float2(TEX_OFF, TEX_OFF) * texelSizeDepth
-		};
+#define SAMPLE_DEPTH_4(source, i) \
+		float depth1 = UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + tapsDepth1)); \
+		float depth2 = UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + tapsDepth2)); \
+		float depth3 = UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + tapsDepth3)); \
+		float depth4 = UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + tapsDepth4));
 
-		static const float2 texelSizeMain = 0.5 * _CameraDepthTexture_TexelSize.xy * _DownsampleDepthScale;
-		static const float2 tapsMain[4] =
-		{
-			//(-texelSizeMain),
-			//(-texelSizeMain) + float2(texelSizeMain.x * 2.0, 0.0),
-			//(-texelSizeMain) + float2(0.0, texelSizeMain.y * 2.0),
-			//(-texelSizeMain) + (texelSizeMain.x * 2.0)
-			float2(-TEX_OFF, -TEX_OFF) * texelSizeMain,
-			float2(-TEX_OFF, TEX_OFF) * texelSizeMain,
-			float2(TEX_OFF, -TEX_OFF) * texelSizeMain,
-			float2(TEX_OFF, TEX_OFF) * texelSizeMain
-		};
-
-#define SAMPLE_DEPTH_4(source, i, taps) \
-		float depth1 = UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + taps[0])); \
-		float depth2 = UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + taps[1])); \
-		float depth3 = UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + taps[2])); \
-		float depth4 = UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + taps[3]));
-
-#define SAMPLE_DEPTH_4_01(source, i, taps) \
-		float depth1 = WM_LINEAR_DEPTH_01(UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + taps[0]))); \
-		float depth2 = WM_LINEAR_DEPTH_01(UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + taps[1]))); \
-		float depth3 = WM_LINEAR_DEPTH_01(UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + taps[2]))); \
-		float depth4 = WM_LINEAR_DEPTH_01(UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + taps[3])));
+#define SAMPLE_DEPTH_4_01(source, i) \
+		float depth1 = WM_LINEAR_DEPTH_01(UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + tapsDepth1))); \
+		float depth2 = WM_LINEAR_DEPTH_01(UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + tapsDepth2))); \
+		float depth3 = WM_LINEAR_DEPTH_01(UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + tapsDepth3))); \
+		float depth4 = WM_LINEAR_DEPTH_01(UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(source, i.uv.xy + tapsDepth4)));
 
 #if DEPTH_SAMPLE_MODE == 0 // max
 
-#define DownsampleDepth(source, i, taps, texelSize) \
-		SAMPLE_DEPTH_4(source, i, taps); \
+#define DownsampleDepth(source, i, texelSize) \
+		SAMPLE_DEPTH_4(source, i); \
 		return (max(depth1, max(depth2, max(depth3, depth4))));
 
-#define DownsampleDepth01(source, i, taps, texelSize) \
-		SAMPLE_DEPTH_4_01(source, i, taps); \
+#define DownsampleDepth01(source, i, texelSize) \
+		SAMPLE_DEPTH_4_01(source, i); \
 		return (max(depth1, max(depth2, max(depth3, depth4))));
 
 #elif DEPTH_SAMPLE_MODE == 1 // min
 
-#define DownsampleDepth(source, i, taps, texelSize) \
-		SAMPLE_DEPTH_4(source, i, taps); \
+#define DownsampleDepth(source, i, texelSize) \
+		SAMPLE_DEPTH_4(source, i); \
 		return (min(depth1, min(depth2, min(depth3, depth4))));
 
-#define DownsampleDepth01(source, i, taps, texelSize) \
-		SAMPLE_DEPTH_4_01(source, i, taps); \
+#define DownsampleDepth01(source, i, texelSize) \
+		SAMPLE_DEPTH_4_01(source, i); \
 		return (min(depth1, min(depth2, min(depth3, depth4))));
 
 #elif DEPTH_SAMPLE_MODE == 2 // checkerboard
 
-#define DownsampleDepth(source, i, taps, texelSize) \
-		SAMPLE_DEPTH_4(source, i, taps); \
+#define DownsampleDepth(source, i, texelSize) \
+		SAMPLE_DEPTH_4(source, i); \
 		float minDepth = min(min(depth1, depth2), min(depth3, depth4)); \
 		float maxDepth = max(max(depth1, depth2), max(depth3, depth4)); \
 		int2 position = floor(i.uv.xy * texelSize.zw); \
 		int index = fmod(position.x + position.y, 2.0); \
 		return lerp(maxDepth, minDepth, index);
 
-#define DownsampleDepth01(source, i, taps, texelSize) \
-		SAMPLE_DEPTH_4_01(source, i, taps); \
+#define DownsampleDepth01(source, i, texelSize) \
+		SAMPLE_DEPTH_4_01(source, i); \
 		float minDepth = min(min(depth1, depth2), min(depth3, depth4)); \
 		float maxDepth = max(max(depth1, depth2), max(depth3, depth4)); \
 		int2 position = floor(i.uv.xy * texelSize.zw); \
@@ -121,34 +100,42 @@ Shader "WeatherMaker/WeatherMakerDownsampleDepthBufferShader"
 
 #endif
 
-		float4 frag1(full_screen_fragment_vertex_uv i) : SV_Target
+		wm_full_screen_fragment_vertex_uv vert(wm_full_screen_vertex v)
+		{
+			WM_INSTANCE_VERT(v, wm_full_screen_fragment_vertex_uv, o);
+			o.vertex = UnityObjectToClipPos(v.vertex);
+			o.uv = AdjustFullScreenUV(v.uv) - (0 * texelSizeDepth);
+			return o;
+		}
+
+		float4 frag1(wm_full_screen_fragment_vertex_uv i) : SV_Target
 		{
 			WM_INSTANCE_FRAG(i);
 			return WM_LINEAR_DEPTH_01(UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv)));
 		}
 
-		float4 frag2(full_screen_fragment_vertex_uv i) : SV_Target
+		float4 frag2(wm_full_screen_fragment_vertex_uv i) : SV_Target
 		{
 			WM_INSTANCE_FRAG(i);
-			DownsampleDepth01(_CameraDepthTexture, i, tapsDepth, _CameraDepthTextureHalf_TexelSize);
+			DownsampleDepth01(_CameraDepthTexture, i, _CameraDepthTextureHalf_TexelSize);
 		}
 
-		float4 frag3(full_screen_fragment_vertex_uv i) : SV_Target
+		float4 frag3(wm_full_screen_fragment_vertex_uv i) : SV_Target
 		{
 			WM_INSTANCE_FRAG(i);
-			DownsampleDepth(_CameraDepthTextureHalf, i, tapsMain, _CameraDepthTextureQuarter_TexelSize);
+			DownsampleDepth(_CameraDepthTextureHalf, i, _CameraDepthTextureQuarter_TexelSize);
 		}
 
-		float4 frag4(full_screen_fragment_vertex_uv i) : SV_Target
+		float4 frag4(wm_full_screen_fragment_vertex_uv i) : SV_Target
 		{
 			WM_INSTANCE_FRAG(i);
-			DownsampleDepth(_CameraDepthTextureQuarter, i, tapsMain, _CameraDepthTextureEighth_TexelSize);
+			DownsampleDepth(_CameraDepthTextureQuarter, i, _CameraDepthTextureEighth_TexelSize);
 		}
 
-		float4 frag5(full_screen_fragment_vertex_uv i) : SV_Target
+		float4 frag5(wm_full_screen_fragment_vertex_uv i) : SV_Target
 		{
 			WM_INSTANCE_FRAG(i);
-			DownsampleDepth(_CameraDepthTextureEighth, i, tapsMain, _CameraDepthTextureSixteenth_TexelSize);
+			DownsampleDepth(_CameraDepthTextureEighth, i, _CameraDepthTextureSixteenth_TexelSize);
 		}
 
 		ENDCG
@@ -157,7 +144,7 @@ Shader "WeatherMaker/WeatherMakerDownsampleDepthBufferShader"
 		{
 			CGPROGRAM
 
-			#pragma vertex full_screen_vertex_shader_vertex_uv
+			#pragma vertex vert
 			#pragma fragment frag1
 			#pragma multi_compile_instancing
 
@@ -168,7 +155,7 @@ Shader "WeatherMaker/WeatherMakerDownsampleDepthBufferShader"
 		{
 			CGPROGRAM
 
-			#pragma vertex full_screen_vertex_shader_vertex_uv
+			#pragma vertex vert
 			#pragma fragment frag2
 			#pragma multi_compile_instancing
 
@@ -179,7 +166,7 @@ Shader "WeatherMaker/WeatherMakerDownsampleDepthBufferShader"
 		{
 			CGPROGRAM
 
-			#pragma vertex full_screen_vertex_shader_vertex_uv
+			#pragma vertex vert
 			#pragma fragment frag3
 			#pragma multi_compile_instancing
 
@@ -190,7 +177,7 @@ Shader "WeatherMaker/WeatherMakerDownsampleDepthBufferShader"
 		{
 			CGPROGRAM
 
-			#pragma vertex full_screen_vertex_shader_vertex_uv
+			#pragma vertex vert
 			#pragma fragment frag4
 			#pragma multi_compile_instancing
 
@@ -201,7 +188,7 @@ Shader "WeatherMaker/WeatherMakerDownsampleDepthBufferShader"
 		{
 			CGPROGRAM
 
-			#pragma vertex full_screen_vertex_shader_vertex_uv
+			#pragma vertex vert
 			#pragma fragment frag5
 			#pragma multi_compile_instancing
 

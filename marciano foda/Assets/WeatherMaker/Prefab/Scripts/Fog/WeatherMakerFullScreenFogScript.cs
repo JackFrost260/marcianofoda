@@ -34,6 +34,9 @@ namespace DigitalRuby.WeatherMaker
         [Tooltip("Down sample scale.")]
         public WeatherMakerDownsampleScale DownSampleScale = WeatherMakerDownsampleScale.FullResolution;
 
+        [Tooltip("Down sample scale full screen shafts.")]
+        public WeatherMakerDownsampleScale DownSampleScaleFullScreenShafts = WeatherMakerDownsampleScale.FullResolution;
+
         [Tooltip("Material to render the fog full screen after it has been calculated")]
         public Material FogFullScreenMaterial;
 
@@ -56,17 +59,10 @@ namespace DigitalRuby.WeatherMaker
         [Tooltip("Whether to render fog in reflection cameras.")]
         public bool AllowReflections = true;
 
-        [Tooltip("Control how fog casts shadow. Larger values cast more shadow.")]
-        [Range(0.0f, 0.02f)]
-        public float FogShadowStrengthFactor = 0.005f;
-
         private WeatherMakerFullScreenEffect effect;
         private System.Action<WeatherMakerCommandBuffer> updateShaderPropertiesAction;
 
         private const string commandBufferName = "WeatherMakerFullScreenFogScript";
-
-        private float shadowMultiplier;
-        private float intensityMultiplier;
 
         private void UpdateUnityFog(Camera camera)
         {
@@ -124,75 +120,51 @@ namespace DigitalRuby.WeatherMaker
 
         private void UpdateFogProperties(Camera camera)
         {
-            if (FogProfile == null || WeatherMakerScript.Instance == null || WeatherMakerLightManagerScript.Instance == null)
+            if (FogProfile == null || WeatherMakerScript.Instance == null || WeatherMakerLightManagerScript.Instance == null || WeatherMakerScript.Instance.PerformanceProfile == null)
             {
                 return;
             }
-            else if (WeatherMakerScript.Instance.PerformanceProfile != null)
-            {
-                DownSampleScale = WeatherMakerScript.Instance.PerformanceProfile.FogDownsampleScale;
-                TemporalReprojection = WeatherMakerScript.Instance.PerformanceProfile.FogTemporalReprojectionSize;
-            }
+            DownSampleScale = WeatherMakerScript.Instance.PerformanceProfile.FogDownsampleScale;
+            TemporalReprojection = WeatherMakerScript.Instance.PerformanceProfile.FogTemporalReprojectionSize;
+            DownSampleScaleFullScreenShafts = WeatherMakerScript.Instance.PerformanceProfile.FogDownsampleScaleFullScreenShafts;
 
-            // reduce shadow strength as the fog blocks out dir lights
-            float h;
-            float m = Mathf.Pow(FogProfile.MaxFogFactor, 3.0f);
-            const float p = 0.005f;
-
-            switch (FogProfile.FogMode)
-            {
-                case WeatherMakerFogMode.Constant:
-                    shadowMultiplier = 1.0f - (Mathf.Min(1.0f, FogProfile.fogDensity * 1.2f * m));
-                    intensityMultiplier = 1.0f - (FogProfile.fogDensity * m);
-                    break;
-
-                case WeatherMakerFogMode.Linear:
-                    h = (FogProfile.FogHeight < Mathf.Epsilon ? 1000.0f : FogProfile.FogHeight) * m;
-                    shadowMultiplier = 1.0f - (FogProfile.fogDensity * 16.0f * h * FogShadowStrengthFactor);
-                    intensityMultiplier = 1.0f - (FogProfile.fogDensity * 2.0f * h * p);
-                    break;
-
-                case WeatherMakerFogMode.Exponential:
-                    h = (FogProfile.FogHeight < Mathf.Epsilon ? 1000.0f : FogProfile.FogHeight) * 2.0f * m;
-                    shadowMultiplier = 1.0f - (Mathf.Min(1.0f, Mathf.Pow(FogProfile.fogDensity * 32.0f * h * FogShadowStrengthFactor, 0.5f)));
-                    intensityMultiplier = 1.0f - (FogProfile.fogDensity * 4.0f * h * p);
-                    break;
-
-                case WeatherMakerFogMode.ExponentialSquared:
-                    h = (FogProfile.FogHeight < Mathf.Epsilon ? 1000.0f : FogProfile.FogHeight) * 4.0f * m;
-                    shadowMultiplier = 1.0f - (Mathf.Min(1.0f, Mathf.Pow(FogProfile.fogDensity * 64.0f * h * FogShadowStrengthFactor, 0.5f)));
-                    intensityMultiplier = 1.0f - (FogProfile.fogDensity * 8.0f * h * p);
-                    break;
-
-                default:
-                    shadowMultiplier = 1.0f;
-                    intensityMultiplier = 1.0f;
-                    break;
-            }
-
-            shadowMultiplier = Mathf.Clamp(shadowMultiplier * 1.3f, 0.2f, 1.0f);
             if (WeatherMakerLightManagerScript.ScreenSpaceShadowMode == BuiltinShaderMode.Disabled || QualitySettings.shadows == ShadowQuality.Disable)
             {
-                WeatherMakerLightManagerScript.Instance.DirectionalLightIntensityMultipliers["WeatherMakerFullScreenFogScript"] = Mathf.Clamp(intensityMultiplier, 0.5f, 1.0f);
-                WeatherMakerLightManagerScript.Instance.DirectionalLightShadowIntensityMultipliers["WeatherMakerFullScreenFogScript"] = shadowMultiplier;
+                float fogShadowMultiplier = Mathf.Clamp(FogProfile.FogIntensityMultiplier, 0.5f, 1.0f);
+                WeatherMakerLightManagerScript.Instance.DirectionalLightIntensityMultipliers["WeatherMakerFullScreenFogScript"] = fogShadowMultiplier;
+                WeatherMakerLightManagerScript.Instance.DirectionalLightShadowIntensityMultipliers["WeatherMakerFullScreenFogScript"] = FogProfile.FogGlobalShadow;
             }
             else
             {
                 WeatherMakerLightManagerScript.Instance.DirectionalLightIntensityMultipliers.Remove("WeatherMakerFullScreenFogScript");
                 WeatherMakerLightManagerScript.Instance.DirectionalLightShadowIntensityMultipliers.Remove("WeatherMakerFullScreenFogScript");
             }
-            Shader.SetGlobalFloat(WMS._WeatherMakerFogGlobalShadow, shadowMultiplier);
             updateShaderPropertiesAction = (updateShaderPropertiesAction ?? UpdateShaderProperties);
-            effect.SetupEffect(FogMaterial, FogFullScreenMaterial, FogBlurMaterial, BlurShader, DownSampleScale,
-                (FogProfile.SunShaftSampleCount <= 0 ? WeatherMakerDownsampleScale.Disabled : FogProfile.SunShaftDownSampleScale),
-                WeatherMakerDownsampleScale.Disabled, TemporalReprojectionMaterial, TemporalReprojection, updateShaderPropertiesAction,
-                (FogProfile.FogDensity > Mathf.Epsilon && FogProfile.FogMode != WeatherMakerFogMode.None && !UseUnityFog));
+            effect.SetupEffect
+            (
+                FogMaterial,
+                FogFullScreenMaterial,
+                FogBlurMaterial,
+                BlurShader,
+                DownSampleScale,
+                FogProfile.SunShaftBackgroundColorMultiplier <= 0.0f ? WeatherMakerDownsampleScale.Disabled : DownSampleScaleFullScreenShafts,
+                DownSampleScaleFullScreenShafts,
+                TemporalReprojectionMaterial,
+                TemporalReprojection,
+                updateShaderPropertiesAction,
+                (FogProfile.FogDensity > Mathf.Epsilon && FogProfile.FogMode != WeatherMakerFogMode.None && !UseUnityFog)
+            );
             UpdateWind();
             UpdateUnityFog(camera);
         }
 
         private void UpdateShaderProperties(WeatherMakerCommandBuffer b)
         {
+            if (FogProfile == null || WeatherMakerScript.Instance == null || WeatherMakerScript.Instance.PerformanceProfile == null || WeatherMakerLightManagerScript.Instance == null)
+            {
+                return;
+            }
+
             // temp turn off fog lights for reflection camera and save a lot of performance
             bool origFogLights = (WeatherMakerScript.Instance == null || WeatherMakerScript.Instance.PerformanceProfile.EnableFogLights);
             int origFogShafts = (WeatherMakerScript.Instance == null ? FogProfile.SunShaftSampleCount : WeatherMakerScript.Instance.PerformanceProfile.FogFullScreenSunShaftSampleCount);
@@ -203,16 +175,12 @@ namespace DigitalRuby.WeatherMaker
             // TODO: See if this is really necessary anymore
             //if (b.CameraType == WeatherMakerCameraType.Reflection)
             //{
-                // HACK: reflection camera hack, density is not correct but this compensates
-                // TODO: figure out why fog formula is wrong in reflection camera
-                //FogProfile.fogDensity = Mathf.Min(1.0f, density * 100.0f);
+            // HACK: reflection camera hack, density is not correct but this compensates
+            // TODO: figure out why fog formula is wrong in reflection camera
+            //FogProfile.fogDensity = Mathf.Min(1.0f, density * 100.0f);
             //}
-
-            if (WeatherMakerScript.Instance != null)
-            {
-                WeatherMakerScript.Instance.PerformanceProfile.EnableFogLights = tempFogLights;
-                WeatherMakerScript.Instance.PerformanceProfile.FogFullScreenSunShaftSampleCount = tempFogShafts;
-            }
+            WeatherMakerScript.Instance.PerformanceProfile.EnableFogLights = tempFogLights;
+            WeatherMakerScript.Instance.PerformanceProfile.FogFullScreenSunShaftSampleCount = tempFogShafts;
             FogProfile.UpdateMaterialProperties(b.Material, b.Camera, true);
             FogProfile.fogDensity = density;
             if (WeatherMakerScript.Instance != null)
@@ -235,7 +203,6 @@ namespace DigitalRuby.WeatherMaker
             effect = new WeatherMakerFullScreenEffect
             {
                 CommandBufferName = commandBufferName,
-                DownsampleRenderBufferTextureName = "_MainTex2",
                 RenderQueue = FogRenderQueue
             };
 
@@ -255,9 +222,12 @@ namespace DigitalRuby.WeatherMaker
         {
             base.OnEnable();
             WeatherMakerScript.EnsureInstance(this, ref instance);
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPreRender(CameraPreRender, this);
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPostRender(CameraPostRender, this);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPreRender(CameraPreRender, this);
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPostRender(CameraPostRender, this);
+            }
         }
 
         protected override void OnDisable()
@@ -277,9 +247,12 @@ namespace DigitalRuby.WeatherMaker
             {
                 effect.Dispose();
             }
-            WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
-            WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreRender(this);
-            WeatherMakerCommandBufferManagerScript.Instance.UnregisterPostRender(this);
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreRender(this);
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPostRender(this);
+            }
             WeatherMakerScript.ReleaseInstance(ref instance);
         }
 
@@ -312,6 +285,8 @@ namespace DigitalRuby.WeatherMaker
                 effect.PostRenderCamera(camera);
             }
         }
+
+        public float FogGlobalShadow { get; private set; }
 
         private static WeatherMakerFullScreenFogScript instance;
         /// <summary>

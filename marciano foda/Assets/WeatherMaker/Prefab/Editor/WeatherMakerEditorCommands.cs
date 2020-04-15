@@ -299,64 +299,79 @@ namespace DigitalRuby.WeatherMaker
             EditorUtility.DisplayDialog("3D texture saved", "New texture asset created as 'Assets/My3DTexture.asset", "OK");
         }
 
-        [MenuItem("Window/Weather Maker/Add Weather Maker to Scene", false, priority = 30)]
-        public static void AddWeatherMakerPrefab()
+        /// <summary>
+        /// Instantiate a prefab from an asset into the active scene
+        /// </summary>
+        /// <param name="assetName">Asset name</param>
+        /// <param name="undoName">Undo operation name</param>
+        /// <param name="identityPosition">Whether to set position and rotation to 0</param>
+        /// <param name="setup">Callback for any additional setup that will be performed on the instantiated prefab</param>
+        public static void InstantiatePrefab(string assetName, string undoName, bool identityPosition, System.Action<GameObject> setup = null)
         {
-            GameObject prefab;
-            if (Camera.main == null || !Camera.main.orthographic)
+            string[] results = AssetDatabase.FindAssets(assetName);
+            if (results.Length == 0)
             {
-                string[] results3D = AssetDatabase.FindAssets("WeatherMakerPrefab");
-                if (results3D.Length == 0)
-                {
-                    Debug.LogError("Unable to find WeatherMakerPrefab.prefab in project");
-                    return;
-                }
-                string path = AssetDatabase.GUIDToAssetPath(results3D[0]);
-                prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                Debug.LogError("Unable to find " + assetName + " in project");
+                return;
             }
-            else
-            {
-                string[] results2D = AssetDatabase.FindAssets("WeatherMakerPrefab2D");
-                if (results2D.Length == 0)
-                {
-                    Debug.LogError("Unable to find WeatherMakerPrefab2D.prefab in project");
-                    return;
-                }
-                string path = AssetDatabase.GUIDToAssetPath(results2D[0]);
-                prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            }
+            string path = AssetDatabase.GUIDToAssetPath(results[0]);
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (prefab == null)
             {
                 Debug.LogError("Unable to deserialize prefab");
                 return;
             }
-            var obj = GameObject.Instantiate(prefab);
-            obj.name = obj.name.Replace("(Clone)", string.Empty);
+
+#if UNITY_2018_3_OR_NEWER
+
+            PrefabAssetType type = PrefabUtility.GetPrefabAssetType(prefab);
+            if (type == PrefabAssetType.MissingAsset || type == PrefabAssetType.NotAPrefab)
+
+#else
+
+            PrefabType type = PrefabUtility.GetPrefabType(prefab);
+            if (type == PrefabType.None)
+
+#endif
+
+            {
+                Debug.LogError("Unable to load prefab, please reimport all assets");
+                return;
+            }
+            var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            obj.name = obj.name.Replace("(Clone)", string.Empty).Trim();
             obj.transform.parent = null;
-            Undo.RegisterCreatedObjectUndo(obj, "Add Weather Maker");
+            if (identityPosition)
+            {
+                obj.transform.position = Vector3.zero;
+                obj.transform.rotation = Quaternion.identity;
+            }
+            if (setup != null)
+            {
+                setup.Invoke(obj);
+            }
+            Undo.RegisterCreatedObjectUndo(obj, undoName);
+        }
+
+        [MenuItem("Window/Weather Maker/Add Weather Maker to Scene", false, priority = 30)]
+        public static void AddWeatherMakerPrefab()
+        {
+            string name = (Camera.main == null || !Camera.main.orthographic ? "WeatherMakerPrefab" : "WeatherMakerPrefab2D");
+            InstantiatePrefab(name, "Add Weather Maker", true, (obj) =>
+            {
+                if (Camera.main != null)
+                {
+                    Undo.RecordObject(Camera.main, "Camera Clear Solid Color");
+                    Camera.main.clearFlags = CameraClearFlags.SolidColor;
+                    Camera.main.backgroundColor = Color.clear;
+                }
+            });
         }
 
         [MenuItem("Window/Weather Maker/Add Weather Maker Player to Scene", false, priority = 31)]
         public static void AddWeatherMakerPlayerPrefab()
         {
-            string[] results = AssetDatabase.FindAssets("WeatherMakerPlayer");
-            foreach (string result in results)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(result);
-                if (path.EndsWith("/WeatherMakerPlayer.prefab", StringComparison.OrdinalIgnoreCase))
-                {
-                    GameObject player = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-                    player = GameObject.Instantiate(player);
-                    player.name = player.name.Replace("(Clone)", string.Empty);
-                    player.transform.parent = null;
-                    player.transform.position = Vector3.zero;
-                    player.transform.rotation = Quaternion.identity;
-                    Undo.RegisterCreatedObjectUndo(player, "Add Weather Maker Player");
-                    return;
-                }
-            }
-
-            Debug.LogError("Unable to find WeatherMakerPlayer.prefab in project");
+            InstantiatePrefab("WeatherMakerPlayer", "Add Weather Maker Player", true);
         }
 
         [MenuItem("Window/Weather Maker/Setup Post Processing", false, priority = 32)]
@@ -446,7 +461,8 @@ namespace DigitalRuby.WeatherMaker
 
 #else
 
-            EditorUtility.DisplayDialog("Error", "Please use Unity 2018.3 or newer and use the package manager to add the post processing stack v2, then try again.", "OK");
+            EditorUtility.DisplayDialog("Error", "Please use Unity 2018.3 or newer and use the package manager to add the post processing stack v2. " +
+                "Also be sure 'UNITY_POST_PROCESSING_STACK_V2' is in player settings -> scripting defines. Do all this and try again.", "OK");
 
 #endif
 

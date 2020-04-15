@@ -49,15 +49,67 @@ namespace DigitalRuby.WeatherMaker
         [Tooltip("A set of names for allowed cameras, useful for plugins that clone or add custom cameras that you want to allow. Names can partially match.")]
         public List<string> AllowCamerasNamesPartial = new List<string>();
 
-        /// <summary>
-        /// Main camera
-        /// </summary>
-        public Camera MainCamera { get { return (AllowCameras == null || AllowCameras.Count == 0 ? Camera.main : AllowCameras[0]); } }
+        [Tooltip("Whether to auto-find all cameras tagged as MainCamera and add them to the AllowCameras list. Set to false if you don't need this or see any performance issue.")]
+        public bool AutoFindMainCamera = true;
 
         [Header("Performance")]
         [Tooltip("The performance profile to use. If null, this will be populated automatically according to Unity quality setting.")]
         [SerializeField]
         private WeatherMakerPerformanceProfileScript _PerformanceProfile;
+
+        [Header("Events")]
+        [Tooltip("Executes when the weather profile changes for the local player. Parameter is WeatherMakerProfileScript.")]
+        public WeatherMakerEvent WeatherProfileChanged;
+
+        [Tooltip("Executes when the weather zones changes for the local player. Parameter is WeatherMakerWeatherZoneScript.")]
+        public WeatherMakerEvent WeatherZoneChanged;
+
+        [Tooltip("Executes when the day/night cycle year changes. Parameter is WeatherMakerDayNightCycleProfileScript.")]
+        public WeatherMakerEvent YearChanged;
+
+        [Tooltip("Executes when the day/night cycle month changes. Parameter is WeatherMakerDayNightCycleProfileScript.")]
+        public WeatherMakerEvent MonthChanged;
+
+        [Tooltip("Executes when the day/night cycle day changes. Parameter is DateTWeatherMakerDayNightCycleProfileScriptime.")]
+        public WeatherMakerEvent DayChanged;
+
+        [Tooltip("Executes when the day/night cycle hour changes. Parameter is WeatherMakerDayNightCycleProfileScript.")]
+        public WeatherMakerEvent HourChanged;
+
+        [Tooltip("Executes when the day/night cycle minute changes. Parameter is WeatherMakerDayNightCycleProfileScript.")]
+        public WeatherMakerEvent MinuteChanged;
+
+        [Tooltip("Executes when the day/night cycle second changes. Parameter is WeatherMakerDayNightCycleProfileScript.")]
+        public WeatherMakerEvent SecondChanged;
+
+        [Tooltip("Executes when the day/night cycle becomes night. Parameter is WeatherMakerDayNightCycleProfileScript.")]
+        public WeatherMakerEvent NightBegin;
+
+        [Tooltip("Executes when the day/night cycle becomes day. Parameter is WeatherMakerDayNightCycleProfileScript.")]
+        public WeatherMakerEvent DayBegin;
+
+        [Tooltip("Executes when the day/night cycle becomes dawn. Parameter is WeatherMakerDayNightCycleProfileScript.")]
+        public WeatherMakerEvent DawnBegin;
+
+        [Tooltip("Executes when the day/night cycle becomes dusk. Parameter is WeatherMakerDayNightCycleProfileScript.")]
+        public WeatherMakerEvent DuskBegin;
+
+        [Tooltip("Executes when the day/night cycle sunrise begins. Parameter is WeatherMakerDayNightCycleProfileScript.")]
+        public WeatherMakerEvent SunriseBegin;
+
+        [Tooltip("Executes when the day/night cycle sunrise ends. Parameter is WeatherMakerDayNightCycleProfileScript.")]
+        public WeatherMakerEvent SunriseEnd;
+
+        [Tooltip("Executes when the day/night cycle sunset begins. Parameter is WeatherMakerDayNightCycleProfileScript.")]
+        public WeatherMakerEvent SunsetBegin;
+
+        [Tooltip("Executes when the day/night cycle sunset ends. Parameter is WeatherMakerDayNightCycleProfileScript.")]
+        public WeatherMakerEvent SunsetEnd;
+
+        /// <summary>
+        /// Main camera
+        /// </summary>
+        public Camera MainCamera { get { return (AllowCameras == null || AllowCameras.Count == 0 ? Camera.main : AllowCameras[0]); } }
 
         /// <summary>
         /// Get the performance profile or default profile if null
@@ -67,6 +119,23 @@ namespace DigitalRuby.WeatherMaker
             get { return _PerformanceProfile ?? defaultProfile ?? (defaultProfile = Resources.Load<WeatherMakerPerformanceProfileScript>("WeatherMakerPerformanceProfile_Default")); }
         }
         private WeatherMakerPerformanceProfileScript defaultProfile;
+
+        private WeatherMakerProfileScript lastLocalProfile;
+        /// <summary>
+        /// Last local profile that was set for the local player - do not try to set this value, it will have no effect, use a weather zone instead.
+        /// </summary>
+        public WeatherMakerProfileScript LastLocalProfile
+        {
+            get { return lastLocalProfile; }
+            set
+            {
+                if (value != lastLocalProfile)
+                {
+                    lastLocalProfile = value;
+                    WeatherProfileChanged.Invoke(value);
+                }
+            }
+        }
 
         private WeatherMakerCommandBufferManagerScript commandBufferManager;
         /// <summary>
@@ -131,7 +200,7 @@ namespace DigitalRuby.WeatherMaker
         /// <summary>
         /// Event that fires when the weather profile changes (old, new, transition duration, connection ids (null for all connections))
         /// </summary>
-        public event System.Action<WeatherMakerProfileScript, WeatherMakerProfileScript, float, string[]> WeatherProfileChanged;
+        public event System.Action<WeatherMakerProfileScript, WeatherMakerProfileScript, float, string[]> WeatherProfileChangedEvent;
 
         /// <summary>
         /// Whether we have had a weather transition, if not first transition is instant
@@ -152,21 +221,12 @@ namespace DigitalRuby.WeatherMaker
         /// </summary>
         internal static readonly Collider[] tempColliders = new Collider[16];
 
-        /// <summary>
-        /// The current weather profile
-        /// </summary>
-        public WeatherMakerProfileScript CurrentProfile { get; private set; }
-
         private static readonly string[] cameraStringsForReflection = new string[] { "mirror", "water", "refl" };
         private static readonly string[] cameraStringsForCubeMap = new string[] { "probe" };
         private static readonly string[] cameraStringsForOther = new string[] { "prerender", "depthbuffer", "effects", "preview" };
         private static readonly Dictionary<string, WeatherMakerCameraType> cameraTypes = new Dictionary<string, WeatherMakerCameraType>(System.StringComparer.OrdinalIgnoreCase);
 
-#if UNITY_EDITOR
-
-        
-
-#endif
+        private float mainCameraCheck = 1.0f;
 
         private void UpdateMainThreadActions()
         {
@@ -205,6 +265,8 @@ namespace DigitalRuby.WeatherMaker
             Shader.SetGlobalFloat(WMS._WeatherMakerCloudVolumetricShadow, 1.0f);
             Shader.SetGlobalFloat(WMS._WeatherMakerCloudGlobalShadow, 1.0f);
             Shader.SetGlobalFloat(WMS._WeatherMakerCloudGlobalShadow2, 1.0f);
+            Shader.SetGlobalFloat(WMS._WeatherMakerDirectionalLightScatterMultiplier, 1.0f);
+            Shader.SetGlobalFloat(WMS._WeatherMakerVREnabled, UnityEngine.XR.XRDevice.isPresent ? 1.0f : 0.0f);
         }
 
         private void CheckRequiredComponents()
@@ -215,6 +277,10 @@ namespace DigitalRuby.WeatherMaker
             if (WeatherMakerLightManagerScript.Instance == null || !WeatherMakerLightManagerScript.Instance.isActiveAndEnabled)
             {
                 Debug.LogError("Missing or deactivated light manager script, this script is required for correct functionality.");
+            }
+            if (WeatherMakerCommandBufferManagerScript.Instance == null || !WeatherMakerCommandBufferManagerScript.Instance.isActiveAndEnabled)
+            {
+                Debug.LogError("Missing or deactivated command buffer manager script, this script is required for correct functionality.");
             }
             if (WeatherMakerDayNightCycleManagerScript.Instance == null || !WeatherMakerDayNightCycleManagerScript.Instance.isActiveAndEnabled)
             {
@@ -239,7 +305,22 @@ namespace DigitalRuby.WeatherMaker
                 string name = "WeatherMakerPerformanceProfile_Default";
                 if (UnityEngine.XR.XRDevice.isPresent)
                 {
-                    name = "WeatherMakerPerformanceProfile_VR";
+                    switch (UnityEngine.QualitySettings.GetQualityLevel())
+                    {
+                        case 0:
+                        case 1:
+                            name = "WeatherMakerPerformanceProfile_VR_Fastest";
+                            break;
+
+                        case 2:
+                        case 3:
+                            name = "WeatherMakerPerformanceProfile_VR_Fast";
+                            break;
+
+                        default:
+                            name = "WeatherMakerPerformanceProfile_VR";
+                            break;
+                    }
                 }
                 else
                 {
@@ -276,6 +357,17 @@ namespace DigitalRuby.WeatherMaker
                 {
                     Debug.LogError("Unable to auto-load performance profile with name " + name);
                 }
+                else
+                {
+                    if (PerformanceProfile.EnablePerPixelLighting)
+                    {
+                        Shader.EnableKeyword("SOFTPARTICLES_ON");
+                    }
+                    else
+                    {
+                        Shader.DisableKeyword("SOFTPARTICLES_ON");
+                    }
+                }
             }
         }
 
@@ -287,22 +379,40 @@ namespace DigitalRuby.WeatherMaker
             {
                 Debug.LogError("CommandBufferManager needs to be set on WeatherMakerScript");
             }
-            if (AllowCameras == null || AllowCameras.Count == 0 || AllowCameras[0] == null)
+            CheckPerformanceProfile();
+        }
+
+        private void CheckForMainCamera()
+        {
+            if ((mainCameraCheck += Time.deltaTime) < 0.5f)
             {
-                Camera mainCamera = Camera.main;
-                if (mainCamera != null)
+                return;
+            }
+
+            mainCameraCheck = 0.0f;
+            if (AutoFindMainCamera && AllowCameras != null)
+            {
+                GameObject[] mainCameras = GameObject.FindGameObjectsWithTag("MainCamera");
+                foreach (GameObject obj in mainCameras)
                 {
-                    AllowCameras = new List<Camera> { mainCamera };
+                    Camera cam = obj.GetComponent<Camera>();
+                    if (cam != null && !AllowCameras.Contains(cam))
+                    {
+                        AllowCameras.Add(cam);
+                    }
                 }
             }
 
-            CheckPerformanceProfile();
+            if (AllowCameras != null && AllowCameras.Count == 0)
+            {
+                Debug.LogError("Weather Maker allow cameras list is empty, please ensure your camera(s) are added to the AllowCameras list of WeatherMakerScript");
+            }
         }
 
         private void RemoveDestroyedCameras()
         {
             // don't remove null cameras in editor mode, then we can't add a camera!
-            if (!Application.isPlaying)
+            if (AllowCameras == null || !Application.isPlaying)
             {
                 return;
             }
@@ -318,6 +428,7 @@ namespace DigitalRuby.WeatherMaker
 
         private void Update()
         {
+            CheckForMainCamera();
             RemoveDestroyedCameras();
             CheckPerformanceProfile();
             SetGlobalShaderProperties();
@@ -462,7 +573,8 @@ namespace DigitalRuby.WeatherMaker
         public static bool ShouldIgnoreCamera(MonoBehaviour script, Camera camera, bool ignoreReflections = true)
         {
             if (camera == null || Instance == null || script == null || !script.enabled || !script.gameObject.activeInHierarchy ||
-                camera.cameraType == UnityEngine.CameraType.Preview || (Instance.AllowCameras.Count == 0 && Instance.AllowCamerasNames.Count == 0 && Instance.AllowCamerasNamesPartial.Count == 0))
+                camera.cameraType == UnityEngine.CameraType.Preview || (Instance.AllowCameras.Count == 0 && Instance.AllowCamerasNames.Count == 0 && Instance.AllowCamerasNamesPartial.Count == 0) ||
+                (camera.CachedName().IndexOf("depth", System.StringComparison.OrdinalIgnoreCase) >= 0))
             {
                 return true;
             }
@@ -582,14 +694,13 @@ namespace DigitalRuby.WeatherMaker
                 }
                 Debug.LogFormat("Changing weather profile {0} to {1}, transition time: {2}, hold time: {3}",
                 (oldProfile == null ? "None" : oldProfile.name), (newProfile == null ? "None" : newProfile.name), transitionDuration, (holdDuration <= 0.0f ? "Unknown" : holdDuration.ToString(CultureInfo.InvariantCulture)));
-                oldProfile = (oldProfile == null ? CurrentProfile : oldProfile);
                 newProfile.TransitionFrom(this, oldProfile, transitionDuration);
             }
 
             // notify listeners, if using network this should notify the network script to blast out a transition to all clients
-            if (WeatherProfileChanged != null)
+            if (WeatherProfileChangedEvent != null)
             {
-                WeatherProfileChanged.Invoke(oldProfile, newProfile, transitionDuration, connectionIds);
+                WeatherProfileChangedEvent.Invoke(oldProfile, newProfile, transitionDuration, connectionIds);
             }
         }
 
@@ -648,6 +759,10 @@ namespace DigitalRuby.WeatherMaker
         public static bool IsPlayer(Transform obj)
         {
             AudioListener listener = obj.GetComponent<AudioListener>();
+            if (listener == null && obj.parent != null)
+            {
+                listener = obj.parent.GetComponent<AudioListener>();
+            }
             return (listener != null);
         }
 
@@ -659,6 +774,10 @@ namespace DigitalRuby.WeatherMaker
         public static bool IsLocalPlayer(Transform obj)
         {
             AudioListener listener = obj.GetComponent<AudioListener>();
+            if (listener == null && obj.parent != null)
+            {
+                listener = obj.parent.GetComponent<AudioListener>();
+            }
             return (listener != null && listener.enabled);
         }
 
@@ -794,4 +913,7 @@ namespace DigitalRuby.WeatherMaker
         public bool IsClient { get; private set; }
         public bool IsConnected { get; private set; }
     }
+
+    [System.Serializable]
+    public class WeatherMakerEvent : UnityEngine.Events.UnityEvent<object> { }
 }

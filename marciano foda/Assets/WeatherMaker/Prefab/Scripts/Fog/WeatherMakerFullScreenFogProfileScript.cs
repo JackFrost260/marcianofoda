@@ -24,6 +24,7 @@ using UnityEngine.Rendering;
 namespace DigitalRuby.WeatherMaker
 {
     [CreateAssetMenu(fileName = "WeatherMakerFullScreenFogProfile", menuName = "WeatherMaker/Full Screen Fog Profile", order = 70)]
+    [System.Serializable]
     public class WeatherMakerFullScreenFogProfileScript : WeatherMakerFogProfileScript
     {
         [Header("Full screen fog - thresholds")]
@@ -35,9 +36,6 @@ namespace DigitalRuby.WeatherMaker
         [Tooltip("The number of shaft samples. Set to 0 to disable sun shafts.")]
         [Range(0, 100)]
         public int SunShaftSampleCount = 0;
-
-        [Tooltip("Sun shaft down sample scale. Down samples camera buffer to this before rendering fog.")]
-        public WeatherMakerDownsampleScale SunShaftDownSampleScale = WeatherMakerDownsampleScale.HalfResolution;
 
         [Tooltip("Sun shaft spread (0 - 1).")]
         [Range(0.0f, 1.0f)]
@@ -62,6 +60,13 @@ namespace DigitalRuby.WeatherMaker
         [Range(-1.0f, 1.0f)]
         public float SunShaftDither = 0.4f;
 
+        [Tooltip("Intensity of background color. Set to 0 to not blend in the background at all on the shafts.")]
+        [Range(0.0f, 10.0f)]
+        public float SunShaftBackgroundColorMultiplier;
+
+        [Tooltip("Tint of background color")]
+        public Color SunShaftBackgroundTintColor = Color.white;
+
         [Tooltip("Controls dithering appearance of sun shafts.")]
         public Vector4 SunShaftDitherMagic = new Vector4(2.34325f, 5.235345f, 1024.0f, 1024.0f);
 
@@ -79,6 +84,46 @@ namespace DigitalRuby.WeatherMaker
             }
 
             base.UpdateMaterialProperties(material, camera, global);
+
+            // reduce shadow strength as the fog blocks out dir lights
+            float h;
+            float m = Mathf.Pow(MaxFogFactor, 3.0f);
+            const float p = 0.005f;
+            float shadowMultiplier;
+
+            switch (FogMode)
+            {
+                case WeatherMakerFogMode.Constant:
+                    shadowMultiplier = 1.0f - (Mathf.Min(1.0f, fogDensity * 1.2f * m));
+                    FogIntensityMultiplier = 1.0f - (fogDensity * m);
+                    break;
+
+                case WeatherMakerFogMode.Linear:
+                    h = (FogHeight < Mathf.Epsilon ? 1000.0f : FogHeight) * m;
+                    shadowMultiplier = 1.0f - (fogDensity * 16.0f * h * FogShadowStrengthFactor);
+                    FogIntensityMultiplier = 1.0f - (fogDensity * 2.0f * h * p);
+                    break;
+
+                case WeatherMakerFogMode.Exponential:
+                    h = (FogHeight < Mathf.Epsilon ? 1000.0f : FogHeight) * 2.0f * m;
+                    shadowMultiplier = 1.0f - (Mathf.Min(1.0f, Mathf.Pow(fogDensity * 32.0f * h * FogShadowStrengthFactor, 0.5f)));
+                    FogIntensityMultiplier = 1.0f - (fogDensity * 4.0f * h * p);
+                    break;
+
+                case WeatherMakerFogMode.ExponentialSquared:
+                    h = (FogHeight < Mathf.Epsilon ? 1000.0f : FogHeight) * 4.0f * m;
+                    shadowMultiplier = 1.0f - (Mathf.Min(1.0f, Mathf.Pow(fogDensity * 64.0f * h * FogShadowStrengthFactor, 0.5f)));
+                    FogIntensityMultiplier = 1.0f - (fogDensity * 8.0f * h * p);
+                    break;
+
+                default:
+                    shadowMultiplier = 1.0f;
+                    FogIntensityMultiplier = 1.0f;
+                    break;
+            }
+
+            FogGlobalShadow = shadowMultiplier = Mathf.Clamp(shadowMultiplier * 1.3f, 0.2f, 1.0f);
+            Shader.SetGlobalFloat(WMS._WeatherMakerFogGlobalShadow, FogGlobalShadow);
 
             float fogHeight = Mathf.Max(0.0f, FogHeight);
             if (global)
@@ -120,6 +165,8 @@ namespace DigitalRuby.WeatherMaker
                 material.SetVector(WMS._WeatherMakerFogSunShaftsTintColor, new Vector4(SunShaftTintColor.r * SunShaftTintColor.a, SunShaftTintColor.g * SunShaftTintColor.a,
                     SunShaftTintColor.b * SunShaftTintColor.a, SunShaftTintColor.a));
                 material.SetVector(WMS._WeatherMakerFogSunShaftsDitherMagic, new Vector4(SunShaftDitherMagic.x * Screen.width , SunShaftDitherMagic.y * Screen.height, SunShaftDitherMagic.z * Screen.width, SunShaftDitherMagic.w * Screen.height));
+                material.SetFloat(WMS._WeatherMakerFogSunShaftsBackgroundIntensity, SunShaftBackgroundColorMultiplier);
+                material.SetColor(WMS._WeatherMakerFogSunShaftsBackgroundTintColor, SunShaftBackgroundTintColor);
             }
             else
             {
@@ -127,5 +174,10 @@ namespace DigitalRuby.WeatherMaker
                 material.SetInt(WMS._WeatherMakerFogSunShaftMode, 0);
             }
         }
+
+        public float FogGlobalShadow { get; private set; }
+
+        private float fogIntensityMultiplier = 1.0f;
+        public float FogIntensityMultiplier { get { return fogIntensityMultiplier; } set { fogIntensityMultiplier = value; } }
     }
 }

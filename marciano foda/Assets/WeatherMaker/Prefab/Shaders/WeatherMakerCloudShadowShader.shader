@@ -22,13 +22,18 @@ Shader "WeatherMaker/WeatherMakerCloudShadowShader"
 		[Header(Shadow)]
 		_CloudShadowMapAdder("Adder", Range(-1.0, 1.0)) = -0.4
 		_CloudShadowMapMultiplier("Multiplier", Range(0.01, 10.0)) = 4.0
-		_CloudShadowMapMinimum("Minimum", Range(0.0, 1.0)) = 0.0
-		_CloudShadowMapMaximum("Maximum", Range(0.0, 1.0)) = 0.6
-		_CloudShadowMapPower("Power", Range(0.0, 16.0)) = 1.0
+		_CloudShadowMapPower("Power", Range(0.0, 256.0)) = 1.0
+		_CloudShadowDetails("Shadow Details", Int) = 1
+		_WeatherMakerCloudVolumetricShadowDither("Dither", Range(0.0, 1.0)) = 0.05
+		[NoScaleOffset] _WeatherMakerCloudShadowDetailTexture("Detail Texture", 2D) = "white" {}
+		_WeatherMakerCloudShadowDetailScale("Detail Scale", Range(0.0, 1.0)) = 0.0001
+		_WeatherMakerCloudShadowDetailIntensity("Detail Intensity", Range(0.0, 10.0)) = 1.0
+		_WeatherMakerCloudShadowDetailFalloff("Detail Falloff", Range(0.0, 1.0)) = 0.0
+		_WeatherMakerCloudShadowDistanceFade("Distance Fade", Range(0.0, 4.0)) = 1.75
 	}
 	SubShader
 	{
-		Cull Off ZWrite Off ZTest Always BlendOp Min
+		Cull Off ZWrite Off ZTest Always BlendOp [_BlendOp]
 
 		CGINCLUDE
 
@@ -41,6 +46,7 @@ Shader "WeatherMaker/WeatherMakerCloudShadowShader"
 		#pragma multi_compile_instancing
 		#pragma vertex full_screen_vertex_shader
 
+		#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
 		#define WEATHER_MAKER_IS_FULL_SCREEN_EFFECT
 
 		#include "WeatherMakerCloudVolumetricShaderInclude.cginc"
@@ -52,6 +58,8 @@ Shader "WeatherMaker/WeatherMakerCloudShadowShader"
 			float3 rayDir : TEXCOORD1;
 		};
 
+		uniform int _CloudShadowDetails;
+
 		ENDCG
 		
 		Pass
@@ -60,7 +68,7 @@ Shader "WeatherMaker/WeatherMakerCloudShadowShader"
 
 			#pragma fragment shadowFrag
 
-			float4 shadowFrag(full_screen_fragment i) : SV_Target
+			float4 shadowFrag(wm_full_screen_fragment i) : SV_Target
 			{
 				// screen shadows
 				WM_INSTANCE_FRAG(i);
@@ -70,7 +78,8 @@ Shader "WeatherMaker/WeatherMakerCloudShadowShader"
 				if (depth < 1.0)
 				{
 					float3 worldPos = weatherMakerCloudCameraPosition + (depth * i.forwardLine);
-					return ComputeCloudShadowStrength(worldPos, 0);
+					float existingShadow = WM_SAMPLE_FULL_SCREEN_TEXTURE(_MainTex5, i.uv.xy).r;
+					return ComputeCloudShadowStrength(worldPos, 0, existingShadow, _CloudShadowDetails);
 				}
 				else
 				{
@@ -81,21 +90,19 @@ Shader "WeatherMaker/WeatherMakerCloudShadowShader"
 			ENDCG
 		}
 
+		/*
 		Pass
 		{
-			Cull Off ZWrite On ZTest Less
-
 			CGPROGRAM
 
 			#pragma fragment shadowFrag
 
-			float shadowFrag(full_screen_fragment i) : SV_DEPTH
+			float shadowFrag(wm_full_screen_fragment i) : SV_Depth
 			{
-				// TODO: depth shadows, not working, needs more research
-				// convert uv to world space
+				// TODO: Does not work at all
 				WM_INSTANCE_FRAG(i);
-				float3 worldPos = weatherMakerCloudCameraPosition + (GetDepth01(i.uv) * i.forwardLine);
-				float shadowStrength = 1.0 - ComputeCloudShadowStrength(worldPos, 0);
+				float3 worldPos = wm_getWorldPosFromShadowUV(i.uv.xy);
+				float shadowStrength = ComputeCloudShadowStrength(worldPos, 0, _CloudShadowDetails);
 				return ceil(max(0.0, shadowStrength - 0.2));
 			}
 
@@ -108,17 +115,16 @@ Shader "WeatherMaker/WeatherMakerCloudShadowShader"
 
 			#pragma fragment shadowFrag
 
-			UNITY_DECLARE_SCREENSPACE_TEXTURE(_MainTex3);
-
-			float4 shadowFrag(full_screen_fragment i) : SV_Target
+			float4 shadowFrag(wm_full_screen_fragment i) : SV_Target
 			{
 				// clone shadow texture
 				WM_INSTANCE_FRAG(i);
-				return min(weatherMakerGlobalShadow, WM_SAMPLE_FULL_SCREEN_TEXTURE(_MainTex3, i.uv.xy).r);
+				return min(weatherMakerGlobalShadow, WM_SAMPLE_FULL_SCREEN_TEXTURE(_MainTex, i.uv.xy).r);
 			}
 
 			ENDCG
 		}
+		*/
 	}
 
 	Fallback Off

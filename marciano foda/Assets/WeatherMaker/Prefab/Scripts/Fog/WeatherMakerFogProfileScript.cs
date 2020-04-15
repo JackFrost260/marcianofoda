@@ -131,6 +131,10 @@ namespace DigitalRuby.WeatherMaker
         [Range(0.0f, 1.0f)]
         public float FogCloudShadowStrength = 1.0f;
 
+        [Tooltip("Control how fog casts shadow. Larger values cast more shadow.")]
+        [Range(0.0f, 0.02f)]
+        public float FogShadowStrengthFactor = 0.005f;
+
         [Tooltip("Magic numbers for fog shadow dithering. Tweak if you don't like the dithering appearance.")]
         public Vector4 FogShadowDitherMagic = new Vector4(0.73f, 1.665f, 1024.0f, 1024.0f);
 
@@ -177,6 +181,7 @@ namespace DigitalRuby.WeatherMaker
 
             bool gamma = (QualitySettings.activeColorSpace == ColorSpace.Gamma);
             float scatterCover = (WeatherMakerFullScreenCloudsScript.Instance != null && WeatherMakerFullScreenCloudsScript.Instance.enabled && WeatherMakerFullScreenCloudsScript.Instance.CloudProfile != null ? WeatherMakerFullScreenCloudsScript.Instance.CloudProfile.CloudCoverTotal : 0.0f);
+            scatterCover = Mathf.Pow(scatterCover, 4.0f);
             Color fogEmissionColor = FogEmissionColor * FogEmissionColor.a;
             fogEmissionColor.a = FogEmissionColor.a;
             float fogNoiseSampleCount = (float)(WeatherMakerScript.Instance == null ? FogNoiseSampleCount : WeatherMakerScript.Instance.PerformanceProfile.FogNoiseSampleCount);
@@ -272,7 +277,7 @@ namespace DigitalRuby.WeatherMaker
                 }
             }
 
-            Color fogColor = sun.GetGradientColor(FogGradientColor);
+            Color fogColor = sun.GetGradientColor(FogGradientColor) * FogColor;
             FogEndDepth = Mathf.Max(FogStartDepth, FogEndDepth);
             float endDepth = (FogEndDepth <= FogStartDepth ? FogStartDepth + 5000.0f : FogEndDepth);
             float fogLinearFogFactor = 0.1f * (1.0f / Mathf.Max(0.0001f, (endDepth - FogStartDepth))) * fogDensity * (endDepth - FogStartDepth);
@@ -318,6 +323,8 @@ namespace DigitalRuby.WeatherMaker
                 Shader.SetGlobalFloat(WMS._WeatherMakerFogDitherLevel, ditherLevel);
                 Shader.SetGlobalFloat(WMS._WeatherMakerFogDensity, fogDensity);
                 Shader.SetGlobalFloat(WMS._WeatherMakerFogFactorMultiplier, FogFactorMultiplier);
+                Shader.SetGlobalFloat(WMS._DirectionalLightMultiplier, material.GetFloat(WMS._DirectionalLightMultiplier));
+                Shader.SetGlobalFloat(WMS._PointSpotLightMultiplier, material.GetFloat(WMS._PointSpotLightMultiplier));
             }
         }
 

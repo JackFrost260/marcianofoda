@@ -23,7 +23,7 @@
 UNITY_DECLARE_SHADOWMAP(_WeatherMakerShadowMapTexture);
 uniform float4 _WeatherMakerShadowMapTexture_TexelSize;
 
-UNITY_DECLARE_SCREENSPACE_TEXTURE(_WeatherMakerShadowMapSSTexture);
+uniform UNITY_DECLARE_SCREENSPACE_TEXTURE(_WeatherMakerShadowMapSSTexture);
 uniform float4 _WeatherMakerShadowMapSSTexture_TexelSize;
 
 float4 unity_ShadowCascadeScales;
@@ -34,25 +34,25 @@ float4 unity_ShadowCascadeScales;
 #undef GET_CASCADE_WEIGHTS
 #undef GET_CASCADE_WEIGHTS_Z
 #if defined (SHADOWS_SPLIT_SPHERES) || defined(WEATHER_MAKER_SHADOWS_SPLIT_SPHERES)
-#define GET_CASCADE_WEIGHTS(wpos)    getCascadeWeights_splitSpheres(wpos)
-#define GET_CASCADE_WEIGHTS_Z(wpos, z)  getCascadeWeights_splitSpheres(wpos)
+#define GET_CASCADE_WEIGHTS(wpos)		wm_getCascadeWeights_splitSpheres(wpos)
+#define GET_CASCADE_WEIGHTS_Z(wpos, z)  wm_getCascadeWeights_splitSpheres(wpos)
 #else
-#define GET_CASCADE_WEIGHTS(wpos)		getCascadeWeights( wpos, distance(wpos, _WorldSpaceCameraPos) * _ProjectionParams.w )
-#define GET_CASCADE_WEIGHTS_Z(wpos, z)  getCascadeWeights( wpos, z )
+#define GET_CASCADE_WEIGHTS(wpos)		wm_getCascadeWeights( wpos, distance(wpos, _WorldSpaceCameraPos) * _ProjectionParams.w )
+#define GET_CASCADE_WEIGHTS_Z(wpos, z)  wm_getCascadeWeights( wpos, z )
 #endif
 
 #undef GET_SHADOW_COORDINATES
 #if defined (SHADOWS_SINGLE_CASCADE)
-#define GET_SHADOW_COORDINATES(wpos,cascadeWeights) getShadowCoord_SingleCascade(wpos)
+#define GET_SHADOW_COORDINATES(wpos,cascadeWeights) wm_getShadowCoord_SingleCascade(wpos)
 #else
-#define GET_SHADOW_COORDINATES(wpos,cascadeWeights) getShadowCoord(wpos,cascadeWeights)
+#define GET_SHADOW_COORDINATES(wpos,cascadeWeights) wm_getShadowCoord(wpos,cascadeWeights)
 #endif
 
 /**
  * Gets the cascade weights based on the world position of the fragment.
  * Returns a float4 with only one component set that corresponds to the appropriate cascade.
  */
-inline fixed4 getCascadeWeights(float3 wpos, float z)
+inline fixed4 wm_getCascadeWeights(float3 wpos, float z)
 {
 	fixed4 zNear = float4(z >= _LightSplitsNear);
 	fixed4 zFar = float4(z < _LightSplitsFar);
@@ -64,7 +64,7 @@ inline fixed4 getCascadeWeights(float3 wpos, float z)
  * Gets the cascade weights based on the world position of the fragment and the poisitions of the split spheres for each cascade.
  * Returns a float4 with only one component set that corresponds to the appropriate cascade.
  */
-inline fixed4 getCascadeWeights_splitSpheres(float3 wpos)
+inline fixed4 wm_getCascadeWeights_splitSpheres(float3 wpos)
 {
 	float3 fromCenter0 = wpos - unity_ShadowSplitSpheres[0].xyz;
 	float3 fromCenter1 = wpos - unity_ShadowSplitSpheres[1].xyz;
@@ -80,7 +80,7 @@ inline fixed4 getCascadeWeights_splitSpheres(float3 wpos)
  * Returns the shadowmap coordinates for the given fragment based on the world position and z-depth.
  * These coordinates belong to the shadowmap atlas that contains the maps for all cascades.
  */
-inline float4 getShadowCoord(float4 wpos, fixed4 cascadeWeights)
+inline float4 wm_getShadowCoord(float4 wpos, fixed4 cascadeWeights)
 {
 	float3 sc0 = mul(unity_WorldToShadow[0], wpos).xyz;
 	float3 sc1 = mul(unity_WorldToShadow[1], wpos).xyz;
@@ -97,9 +97,36 @@ inline float4 getShadowCoord(float4 wpos, fixed4 cascadeWeights)
 /**
  * Same as the getShadowCoord; but optimized for single cascade
  */
-inline float4 getShadowCoord_SingleCascade(float4 wpos)
+inline float4 wm_getShadowCoord_SingleCascade(float4 wpos)
 {
 	return float4(mul(unity_WorldToShadow[0], wpos).xyz, 0);
+}
+
+/**
+ * Returns the world space coordinates for the given uv from shadowmap
+ */
+inline float3 wm_getWorldPosFromShadowUV(float2 screenUV)
+{
+	// TODO: Does not work, assumes 4 cascades
+	static const float4x4 inverse_unity_WorldToShadow0 = InverseMatrix(unity_WorldToShadow[0]);
+	static const float4x4 inverse_unity_WorldToShadow1 = InverseMatrix(unity_WorldToShadow[1]);
+	static const float4x4 inverse_unity_WorldToShadow2 = InverseMatrix(unity_WorldToShadow[2]);
+	static const float4x4 inverse_unity_WorldToShadow3 = InverseMatrix(unity_WorldToShadow[3]);
+
+	fixed4 cascadeWeights = fixed4
+	(
+		screenUV.x < 0.5 && screenUV.y < 0.5,
+		screenUV.x >= 0.5 && screenUV.y < 0.5,
+		screenUV.x < 0.5 && screenUV.y >= 0.5,
+		screenUV.x >= 0.5 && screenUV.y >= 0.5
+	);
+
+	float4 shadowCoord = float4(screenUV, 0.0, 1.0);
+	float3 sc0 = mul(inverse_unity_WorldToShadow0, shadowCoord).xyz;
+	float3 sc1 = mul(inverse_unity_WorldToShadow1, shadowCoord).xyz;
+	float3 sc2 = mul(inverse_unity_WorldToShadow2, shadowCoord).xyz;
+	float3 sc3 = mul(inverse_unity_WorldToShadow3, shadowCoord).xyz;
+	return float3(sc0 * cascadeWeights[0] + sc1 * cascadeWeights[1] + sc2 * cascadeWeights[2] + sc3 * cascadeWeights[3]);
 }
 
 #define SHAD4MULT1 0.3

@@ -66,7 +66,8 @@ Shader "WeatherMaker/WeatherMakerWeatherMapShader"
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
 		
-			
+		#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
+
 		struct appdata
 		{
 			float4 vertex : POSITION;
@@ -100,53 +101,7 @@ Shader "WeatherMaker/WeatherMakerWeatherMapShader"
 
 #if defined(WEATHER_MAKER_ENABLE_VOLUMETRIC_CLOUDS)
 
-			uniform float _WeatherMakerWeatherMapSeed;
-
-			uniform float _CloudCoverageFrequency;
-			uniform float2 _CloudCoverageRotation;
-			uniform float3 _CloudCoverageVelocity; // needs to be prescaled by _WeatherMakerWeatherMapScale.z
-			uniform float3 _CloudCoverageOffset;
-			uniform float _CloudCoverageMultiplier;
-			uniform float _CloudCoverageAdder;
-			uniform float _CloudCoveragePower;
-			uniform float _CloudCoverageProfileInfluence;
-			uniform sampler2D _CloudCoverageTexture;
-			uniform float _CloudCoverageTextureMultiplier;
-			uniform float _CloudCoverageTextureScale;
-
-			uniform float _CloudTypeFrequency;
-			uniform float2 _CloudTypeRotation;
-			uniform float3 _CloudTypeVelocity; // needs to be prescaled by _WeatherMakerWeatherMapScale.z
-			uniform float3 _CloudTypeOffset;
-			uniform float _CloudTypeMultiplier;
-			uniform float _CloudTypeAdder;
-			uniform float _CloudTypePower;
-			uniform float _CloudTypeProfileInfluence;
-			uniform float _CloudTypeCoveragePower;
-			uniform sampler2D _CloudTypeTexture;
-			uniform float _CloudTypeTextureMultiplier;
-			uniform float _CloudTypeTextureScale;
-
 			uniform float2 _MaskOffset;
-
-			static const float cloudDensity = min(1.0, _CloudDensityVolumetric);
-			static const float cloudCoverageInfluence = _CloudCoverageProfileInfluence * _CloudCoverVolumetric * cloudDensity;
-			static const float cloudCoverageInfluence2 = (1.0 + (_CloudCoverageProfileInfluence * _CloudCoverVolumetric * cloudDensity)) * _CloudCoverageMultiplier * min(1.0, _CloudCoverVolumetric * cloudDensity * 2.0);
-			static const float3 cloudCoverageVelocity = (_CloudCoverageOffset + float3(_WeatherMakerWeatherMapSeed, _WeatherMakerWeatherMapSeed, _WeatherMakerWeatherMapSeed) + _CloudCoverageVelocity);
-            static const bool cloudCoverageIsMin = (cloudCoverageInfluence < 0.01 && _CloudCoverageAdder <= 0.0);
-            static const bool cloudCoverageIsMax = (cloudCoverageInfluence > 0.999 && _CloudCoverageAdder >= 0.0);
-			static const float cloudCoverageTextureMultiplier = (_CloudCoverSecondaryVolumetric + _CloudCoverageTextureMultiplier);
-			static const float cloudCoverageTextureScale = (4.0 / max(_CloudCoverageTextureScale, _CloudCoverageFrequency));
-
-			static const float cloudTypeInfluence = _CloudTypeProfileInfluence * _CloudTypeVolumetric;
-			static const float cloudTypeInfluence2 = (1.0 + (_CloudTypeProfileInfluence * _CloudTypeVolumetric)) * _CloudTypeMultiplier * _CloudTypeVolumetric;
-			static const float3 cloudTypeVelocity = (_CloudTypeOffset + float3(_WeatherMakerWeatherMapSeed, _WeatherMakerWeatherMapSeed, _WeatherMakerWeatherMapSeed) + _CloudTypeVelocity);
-            static const bool cloudTypeIsMin = (cloudTypeInfluence < 0.01 && _CloudTypeAdder <= 0.0);
-            static const bool cloudTypeIsMax = (cloudTypeInfluence > 0.999 && _CloudTypeAdder >= 0.0);
-			static const float cloudTypeTextureMultiplier = (_CloudTypeSecondaryVolumetric + _CloudTypeTextureMultiplier);
-			static const float cloudTypeTextureScale = (4.0 / max(_CloudTypeTextureScale, _CloudTypeFrequency));
-
-			static const float3 weatherMapCameraPos = weatherMakerCloudCameraPosition * _WeatherMakerWeatherMapScale.z;
 
 			float WeatherMapNoise(float2 P, float sum)
 			{
@@ -192,7 +147,7 @@ Shader "WeatherMaker/WeatherMakerWeatherMapShader"
 			
 			fixed4 frag (v2f i) : SV_Target
 			{
-         
+
 #if defined(WEATHER_MAKER_ENABLE_VOLUMETRIC_CLOUDS)
 
 				float3 samp;

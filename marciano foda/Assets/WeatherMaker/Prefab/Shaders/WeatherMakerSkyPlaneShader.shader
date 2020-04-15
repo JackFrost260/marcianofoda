@@ -17,7 +17,7 @@
 	}
 	SubShader
 	{
-		Tags { "Queue" = "Geometry" }
+		Tags { "Queue" = "Geometry+1" }
 		Cull Off ZWrite Off ZTest LEqual Fog { Mode Off } Blend Off
 
 		CGINCLUDE
@@ -25,7 +25,6 @@
 		#pragma target 3.5
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
-		
 
 		ENDCG
 
@@ -36,6 +35,8 @@
 			#pragma vertex vert
 			#pragma fragment frag
 			#pragma multi_compile_instancing
+
+			#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
 
 			// note sky plane is always procedural Unity style
 			#include "WeatherMakerSkyShaderInclude.cginc"
@@ -57,9 +58,10 @@
 			
 			fixed4 frag (v2fSky i) : SV_Target
 			{
+				static const fixed3 sunColor = _WeatherMakerSunColor.rgb * _WeatherMakerSunColor.a;
+
 				WM_INSTANCE_FRAG(i);
 				i.ray = normalize(i.ray);
-				fixed3 sunColor = _WeatherMakerSunColor.rgb * _WeatherMakerSunColor.a;
 				procedural_sky_info p = CalculateScatteringColor(_WeatherMakerSunDirectionDown2D, sunColor, 0.0, i.ray, i.inScatter, i.outScatter);
 				fixed3 nightColor = GetNightColor(i.ray, i.uv, p.skyColor.a);
 				fixed3 result = (((p.inScatter + p.outScatter) * _WeatherMakerSkyTintColor)) + nightColor;

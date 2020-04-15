@@ -58,6 +58,11 @@ namespace DigitalRuby.WeatherMaker
             UnityEngine.SceneManagement.SceneManager.sceneUnloaded += SceneManager_sceneUnloaded;
         }
 
+        private void OnEnable()
+        {
+            triggers = 0;
+        }
+
         private void SceneManager_sceneUnloaded(UnityEngine.SceneManagement.Scene arg0)
         {
             triggers = 0;
@@ -65,7 +70,7 @@ namespace DigitalRuby.WeatherMaker
 
         private void OnTriggerEnter(Collider other)
         {
-            if (WeatherMakerScript.IsLocalPlayer(other.transform) && ++triggers == 1)
+            if (gameObject.activeInHierarchy && enabled && WeatherMakerScript.IsLocalPlayer(other.transform) && ++triggers == 1)
             {
                 // if this is the first trigger entered, run it
                 TweenFactory.Tween("WeatherMakerDampeningZoneScript", 0.0f, 1.0f, TransitionDuration, TweenScaleFunctions.Linear, (t) =>
@@ -100,7 +105,7 @@ namespace DigitalRuby.WeatherMaker
         private void OnTriggerExit(Collider other)
         {
             // if this is the last trigger exited, run it
-            if (WeatherMakerScript.IsLocalPlayer(other.transform) && --triggers == 0)
+            if (gameObject.activeInHierarchy && enabled && WeatherMakerScript.IsLocalPlayer(other.transform) && --triggers == 0)
             {
                 TweenFactory.Tween("WeatherMakerDampeningZoneScript", 0.0f, 1.0f, TransitionDuration, TweenScaleFunctions.Linear, (t) =>
                 {

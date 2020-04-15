@@ -26,9 +26,10 @@
 #define GET_WATER_DISTANCE_REDUCER(worldPos) (1.0 - saturate(((_WorldSpaceCameraPos.y - worldPos.y - 100.0) * _InvFadeParameter.y) + (worldPos.w * _InvFadeParameter.w)))
 
 // textures
+uniform sampler2D _WaterTex;
 uniform sampler2D _WaterBumpMap;
 uniform sampler2D _WaterFoam;
-uniform sampler2D _WaterFoamBumpMap;
+//uniform sampler2D _WaterFoamBumpMap;
 uniform sampler2D _WeatherMakerWaterReflectionTex;
 uniform sampler2D _WeatherMakerWaterReflectionTex2;
 uniform sampler2D _WeatherMakerWaterRefractionTex;
@@ -52,7 +53,7 @@ uniform fixed3 _WaterFogColor;
 uniform fixed _WaterFogDensity;
 
 uniform sampler3D _CausticsTexture;
-uniform fixed4 _CausticsTintColor;
+uniform fixed4 _WaterCausticsTintColor;
 uniform fixed4 _CausticsScale;
 uniform fixed4 _CausticsVelocity;
 
@@ -60,7 +61,7 @@ uniform fixed4 _CausticsVelocity;
 uniform fixed4 _SpecularColor;
 uniform fixed _SpecularIntensity;
 uniform fixed4 _WaterColor;
-uniform fixed _RefractionStrength;
+uniform fixed _WaterRefractionStrength;
 
 // fade params
 uniform float4 _InvFadeParameter;
@@ -85,7 +86,7 @@ uniform fixed _WaterDitherLevel;
 uniform fixed _WaterShadowStrength;
 uniform uint _WaterUnderwater;
 uniform uint _WaterReflective;
-static const uint _WaterAboveWater = !_WaterUnderwater;
+static const uint _WaterAboveWater = (_WaterUnderwater == 0);
 
 // unused currently
 uniform int _VolumetricSampleCount;
@@ -121,7 +122,7 @@ uniform float4 _WaterWave8;
 uniform float4 _WaterWave8_Precompute;
 uniform float4 _WaterWave8_Params1;
 uniform float _WaterWaveMultiplier;
-
+uniform float4 _WeatherMakerWaterDepthMaxUV;
 uniform float4 _WaterDisplacement1;
 uniform float4 _WaterDisplacement2;
 
@@ -180,6 +181,7 @@ inline float GetWaterYDepth(float2 uv)
 	}
 	else
 	{
+		uv = saturate(lerp(_WeatherMakerWaterDepthMaxUV.x, _WeatherMakerWaterDepthMaxUV.y, uv));
 		float yDepth = tex2Dlod(_WeatherMakerYDepthTexture, float4(uv, 0.0, 0.0)).r;
 
 #if defined(UNITY_REVERSED_Z)
@@ -357,7 +359,7 @@ inline fixed4 WaterFoamColor(float4 worldPos, float3 viewVector, float4 bumpCoor
 		// apply intensity, depth factor and wave factor
 		fixed factor = saturate(distanceReducer * _WaterFoamParam1.y * max(depthFactor, waveFactor));
 		foamColor.a = factor * factor;
-		worldNormal = PerPixelNormal(_WaterFoamBumpMap, bumpCoords, worldNormal, PER_PIXEL_DISPLACE * foamColor.a);
+		//worldNormal = PerPixelNormal(_WaterFoamBumpMap, bumpCoords, worldNormal, PER_PIXEL_DISPLACE * foamColor.a);
 		return foamColor;
 	}
 }
@@ -365,80 +367,83 @@ inline fixed4 WaterFoamColor(float4 worldPos, float3 viewVector, float4 bumpCoor
 // get color behind water with refraction and fog
 float3 ColorBehindWater(float4 worldPos, float3 rayDir, float4 screenPos, float3 viewPos, float2 uvOffset, inout float atten, out float waterAmount, out float fogFactor, out float sceneZ, out float3 depthPos)
 {
-	// handle edges, aliasing
 	float div = 1.0 / max(0.0001, screenPos.w);
 
 	// account for perpective distortion
 	float2 baseUV = screenPos.xy * div;
-	uvOffset *= div;
 
-	// fractional pixel removal
-	uvOffset.y *= _CameraDepthTexture_TexelSize.z * abs(_CameraDepthTexture_TexelSize.y);
-
-	// get depth value at fully distorted pixel
-	float2 uv = AlignScreenUVWithDepthTexel(baseUV + uvOffset);
-	float depth = LinearEyeDepth(WM_SAMPLE_DEPTH(uv));
-
-	// water depth
-	float surfaceDepth = UNITY_Z_0_FAR_FROM_CLIPSPACE(screenPos.z);
-
-	// difference
-	float depthDifference = depth - surfaceDepth;
-
-	// scale down if negative depth or close to 0 depth
-	uvOffset *= saturate(depthDifference);
-
-	// get new uv
-	uv = AlignScreenUVWithDepthTexel(baseUV + uvOffset);
-
-	// set depth to corrected value
-	depth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv));
-
-	// set sceneZ
-	sceneZ = length(depth / viewPos.z);
-
-	if (_WaterUnderwater)
-	{
-		// in the water, use depth or distance to edge of water, whichever is smaller
-		waterAmount = min(sceneZ, worldPos.w);
-		depthPos = _WorldSpaceCameraPos + (rayDir * waterAmount);
-	}
-	else
-	{
-		// set depth to non-refracted value
-		float nonRefractionDepth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, baseUV));
-		float nonRefractionSceneZ = length(nonRefractionDepth / viewPos.z);
-		depthPos = _WorldSpaceCameraPos + (rayDir * nonRefractionSceneZ);
-		waterAmount = distance(worldPos.xyz, depthPos);
-	}
-
-	fogFactor = saturate(exp(-_WaterFogDensity * waterAmount));
-	fixed3 backgroundColor;
-
-	// fetch background at uv
 	UNITY_BRANCH
-	if (_RefractionStrength > 0.0)
+	if (_WaterRefractionStrength <= 0.0)
 	{
-		backgroundColor = tex2D(_WeatherMakerWaterRefractionTex, uv).rgb * _RefractionStrength;
+		waterAmount = 20.0;
+		fogFactor = 0.1;
+		sceneZ = LinearEyeDepth(WM_SAMPLE_DEPTH(baseUV));
+		depthPos = worldPos;
+		return _WaterColor.rgb;
 	}
 	else
 	{
-		// save texture fetch
-		backgroundColor = fixed3Zero;
-	}
+		uvOffset *= div;
 
-	if (_WaterUnderwater)
-	{
-		// TODO: Note, this assumes the sun intensity is being reduced as the player goes lower into the water
-		// TODO: Light water fog by additional lights? volumetric light? shadows?
-		atten = CalculateDirLightDepthShadowPower(depthPos, 0);
-		return backgroundColor;
-	}
-	else
-	{
-		atten = CalculateDirLightScreenShadowPower(baseUV);
-		static const float3 dirLightColor = (_WeatherMakerDirLightColor[0].rgb * _WeatherMakerDirLightColor[0].a) + (_WeatherMakerDirLightColor[1].rgb * _WeatherMakerDirLightColor[1].a);
-		return lerp(_WaterFogColor * dirLightColor * atten, backgroundColor, fogFactor);
+		// fractional pixel removal
+		uvOffset.y *= _CameraDepthTexture_TexelSize.z * abs(_CameraDepthTexture_TexelSize.y);
+
+		// get depth value at fully distorted pixel
+		float2 uv = AlignScreenUVWithDepthTexel(baseUV + uvOffset);
+		float depth = LinearEyeDepth(WM_SAMPLE_DEPTH(uv));
+
+		// water depth
+		float surfaceDepth = UNITY_Z_0_FAR_FROM_CLIPSPACE(screenPos.z);
+
+		// difference
+		float depthDifference = depth - surfaceDepth;
+
+		// scale down if negative depth or close to 0 depth
+		uvOffset *= saturate(depthDifference);
+
+		// get new uv
+		uv = AlignScreenUVWithDepthTexel(baseUV + uvOffset);
+
+		// set depth to corrected value
+		depth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv));
+
+		// set sceneZ
+		sceneZ = length(depth / viewPos.z);
+
+		if (_WaterUnderwater)
+		{
+			// in the water, use depth or distance to edge of water, whichever is smaller
+			waterAmount = min(sceneZ, worldPos.w);
+			depthPos = _WorldSpaceCameraPos + (rayDir * waterAmount);
+		}
+		else
+		{
+			// set depth to non-refracted value
+			float nonRefractionDepth = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, baseUV));
+			float nonRefractionSceneZ = length(nonRefractionDepth / viewPos.z);
+			depthPos = _WorldSpaceCameraPos + (rayDir * nonRefractionSceneZ);
+			waterAmount = distance(worldPos.xyz, depthPos);
+		}
+
+		fogFactor = saturate(exp(-_WaterFogDensity * waterAmount));
+		fixed3 backgroundColor;
+
+		// fetch background at uv
+		backgroundColor = tex2D(_WeatherMakerWaterRefractionTex, uv).rgb * _WaterRefractionStrength;
+
+		if (_WaterUnderwater)
+		{
+			// TODO: Note, this assumes the sun intensity is being reduced as the player goes lower into the water
+			// TODO: Light water fog by additional lights? volumetric light? shadows?
+			atten = CalculateDirLightDepthShadowPower(depthPos, 0);
+			return backgroundColor;
+		}
+		else
+		{
+			atten = CalculateDirLightScreenShadowPower(baseUV);
+			static const float3 dirLightColor = (_WeatherMakerDirLightColor[0].rgb * _WeatherMakerDirLightColor[0].a) + (_WeatherMakerDirLightColor[1].rgb * _WeatherMakerDirLightColor[1].a);
+			return lerp(_WaterFogColor * dirLightColor * atten, backgroundColor, fogFactor);
+		}
 	}
 }
 
@@ -490,7 +495,7 @@ fixed3 ComputeWaterCaustics(float4 worldPos, float3 rayDir, float3 depthPos, flo
 		// take sample pos and lookup caustics
 		fixed causticsLookupValue = tex3D(_CausticsTexture, samplePos).a * _CausticsScale.y;
 
-		return (causticsLookupValue * reducer * _WeatherMakerDirLightPower[0].z) * _CausticsTintColor * _WeatherMakerDirLightColor[0].rgb;
+		return (causticsLookupValue * reducer * _WeatherMakerDirLightPower[0].z) * _WaterCausticsTintColor * _WeatherMakerDirLightColor[0].rgb;
 	}
 }
 
@@ -645,7 +650,7 @@ fixed4 ComputeWaterColor
 		reflectionStrength = 0.0;
 	}
 
-	if (_CausticsScale.x > 0.0 && _CausticsScale.y > 0.0 && showCaustics == 1.0)
+	if (_WaterCausticsTintColor.a > 0.0 && _CausticsScale.x > 0.0 && _CausticsScale.y > 0.0 && showCaustics == 1.0)
 	{
 		fixed reducer = shadowPowerReducer * foamSpecularReducer * atten * fogFactor * saturate(3.0 - (REALTIME_DISTORTION + PER_PIXEL_DISPLACE));
 		rtRefractions.rgb += ComputeWaterCaustics(worldPos, viewVector, depthPos, waterAmount, distortOffset, reducer, screenUV);
@@ -653,7 +658,7 @@ fixed4 ComputeWaterColor
 
 	// base, depth & reflection colors
 	fixed4 baseColor = _WaterColor;
-	baseColor *= lerp(fixed4One, ((tex2D(_MainTex, bumpCoords.xy) + tex2D(_MainTex, bumpCoords.zw)) * 0.5), distanceReducer * inFrontOfDepthBuffer);
+	baseColor *= lerp(fixed4One, ((tex2D(_WaterTex, bumpCoords.xy) + tex2D(_WaterTex, bumpCoords.zw)) * 0.5), distanceReducer * inFrontOfDepthBuffer);
 	rtRefractions *= (1.0 - baseColor.a);
 
 	// fade / alpha

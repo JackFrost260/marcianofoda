@@ -96,7 +96,7 @@ namespace DigitalRuby.WeatherMaker
                 {
                     NoiseProfile.NoiseProfiles[i].ApplyToMaterial(NoiseMaterials[i]);
                 }
-                float step = (NoiseProfile.Step <= 0.0f ? 1.0f / (float)NoiseProfile.Size : NoiseProfile.Step);
+                float step = (NoiseProfile.Step <= 0.0f ? 1.0f / (float)NoiseProfile.Count : NoiseProfile.Step);
                 fpsFrameCounter = 0;
                 frame = (AutoStepFrame ? (float)frameIndex * step : (float)ManualFrame * step);
                 if (frameLabel != null)
@@ -109,7 +109,7 @@ namespace DigitalRuby.WeatherMaker
                 }
                 if (AutoStepFrame)
                 {
-                    if (++frameIndex >= NoiseProfile.Size)
+                    if (++frameIndex >= NoiseProfile.Count)
                     {
                         frameIndex = 0;
                     }
@@ -183,7 +183,7 @@ namespace DigitalRuby.WeatherMaker
                 }
 
                 float frame = 0.0f;
-                float step = (profile.Step <= 0.0f ? 1.0f / (float)profile.Size : profile.Step);
+                float step = (profile.Step <= 0.0f ? 1.0f / (float)profile.Count : profile.Step);
                 if (Directory.Exists(texturePath))
                 {
                     Directory.Delete(texturePath, true);
@@ -197,7 +197,7 @@ namespace DigitalRuby.WeatherMaker
                     dirs[channelIndex] = Path.Combine(texturePath, channelIndex.ToString());
                     Directory.CreateDirectory(dirs[channelIndex]);
                 }
-                for (int frameIndex = 0; frameIndex < profile.Size; frameIndex++)
+                for (int frameIndex = 0; frameIndex < profile.Count; frameIndex++)
                 {
                     frame = (float)frameIndex * step;
                     for (int channelIndex = 0; channelIndex < profile.NoiseProfiles.Length; channelIndex++)
@@ -212,7 +212,7 @@ namespace DigitalRuby.WeatherMaker
                         byte[] imageData = textures[channelIndex].EncodeToPNG();
                         System.IO.File.WriteAllBytes(Path.Combine(dirs[channelIndex], "WeatherMakerNoiseTexture_" + frameIndex.ToString("D4") + ".png"), imageData);
                     }
-                    currentProgress = progress + ((((float)(frameIndex + 1) / (float)profile.Size) * progressMultiplier));
+                    currentProgress = progress + ((((float)(frameIndex + 1) / (float)profile.Count) * progressMultiplier));
                     UnityEditor.EditorUtility.DisplayProgressBar("Progress...", "", currentProgress);
                 }
                 for (int i = 0; i < renderTextures.Length; i++)
@@ -241,7 +241,8 @@ namespace DigitalRuby.WeatherMaker
             {
                 UnityEditor.EditorPrefs.SetString("WeatherMakerCloudNoiseGeneratorFileName", outputAssetPath);
                 Directory.CreateDirectory(inputFolder);
-                Texture3D tex3D = null;
+                Texture2D asset2D = null;
+                Texture3D asset3D = null;
                 string[] allFiles = Directory.GetFiles(inputFolder);
                 List<string> files1 = new List<string>();
                 List<string> files2 = new List<string>();
@@ -315,13 +316,34 @@ namespace DigitalRuby.WeatherMaker
                     try
                     {
                         tex2D.LoadImage(File.ReadAllBytes(files1[0]));
-                        tex3D = UnityEditor.AssetDatabase.LoadAssetAtPath(outputAssetPath, typeof(Texture3D)) as Texture3D;
+                        if (files1.Count == 1)
+                        {
+                            asset2D = UnityEditor.AssetDatabase.LoadAssetAtPath(outputAssetPath, typeof(Texture2D)) as Texture2D;
+                        }
+                        else
+                        {
+                            asset3D = UnityEditor.AssetDatabase.LoadAssetAtPath(outputAssetPath, typeof(Texture3D)) as Texture3D;
+                        }
                         bool saveAsset = false;
-                        if (tex3D == null || tex3D.width != tex2D.width || tex3D.height != tex2D.height || tex3D.depth != files1.Count ||
-                            tex3D.format != format || tex3D.filterMode != filterMode)
+                        if (files1.Count == 1)
+                        {
+                            if (asset2D == null || asset2D.width != tex2D.width || asset2D.height != tex2D.height ||
+                                asset2D.format != format || asset2D.filterMode != filterMode)
+                            {
+                                saveAsset = true;
+                                asset2D = new Texture2D(tex2D.width, tex2D.height, format, mips)
+                                {
+                                    filterMode = filterMode,
+                                    wrapMode = TextureWrapMode.Repeat,
+                                    name = "Texture2D (Weather Maker)"
+                                };
+                            }
+                        }
+                        else if (asset3D == null || asset3D.width != tex2D.width || asset3D.height != tex2D.height || asset3D.depth != files1.Count ||
+                            asset3D.format != format || asset3D.filterMode != filterMode)
                         {
                             saveAsset = true;
-                            tex3D = new Texture3D(tex2D.width, tex2D.height, files1.Count, format, mips)
+                            asset3D = new Texture3D(tex2D.width, tex2D.height, files1.Count, format, mips)
                             {
                                 filterMode = filterMode,
                                 wrapMode = TextureWrapMode.Repeat,
@@ -347,6 +369,12 @@ namespace DigitalRuby.WeatherMaker
                                         allPixels[idx].b = b;
                                         allPixels[idx].a = b;
                                     }
+                                    else if (asset2D != null)
+                                    {
+                                        p.r = p.g = p.b = (byte)Math.Min(255, ((int)p.r + (int)p.g + (int)p.b + (int)p.a));
+                                        p.a = 255;
+                                        allPixels[idx] = p;
+                                    }
                                     else
                                     {
                                         allPixels[idx] = p;
@@ -371,8 +399,7 @@ namespace DigitalRuby.WeatherMaker
                                     if (lastLength != -1 && subPixels.Length != lastLength)
                                     {
                                         UnityEditor.EditorUtility.DisplayDialog("Unable to create 3D texture", "Mismatching image size in " + file, "OK");
-                                        GameObject.DestroyImmediate(tex3D);
-                                        return;
+                                        throw new InvalidOperationException("Mismatching image size in " + file);
                                     }
                                     lastLength = subPixels.Length;
                                     for (int pixelIndex = 0; pixelIndex < imgPixels.Length; pixelIndex++)
@@ -399,32 +426,76 @@ namespace DigitalRuby.WeatherMaker
                                 }
                                 foreach (Color32 pixel in subPixels)
                                 {
-                                    allPixels[idx++] = pixel;
+                                    if (asset2D != null)
+                                    {
+                                        Color32 p = pixel;
+                                        p.r = p.g = p.b = (byte)Math.Min(255, ((int)p.r + (int)p.g + (int)p.b + (int)p.a));
+                                        p.a = 255;
+                                        allPixels[idx++] = p;
+                                    }
+                                    else
+                                    {
+                                        allPixels[idx++] = pixel;
+                                    }
                                 }
                                 currentProgress = (progress + (((float)(fileIndex + 1) / (float)filesArray[0].Count) * progressMultiplier));
                                 UnityEditor.EditorUtility.DisplayProgressBar("Progress...", "", currentProgress);
                             }
                         }
-                        tex3D.SetPixels32(allPixels);
-                        tex3D.Apply(true);
+                        if (asset2D != null)
+                        {
+                            asset2D.SetPixels32(allPixels);
+                            asset2D.Apply();
+                        }
+                        else
+                        {
+                            asset3D.SetPixels32(allPixels);
+                            asset3D.Apply(true);
+                        }
                         if (saveAsset)
                         {
-                            UnityEditor.AssetDatabase.CreateAsset(tex3D, outputAssetPath);
+                            if (asset2D != null)
+                            {
+                                UnityEditor.AssetDatabase.CreateAsset(asset2D, outputAssetPath);
+                            }
+                            else
+                            {
+                                UnityEditor.AssetDatabase.CreateAsset(asset3D, outputAssetPath);
+                            }
                         }
                         else
                         {
                             UnityEditor.AssetDatabase.ImportAsset(outputAssetPath);
                         }
+                        if (asset2D != null)
+                        {
+                            byte[] png = asset2D.EncodeToPNG();
+                            File.WriteAllBytes(outputAssetPath + ".png", png);
+                        }
                         UnityEditor.AssetDatabase.Refresh();
                         if (showConfirm)
                         {
-                            UnityEditor.EditorUtility.DisplayDialog("3D texture saved", "New texture asset created as '" + outputAssetPath + "'", "OK");
+                            if (asset2D != null)
+                            {
+                                UnityEditor.EditorUtility.DisplayDialog("2D texture saved", "New texture assets created as '" + outputAssetPath + "'", "OK");
+                            }
+                            else
+                            {
+                                UnityEditor.EditorUtility.DisplayDialog("3D texture saved", "New texture asset created as '" + outputAssetPath + "'", "OK");
+                            }
                         }
                     }
                     catch (Exception ex)
                     {
                         UnityEditor.EditorUtility.DisplayDialog("Unable to create 3D texture", ex.ToString(), "OK");
-                        GameObject.DestroyImmediate(tex3D);
+                        if (asset2D != null)
+                        {
+                            GameObject.DestroyImmediate(asset2D);
+                        }
+                        if (asset3D != null)
+                        {
+                            GameObject.DestroyImmediate(asset3D);
+                        }
                     }
                     finally
                     {

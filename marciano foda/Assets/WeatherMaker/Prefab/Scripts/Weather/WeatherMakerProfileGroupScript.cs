@@ -185,8 +185,14 @@ namespace DigitalRuby.WeatherMaker
             RangeOfFloats holdDuration
         )
         {
+            if (profile == null)
+            {
+                Debug.LogError("Null profile in Weather Maker profile OverrideProfile, this is not allowed");
+                return null;
+            }
+
             // check for overrides, if so clone the profile
-            if (cloudProfile != null || skyProfile != null || auroraProfile != null || precipitationProfile != null || fogProfile != null ||
+            else if (cloudProfile != null || skyProfile != null || auroraProfile != null || precipitationProfile != null || fogProfile != null ||
                 windProfile != null || lightningProfile != null || soundProfile != null || transitionDuration.Maximum > 0.0f || holdDuration.Maximum > 0.0f)
             {
                 if (profile.name.IndexOf("(clone)", System.StringComparison.OrdinalIgnoreCase) < 0)

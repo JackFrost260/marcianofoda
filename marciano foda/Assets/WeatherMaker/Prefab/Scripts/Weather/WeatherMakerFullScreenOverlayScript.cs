@@ -78,7 +78,6 @@ namespace DigitalRuby.WeatherMaker
                 Effect = new WeatherMakerFullScreenEffect
                 {
                     CommandBufferName = this.CommandBufferName,
-                    DownsampleRenderBufferTextureName = "_MainTex2",
                     RenderQueue = OverlayRenderQueue
                 };
             }
@@ -136,9 +135,13 @@ namespace DigitalRuby.WeatherMaker
                 OverlayProfile = ScriptableObject.Instantiate(OverlayProfile) as TProfile;
             }
             CleanupEffect();
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPreRender(CameraPreRender, this);
-            WeatherMakerCommandBufferManagerScript.Instance.RegisterPostRender(CameraPostRender, this);
+
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPreRender(CameraPreRender, this);
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPostRender(CameraPostRender, this);
+            }
         }
 
         private void OnDisable()
@@ -149,9 +152,13 @@ namespace DigitalRuby.WeatherMaker
         protected virtual void OnDestroy()
         {
             CleanupEffect();
-            WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
-            WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreRender(this);
-            WeatherMakerCommandBufferManagerScript.Instance.UnregisterPostRender(this);
+
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreRender(this);
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPostRender(this);
+            }
         }
 
         protected virtual void CameraPreCull(Camera camera)

@@ -81,6 +81,17 @@ namespace DigitalRuby.WeatherMaker
         [Tooltip("Horizon multiplier (x = multiplier, y = max intensity, z = power reducer). Increases light intensity in certain effects like clouds as object reaches horizon. Great for brighter sunsets.")]
         public Vector3 HorizonMultiplier;
 
+        [Header("Lens flare")]
+        [Tooltip("Used to block lens flare if clouds are over the sun. Just needs to be a sphere collider.")]
+        public GameObject LensFlareBlocker;
+
+        [Tooltip("Game object to use as lens flare cloud probe target. This object should have a cloud probe script on it.")]
+        public Transform FlareCloudProbeTarget;
+
+        [Tooltip("Minimum cloud cover to block the lens flare.")]
+        [Range(0.0f, 1.0f)]
+        public float MinimumCloudCoverToBlockLensFlare = 0.5f;
+
         /// <summary>
         /// The light for this celestial object
         /// </summary>
@@ -95,6 +106,11 @@ namespace DigitalRuby.WeatherMaker
         /// The collider for this celestial object
         /// </summary>
         public Collider Collider { get; private set; }
+
+        /// <summary>
+        /// Lens flare (if any) for this celestial object
+        /// </summary>
+        public LensFlare Flare { get; private set; }
 
         /// <summary>
         /// Difference (0-1) of light from last frame. A value of 1 indicates enough difference that shaders should completely re-render.
@@ -207,6 +223,45 @@ namespace DigitalRuby.WeatherMaker
         private void OnEnable()
         {
             UpdateInternal();
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.RegisterPreCull(CameraPreCull, this);
+            }
+            Flare = GetComponent<LensFlare>();
+        }
+
+        private void OnDestroy()
+        {
+            if (WeatherMakerCommandBufferManagerScript.Instance != null)
+            {
+                WeatherMakerCommandBufferManagerScript.Instance.UnregisterPreCull(this);
+            }
+        }
+
+        private void CameraPreCull(Camera camera)
+        {
+            if (Flare == null || !Flare.enabled || LensFlareBlocker == null || WeatherMakerFullScreenCloudsScript.Instance == null || WeatherMakerFullScreenCloudsScript.Instance.CloudProfile == null ||
+                WeatherMakerCommandBufferManagerScript.CameraStack > 1 || MinimumCloudCoverToBlockLensFlare <= 0.0f)
+            {
+                return;
+            }
+            LensFlareBlocker.transform.position = camera.transform.position + (transform.forward * Mathf.Min(1000.0f, camera.farClipPlane) * -0.9f);
+
+            if (WeatherMakerFullScreenCloudsScript.CloudProbeEnabled && WeatherMakerFullScreenCloudsScript.Instance != null && FlareCloudProbeTarget != null && SystemInfo.supportsComputeShaders)
+            {
+                FlareCloudProbeTarget.transform.position = camera.transform.position + (transform.forward * -100000.0f);
+                WeatherMakerFullScreenCloudsScript.CloudProbeResult result = WeatherMakerFullScreenCloudsScript.Instance.GetCloudProbe(camera, camera.transform, FlareCloudProbeTarget.transform);
+                LensFlareBlocker.SetActive(result.DensityRaySum > MinimumCloudCoverToBlockLensFlare);
+                //Debug.Log("Flare probe: " + result.DensityRayAverage);
+            }
+            else if (WeatherMakerFullScreenCloudsScript.Instance.CloudProfile.CloudCoverTotal < MinimumCloudCoverToBlockLensFlare)
+            {
+                LensFlareBlocker.SetActive(false);
+            }
+            else
+            {
+                LensFlareBlocker.SetActive(true);
+            }
         }
 
         /// <summary>

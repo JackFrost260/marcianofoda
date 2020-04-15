@@ -15,7 +15,7 @@
 // *** END NOTE ABOUT PIRACY ***
 //
 
-using System.Collections;
+using System.Collections; 
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -106,10 +106,6 @@ namespace DigitalRuby.WeatherMaker
         [Tooltip("Cloud light absorption. As this approaches 0, more light is absorbed.")]
         [Range(0.01f, 1.0f)]
         public float CloudLightAbsorption = 0.13f;
-
-        [Tooltip("How much to fade cloud at horizon")]
-        [Range(0.0f, 1.0f)]
-        public float CloudHorizonFade = 1.0f;
 
         [Tooltip("Cloud sharpness, controls how distinct the clouds are.")]
         [Range(0.0f, 1.0f)]

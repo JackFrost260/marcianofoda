@@ -55,6 +55,8 @@ Shader "WeatherMaker/WeatherMakerFullScreenOverlayShader"
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
 
+		#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
+
 		ENDCG
 
 		Pass
@@ -77,7 +79,7 @@ Shader "WeatherMaker/WeatherMakerFullScreenOverlayShader"
 
 			#include "WeatherMakerOverlayShaderInclude.cginc"
 
-			fixed4 full_screen_overlay_fragment_shader(full_screen_fragment i) : SV_Target
+			fixed4 full_screen_overlay_fragment_shader(wm_full_screen_fragment i) : SV_Target
 			{
 				WM_INSTANCE_FRAG(i);
 				float3 rayDir = i.forwardLine;

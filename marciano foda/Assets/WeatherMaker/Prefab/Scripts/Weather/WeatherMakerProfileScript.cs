@@ -23,6 +23,7 @@ using System.Collections.Generic;
 namespace DigitalRuby.WeatherMaker
 {
     [CreateAssetMenu(fileName = "WeatherMakerProfile", menuName = "WeatherMaker/Weather Profile", order = 10)]
+    [System.Serializable]
     public class WeatherMakerProfileScript : WeatherMakerBaseScriptableObjectScript
     {
         [Tooltip("Cloud profile")]

@@ -51,7 +51,6 @@ Shader "WeatherMaker/WeatherMakerFullScreenBilateralBlurShader"
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
 		
-
         //--------------------------------------------------------------------------------------------
         // Bilateral blur and upsample config
         //--------------------------------------------------------------------------------------------        
@@ -65,7 +64,8 @@ Shader "WeatherMaker/WeatherMakerFullScreenBilateralBlurShader"
 		#define PI 3.1415927f
 		#define WEATHER_MAKER_IS_FULL_SCREEN_EFFECT
 		#define WEATHER_MAKER_MAIN_TEX_SAMPLERS
-		
+		#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
+
 		#include "WeatherMakerCoreShaderInclude.cginc"	
 	
 		UNITY_DECLARE_DEPTH_TEXTURE(_WeatherMakerTemporaryDepthTexture);
@@ -143,7 +143,7 @@ Shader "WeatherMaker/WeatherMakerFullScreenBilateralBlurShader"
 			if (accumDiff < _UpsampleDepthThreshold) // small error, not an edge -> use bilinear filter
 			{
 				// needs to be linear sampler
-				return WM_SAMPLE_FULL_SCREEN_TEXTURE_SAMPLER(_MainTex, _MainTex, input.uv);
+				return WM_SAMPLE_FULL_SCREEN_TEXTURE_SAMPLER(_MainTex, _linear_clamp_sampler, input.uv);
 			}
 			else
 			{
@@ -193,7 +193,7 @@ Shader "WeatherMaker/WeatherMakerFullScreenBilateralBlurShader"
 			const float deviation = kernelRadius / _GaussBlurDeviation; // make it really strong
 
 			float2 uv = input.uv;
-			float4 centerColor = WM_SAMPLE_FULL_SCREEN_TEXTURE_SAMPLER(_MainTex, _MainTex, uv);
+			float4 centerColor = WM_SAMPLE_FULL_SCREEN_TEXTURE_SAMPLER(_MainTex, _linear_clamp_sampler, uv);
 			float3 color = centerColor.rgb;
 			float centerDepth = UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(_WeatherMakerTemporaryDepthTexture, uv));
 			float weightSum = 0;
@@ -207,7 +207,7 @@ Shader "WeatherMaker/WeatherMakerFullScreenBilateralBlurShader"
 			for (int i = -kernelRadius; i < 0; i += 1)
 			{
                 float2 offset = (direction * i);
-				float4 sampleColor = WM_SAMPLE_FULL_SCREEN_TEXTURE_SAMPLER(_MainTex, _MainTex, input.uv + offset);
+				float4 sampleColor = WM_SAMPLE_FULL_SCREEN_TEXTURE_SAMPLER(_MainTex, _linear_clamp_sampler, input.uv + offset);
 				float sampleDepth = UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(_WeatherMakerTemporaryDepthTexture, input.uv + offset));
 				float depthDiff = abs(centerDepth - sampleDepth);
 				float dFactor = depthDiff * _GuassBlurDepthFactor;
@@ -223,7 +223,7 @@ Shader "WeatherMaker/WeatherMakerFullScreenBilateralBlurShader"
 			for (i = 1; i <= kernelRadius; i += 1)
 			{
 				float2 offset = (direction * i);
-				float4 sampleColor = WM_SAMPLE_FULL_SCREEN_TEXTURE_SAMPLER(_MainTex, _MainTex, input.uv + offset);
+				float4 sampleColor = WM_SAMPLE_FULL_SCREEN_TEXTURE_SAMPLER(_MainTex, _linear_clamp_sampler, input.uv + offset);
 				float sampleDepth = UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(_WeatherMakerTemporaryDepthTexture, input.uv + offset));
 				float depthDiff = abs(centerDepth - sampleDepth);
 				float dFactor = depthDiff * _GuassBlurDepthFactor;
@@ -465,19 +465,15 @@ Shader "WeatherMaker/WeatherMakerFullScreenBilateralBlurShader"
 
 			CGPROGRAM
 
-			#pragma vertex vertUpsampleToFull
+			#pragma vertex vert
 			#pragma fragment frag		
             #pragma target 3.5
 			#pragma multi_compile_instancing
 
-			v2fUpsample vertUpsampleToFull(appdata v)
-			{
-                return vertUpsample(v);
-			}
-			float4 frag(v2fUpsample input) : SV_Target
+			float4 frag(v2f input) : SV_Target
 			{
 				WM_INSTANCE_FRAG(input);
-				return WM_SAMPLE_FULL_SCREEN_TEXTURE_SAMPLER(_MainTex, _MainTex, input.uv);
+				return WM_SAMPLE_FULL_SCREEN_TEXTURE_SAMPLER(_MainTex, _linear_clamp_sampler, input.uv);
 			}
 
 			ENDCG
@@ -578,6 +574,32 @@ Shader "WeatherMaker/WeatherMakerFullScreenBilateralBlurShader"
 			{
 				WM_INSTANCE_FRAG(input);
 				return BilateralUpsample(input);
+			}
+
+			ENDCG
+		}
+
+		// pass 15 - blit min
+		Pass
+		{
+			Blend One Zero
+			BlendOp Min
+
+			CGPROGRAM
+
+			#pragma vertex vertexBlit
+			#pragma fragment frag		
+            #pragma target 3.5
+			#pragma multi_compile_instancing
+
+			wm_full_screen_fragment_vertex_uv vertexBlit(wm_full_screen_vertex v)
+			{
+                return full_screen_vertex_shader_vertex_uv(v);
+			}
+			float4 frag(wm_full_screen_fragment_vertex_uv input) : SV_Target
+			{
+				WM_INSTANCE_FRAG(input);
+				return WM_SAMPLE_FULL_SCREEN_TEXTURE_SAMPLER(_MainTex, _linear_clamp_sampler, input.uv);
 			}
 
 			ENDCG

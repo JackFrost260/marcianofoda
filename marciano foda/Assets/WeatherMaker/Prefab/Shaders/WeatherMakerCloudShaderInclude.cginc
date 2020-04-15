@@ -48,7 +48,6 @@ uniform float _CloudCover[4];
 uniform float _CloudDensity[4];
 uniform float _CloudHeight[4];
 uniform float _CloudLightAbsorption[4];
-uniform float _CloudHorizonFadeMultiplier[4];
 uniform float _CloudSharpness[4];
 uniform float _CloudShadowThreshold[4];
 uniform float _CloudShadowPower[4];
@@ -60,12 +59,9 @@ uniform float3 _WeatherMakerCloudCameraPosition;
 
 static const float3 weatherMakerCloudCameraPosition = _WeatherMakerCloudCameraPosition;
 
-// current layer
-int _CloudIndex = 0;
-
 static const fixed3 ambientFlatCloudColor = (_WeatherMakerAmbientLightColorGround.rgb + _WeatherMakerAmbientLightColorSky.rgb);
 
-inline float CloudVolumetricHenyeyGreenstein(float lightDotEye, float lightIntensity, float4 phase)
+inline float CloudHenyeyGreenstein(float lightDotEye, float lightIntensity, float4 phase)
 {
 	// f(x) = (1 - g)^2 / (4PI * (1 + g^2 - 2g*cos(x))^[3/2])
 	// _CloudHenyeyGreensteinPhase.x = forward, _CloudHenyeyGreensteinPhase.y = back
@@ -99,12 +95,18 @@ inline float CloudVolumetricHenyeyGreenstein(float lightDotEye, float lightInten
 }
 
 // returns world pos of cloud plane intersect
-float3 CloudRaycastWorldPosPlane(float3 ray, float depth)
+float3 CloudRaycastWorldPosPlane(float3 ray, float depth, uint cloudIndex)
 {
-	float3 planePos = float3(0, _CloudHeight[_CloudIndex], 0);
+	float3 rayWithOffset = normalize(float3(ray.x, ray.y + _CloudRayOffset[cloudIndex], ray.z));
+	float3 planePos = float3(0, _CloudHeight[cloudIndex], 0);
 	float distanceToPlane;
-	float planeMultiplier = RayPlaneIntersect(weatherMakerCloudCameraPosition, ray, float3(0.0, 1.0, 0.0), planePos, distanceToPlane);
-	planeMultiplier *= (depth > distanceToPlane);
+	float distanceToPlane2;
+	float planeMultiplier = RayPlaneIntersect(weatherMakerCloudCameraPosition, rayWithOffset, float3(0.0, 1.0, 0.0), planePos, distanceToPlane);
+
+	// real intersect without y offset for depth compare
+	planeMultiplier = RayPlaneIntersect(weatherMakerCloudCameraPosition, ray, float3(0.0, 1.0, 0.0), planePos, distanceToPlane2);
+	planeMultiplier *= (depth >= distanceToPlane2);
+
 	float3 intersectPos = weatherMakerCloudCameraPosition + (ray * distanceToPlane);
 	return planeMultiplier * intersectPos;
 }
@@ -116,47 +118,47 @@ inline float CalculateNoiseXZ(texture2D<float4> noiseTex, float3 worldPos, float
 	return (UNITY_SAMPLE_TEX2D_SAMPLER(noiseTex, _CloudNoise1, noiseUV).a + adder) * multiplier;
 }
 
-inline float ComputeCloudFBMInner(float3 rayDir, float3 worldPos, Texture2D<float4> noiseTex)
+inline float ComputeCloudFBMInner(float3 rayDir, float3 worldPos, Texture2D<float4> noiseTex, uint cloudIndex)
 {
-	//float3 noisePos = (worldPos * _CloudNoiseScale[_CloudIndex].x) + _CloudNoiseVelocity[_CloudIndex];
+	//float3 noisePos = (worldPos * _CloudNoiseScale[cloudIndex].x) + _CloudNoiseVelocity[cloudIndex];
 	//return ((tex2Dlod(noiseTex, float4(noisePos.xz, 0.0, 0.0)).a));
 
 	float fbm = 0.0;
-	float hasY = (float)(_CloudNoiseScale[_CloudIndex].y > 0.0 && _CloudNoiseMultiplier[_CloudIndex].y > 0.0);
-	float hasZ = (float)(_CloudNoiseScale[_CloudIndex].z > 0.0 && _CloudNoiseMultiplier[_CloudIndex].z > 0.0);
-	float hasW = (float)(_CloudNoiseScale[_CloudIndex].w > 0.0 && _CloudNoiseMultiplier[_CloudIndex].w > 0.0);
+	float hasY = (float)(_CloudNoiseScale[cloudIndex].y > 0.0 && _CloudNoiseMultiplier[cloudIndex].y > 0.0);
+	float hasZ = (float)(_CloudNoiseScale[cloudIndex].z > 0.0 && _CloudNoiseMultiplier[cloudIndex].z > 0.0);
+	float hasW = (float)(_CloudNoiseScale[cloudIndex].w > 0.0 && _CloudNoiseMultiplier[cloudIndex].w > 0.0);
 	float3 noisePos;
 
-	//float sampleCount = _CloudSampleCount[_CloudIndex];
-	//float3 step = rayDir * _CloudSampleStepMultiplier[_CloudIndex].x;
-	//float3 step2 = rayDir * _CloudSampleStepMultiplier[_CloudIndex].y;
-	//float3 step3 = rayDir * _CloudSampleStepMultiplier[_CloudIndex].z;
-	//float3 step4 = rayDir * _CloudSampleStepMultiplier[_CloudIndex].w;
+	//float sampleCount = _CloudSampleCount[cloudIndex];
+	//float3 step = rayDir * _CloudSampleStepMultiplier[cloudIndex].x;
+	//float3 step2 = rayDir * _CloudSampleStepMultiplier[cloudIndex].y;
+	//float3 step3 = rayDir * _CloudSampleStepMultiplier[cloudIndex].z;
+	//float3 step4 = rayDir * _CloudSampleStepMultiplier[cloudIndex].w;
 	//float i = 0.0;
 	//float maxFbm = sampleCount * 0.2;
 
 	//// UNITY_LOOP
 	//for (; i < sampleCount && fbm < maxFbm; i++)
 	//{
-		noisePos = ((worldPos/* + (step * i)*/) * _CloudNoiseScale[_CloudIndex].x) + _CloudNoiseVelocity[_CloudIndex];
-		fbm += ((UNITY_SAMPLE_TEX2D_SAMPLER(noiseTex, _CloudNoise1, float2(RotateUV(noisePos.xz, _CloudNoiseRotation[_CloudIndex + 4], _CloudNoiseRotation[_CloudIndex]))).a) * _CloudNoiseMultiplier[_CloudIndex].x);
+		noisePos = ((worldPos/* + (step * i)*/) * _CloudNoiseScale[cloudIndex].x) + _CloudNoiseVelocity[cloudIndex];
+		fbm += ((UNITY_SAMPLE_TEX2D_SAMPLER_LOD(noiseTex, _CloudNoise1, float4(RotateUV(noisePos.xz, _CloudNoiseRotation[cloudIndex + 4], _CloudNoiseRotation[cloudIndex]), 0.0, 0.0)).a) * _CloudNoiseMultiplier[cloudIndex].x);
 		UNITY_BRANCH
 		if (hasY)
 		{
-			noisePos = ((worldPos/* + (step2 * i)*/) * _CloudNoiseScale[_CloudIndex].y) + _CloudNoiseVelocity[_CloudIndex];
-			fbm += ((UNITY_SAMPLE_TEX2D_SAMPLER(noiseTex, _CloudNoise1, float2(RotateUV(noisePos.xz, _CloudNoiseRotation[_CloudIndex + 4], _CloudNoiseRotation[_CloudIndex]))).a) * _CloudNoiseMultiplier[_CloudIndex].y);
+			noisePos = ((worldPos/* + (step2 * i)*/) * _CloudNoiseScale[cloudIndex].y) + _CloudNoiseVelocity[cloudIndex];
+			fbm += ((UNITY_SAMPLE_TEX2D_SAMPLER_LOD(noiseTex, _CloudNoise1, float4(RotateUV(noisePos.xz, _CloudNoiseRotation[cloudIndex + 4], _CloudNoiseRotation[cloudIndex]), 0.0, 0.0)).a) * _CloudNoiseMultiplier[cloudIndex].y);
 		}
 		UNITY_BRANCH
 		if (hasZ)
 		{
-			noisePos = ((worldPos/* + (step3 * i)*/) * _CloudNoiseScale[_CloudIndex].z) + _CloudNoiseVelocity[_CloudIndex];
-			fbm += ((UNITY_SAMPLE_TEX2D_SAMPLER(noiseTex, _CloudNoise1, float2(RotateUV(noisePos.xz, _CloudNoiseRotation[_CloudIndex + 4], _CloudNoiseRotation[_CloudIndex]))).a) * _CloudNoiseMultiplier[_CloudIndex].z);
+			noisePos = ((worldPos/* + (step3 * i)*/) * _CloudNoiseScale[cloudIndex].z) + _CloudNoiseVelocity[cloudIndex];
+			fbm += ((UNITY_SAMPLE_TEX2D_SAMPLER_LOD(noiseTex, _CloudNoise1, float4(RotateUV(noisePos.xz, _CloudNoiseRotation[cloudIndex + 4], _CloudNoiseRotation[cloudIndex]), 0.0, 0.0)).a) * _CloudNoiseMultiplier[cloudIndex].z);
 		}
 		UNITY_BRANCH
 		if (hasW)
 		{
-			noisePos = ((worldPos/* + (step4 * i)*/) * _CloudNoiseScale[_CloudIndex].w) + _CloudNoiseVelocity[_CloudIndex];
-			fbm += ((UNITY_SAMPLE_TEX2D_SAMPLER(noiseTex, _CloudNoise1, float2(RotateUV(noisePos.xz, _CloudNoiseRotation[_CloudIndex + 4], _CloudNoiseRotation[_CloudIndex]))).a) * _CloudNoiseMultiplier[_CloudIndex].w);
+			noisePos = ((worldPos/* + (step4 * i)*/) * _CloudNoiseScale[cloudIndex].w) + _CloudNoiseVelocity[cloudIndex];
+			fbm += ((UNITY_SAMPLE_TEX2D_SAMPLER_LOD(noiseTex, _CloudNoise1, float4(RotateUV(noisePos.xz, _CloudNoiseRotation[cloudIndex + 4], _CloudNoiseRotation[cloudIndex]), 0.0, 0.0)).a) * _CloudNoiseMultiplier[cloudIndex].w);
 		}
 	//}
 
@@ -164,31 +166,39 @@ inline float ComputeCloudFBMInner(float3 rayDir, float3 worldPos, Texture2D<floa
 
 }
 
-float ComputeCloudFBMOutter(float3 rayDir, float3 worldPos, Texture2D<float4> noiseTex/*, Texture2D<float4> maskTex*/)
+float ComputeCloudFBMOutter(float3 rayDir, float3 worldPos, Texture2D<float4> noiseTex, uint cloudIndex)/*, Texture2D<float4> maskTex*/
 {
 	// calculate cloud values
-	float sharpness = _CloudSharpness[_CloudIndex];
-	float cover = _CloudCover[_CloudIndex];
-	float fbm = ComputeCloudFBMInner(rayDir, worldPos, noiseTex);
-	//fbm = saturate(sharpness > 0.0 ? (1.0 - (pow(_CloudSharpness[_CloudIndex], fbm - (1.0 - pow(cover, 0.5))))) : (fbm * cover));
-	if (sharpness > 0.0)
-	{
-		fbm = min(1.0, (1.0 - (pow(sharpness, (1.5 * fbm) - (1.0 - cover)))));
-	}
-	else
-	{
-		fbm = fbm * cover;
-	}
+	float cover = _CloudCover[cloudIndex];
+	float fbm = 0.0;
 
-	/*
 	UNITY_BRANCH
-	if (_CloudNoiseMaskScale[_CloudIndex] > 0.0)
+	if (cover > 0.001)
 	{
-		float2 maskRotated = RotateUV(worldPos.xz, _CloudNoiseMaskRotation[_CloudIndex + 4], _CloudNoiseMaskRotation[_CloudIndex]);
-		float maskNoise = CalculateNoiseXZ(maskTex, float3(maskRotated.x, 0.0, maskRotated.y), _CloudNoiseMaskScale[_CloudIndex], _CloudNoiseMaskOffset[_CloudIndex], _CloudNoiseMaskVelocity[_CloudIndex], 1.0, 0.0);
-		fbm *= maskNoise;
+		fbm = ComputeCloudFBMInner(rayDir, worldPos, noiseTex, cloudIndex);
+
+		//fbm = saturate(sharpness > 0.0 ? (1.0 - (pow(_CloudSharpness[cloudIndex], fbm - (1.0 - pow(cover, 0.5))))) : (fbm * cover));
+		if (_CloudSharpness[cloudIndex] > 0.0)
+		{
+			fbm = min(1.0, (1.0 - (pow(_CloudSharpness[cloudIndex], (1.5 * fbm) - (1.0 - cover)))));
+		}
+		else
+		{
+			fbm = fbm * cover;
+		}
+
+		fbm = saturate(fbm);
+
+		/*
+		UNITY_BRANCH
+		if (_CloudNoiseMaskScale[cloudIndex] > 0.0)
+		{
+			float2 maskRotated = RotateUV(worldPos.xz, _CloudNoiseMaskRotation[cloudIndex + 4], _CloudNoiseMaskRotation[cloudIndex]);
+			float maskNoise = CalculateNoiseXZ(maskTex, float3(maskRotated.x, 0.0, maskRotated.y), _CloudNoiseMaskScale[cloudIndex], _CloudNoiseMaskOffset[cloudIndex], _CloudNoiseMaskVelocity[cloudIndex], 1.0, 0.0);
+			fbm *= maskNoise;
+		}
+		*/
 	}
-	*/
 
 	return fbm;
 }
@@ -196,6 +206,7 @@ float ComputeCloudFBMOutter(float3 rayDir, float3 worldPos, Texture2D<float4> no
 fixed3 ComputeDirectionalLightCloud(float3 rayDir, float fbm, float scatterMultiplier)
 {
 	fixed3 finalColor = fixed3Zero;
+	fixed indirectFbm = 1.0 - max(0.0, fbm - 0.25);
 
 	// take advantage of the fact that dir lights are sorted by perspective/ortho and then by intensity
 	UNITY_LOOP
@@ -213,8 +224,8 @@ fixed3 ComputeDirectionalLightCloud(float3 rayDir, float fbm, float scatterMulti
 		float lightMultiplier = (lightDot * scatterMultiplier);
 
 		// indirect light
-		float indirectLight = (lightColor.a * lightColor.a);
-		indirectLight /= pow(fbm, 0.5);
+		fixed lightIntensity = lightColor.a * _WeatherMakerDirLightMultiplier;
+		float indirectLight = min(lightColor, indirectFbm * lightIntensity * lightIntensity);
 
 		finalColor += ((lightColor.rgb * indirectLight) + (lightColor.rgb * lightMultiplier * lightMultiplier * powerY));
 	}
@@ -222,35 +233,134 @@ fixed3 ComputeDirectionalLightCloud(float3 rayDir, float fbm, float scatterMulti
 	return finalColor;
 }
 
-fixed3 ComputeCloudLighting(fixed3 cloudColor, float fbm, float3 rayDir, float3 worldPos, fixed alphaAccum)
+fixed3 ComputeCloudLighting(fixed3 cloudColor, float fbm, float3 rayDir, float3 worldPos, fixed alphaAccum, uint cloudIndex)
 {
-	float cloudDensity = min(1.0, _CloudDensity[_CloudIndex] * 6.0);
+	float cloudDensity = min(1.0, _CloudDensity[cloudIndex] * 6.0);
 	float invCloudDensity = min(10.0, 1.0 / max(0.0001, cloudDensity));
 	float invFbm = 1.0 - fbm;
 	float dirLightReducer = max(0.0, 1.0 - alphaAccum);
-	float scatterMultiplier = invCloudDensity * (1.0 - alphaAccum) * _CloudScatterMultiplier[_CloudIndex];
+	float scatterMultiplier = invCloudDensity * (1.0 - alphaAccum) * _CloudScatterMultiplier[cloudIndex];
 	fixed3 cloudDirLight = ComputeDirectionalLightCloud(rayDir, fbm, scatterMultiplier);
 
 	// reduce directional lights by previous density (higher layers)
 	cloudDirLight *= dirLightReducer;
 
 	// reduce directional light by cloud light absorption factor
-	float dirLightDensityFactor = min(1.0, invFbm * _CloudLightAbsorption[_CloudIndex] * 10.0);
+	float dirLightDensityFactor = min(1.0, invFbm * _CloudLightAbsorption[cloudIndex] * 10.0);
 
 	// additional lights, probably under or inside the clouds, so reduce as the particle density decreases by fbm multiply
 	wm_world_space_light_params p;
 	p.worldPos = worldPos;
 	p.diffuseColor = cloudColor;
-	p.ambientColor = ambientFlatCloudColor * _CloudAmbientMultiplier[_CloudIndex];
+	p.ambientColor = ambientFlatCloudColor * _CloudAmbientMultiplier[cloudIndex];
 	p.shadowStrength = -1.0;
 	fixed3 litColor = (fbm * CalculateLightColorWorldSpace(p));
 	litColor += (cloudDirLight * dirLightDensityFactor);
 	return cloudColor * litColor;
 }
 
-fixed4 ComputeCloudColor(float3 rayDir, float depth, Texture2D<float4> noiseTex,/* Texture2D<float4> maskTex,*/ float4 screenUV, inout fixed alphaAccum)
+fixed ComputeCloudAlpha(float3 rayDir, float fbm, uint cloudIndex)
 {
-	float3 worldPos = CloudRaycastWorldPosPlane(rayDir, depth);
+	UNITY_BRANCH
+	if (fbm < 0.001)
+	{
+		return 0.004;
+	}
+	else
+	{
+		fixed alpha = min(1.0, (fbm * 3.0));
+		alpha = pow(alpha, 1.0 - alpha);
+		alpha *= alpha;
+		return max(alpha, 0.004);
+	}
+}
+
+fixed ComputeFlatCloudDensityBetween(float3 rayDir, float3 start, float3 end)
+{
+	fixed flatDensity = 0.0;
+	float3 worldPos;
+	float depth = 1000000.0;
+
+	UNITY_BRANCH
+	if (_CloudCover[0] > 0.001)
+	{
+		worldPos = CloudRaycastWorldPosPlane(rayDir, depth, 0);
+		UNITY_BRANCH
+		if (worldPos.y >= start.y && worldPos.y <= end.y)
+		{
+			flatDensity += ComputeCloudAlpha(rayDir, ComputeCloudFBMOutter(rayDir, worldPos, _CloudNoise1, 0), 0);
+		}
+	}
+
+	UNITY_BRANCH
+	if (_CloudCover[1] > 0.001)
+	{
+		worldPos = CloudRaycastWorldPosPlane(rayDir, depth, 1);
+		UNITY_BRANCH
+		if (worldPos.y >= start.y && worldPos.y <= end.y)
+		{
+			flatDensity += ComputeCloudAlpha(rayDir, ComputeCloudFBMOutter(rayDir, worldPos, _CloudNoise1, 1), 1);
+		}
+	}
+
+	UNITY_BRANCH
+	if (_CloudCover[2] > 0.001)
+	{
+		worldPos = CloudRaycastWorldPosPlane(rayDir, depth, 2);
+		UNITY_BRANCH
+		if (worldPos.y >= start.y && worldPos.y <= end.y)
+		{
+			flatDensity += ComputeCloudAlpha(rayDir, ComputeCloudFBMOutter(rayDir, worldPos, _CloudNoise1, 2), 2);
+		}
+	}
+
+	UNITY_BRANCH
+	if (_CloudCover[3] > 0.001)
+	{
+		worldPos = CloudRaycastWorldPosPlane(rayDir, depth, 3);
+		UNITY_BRANCH
+		if (worldPos.y >= start.y && worldPos.y <= end.y)
+		{
+			flatDensity += ComputeCloudAlpha(rayDir, ComputeCloudFBMOutter(rayDir, worldPos, _CloudNoise1, 3), 3);
+		}
+	}
+
+	return min(flatDensity, flatDensity * flatDensity);
+}
+
+fixed ComputeFlatCloudShadows(float3 rayDir, float3 worldPos)
+{
+	// flat layer shadows
+	fixed flatCoverage = 0.0;
+	
+	UNITY_BRANCH
+	if (_CloudCover[0] > 0.001)
+	{
+		flatCoverage += ComputeCloudAlpha(rayDir, ComputeCloudFBMOutter(rayDir, worldPos, _CloudNoise1, 0), 0);
+	}
+	UNITY_BRANCH
+	if (_CloudCover[1] > 0.001)
+	{
+		flatCoverage += ComputeCloudAlpha(rayDir, ComputeCloudFBMOutter(rayDir, worldPos, _CloudNoise2, 1), 1);
+	}
+	UNITY_BRANCH
+	if (_CloudCover[2] > 0.001)
+	{
+		flatCoverage += ComputeCloudAlpha(rayDir, ComputeCloudFBMOutter(rayDir, worldPos, _CloudNoise3, 2), 2);
+	}
+	UNITY_BRANCH
+	if (_CloudCover[3] > 0.001)
+	{
+		flatCoverage += ComputeCloudAlpha(rayDir, ComputeCloudFBMOutter(rayDir, worldPos, _CloudNoise4, 3), 3);
+	}
+
+	flatCoverage = min(flatCoverage, flatCoverage * flatCoverage);
+	return flatCoverage;
+}
+
+fixed4 ComputeCloudColor(float3 rayDir, float depth, Texture2D<float4> noiseTex,/* Texture2D<float4> maskTex,*/ float4 screenUV, uint cloudIndex, inout fixed alphaAccum)
+{
+	float3 worldPos = CloudRaycastWorldPosPlane(rayDir, depth, cloudIndex);
 
 	// miss, exit out
 	UNITY_BRANCH
@@ -260,7 +370,7 @@ fixed4 ComputeCloudColor(float3 rayDir, float depth, Texture2D<float4> noiseTex,
 	}
 	else
 	{
-		float fbm = ComputeCloudFBMOutter(rayDir, worldPos, noiseTex/*, maskTex*/);
+		float fbm = ComputeCloudFBMOutter(rayDir, worldPos, noiseTex, cloudIndex);///*, maskTex*/);
 
 		// fast out for transparent area, avoid lots of unnecessary calculations
 		UNITY_BRANCH
@@ -271,22 +381,18 @@ fixed4 ComputeCloudColor(float3 rayDir, float depth, Texture2D<float4> noiseTex,
 		else
 		{
 			// compute lighting
-			fixed3 cloudColor = _CloudColor[_CloudIndex];
-			cloudColor = ComputeCloudLighting(cloudColor, fbm, rayDir, worldPos, alphaAccum);
+			fixed3 cloudColor = _CloudColor[cloudIndex];
+			cloudColor = ComputeCloudLighting(cloudColor, fbm, rayDir, worldPos, alphaAccum, cloudIndex);
 
 			// calculate alpha for the particle
-			fixed alpha = min(1.0, (fbm * 3.0));
-			alpha = pow(alpha, 1.0 - alpha);
-			alpha *= lerp(1.0, clamp(rayDir.y * 4.0, 0.5, 1.0), _CloudHorizonFadeMultiplier[_CloudIndex]);
-			alpha *= alpha;
-			alpha = max(alpha, 0.004);
+			fixed alpha = ComputeCloudAlpha(rayDir, fbm, cloudIndex);
 
 			//alpha = min(1.0, alpha * fbm * fbm * 3.5);
 
 			// calculate directional light reduction for future layers
-			alphaAccum = min(1.0, alphaAccum + (alpha * _CloudDensity[_CloudIndex] * _CloudDensity[_CloudIndex]));
+			alphaAccum = min(1.0, alphaAccum + (alpha * _CloudDensity[cloudIndex] * _CloudDensity[cloudIndex]));
 
-			return fixed4(cloudColor + (_CloudEmissionColor[_CloudIndex].rgb * _CloudEmissionColor[_CloudIndex].a), alpha);
+			return fixed4(cloudColor + (_CloudEmissionColor[cloudIndex].rgb * _CloudEmissionColor[cloudIndex].a), alpha);
 		}
 	}
 }

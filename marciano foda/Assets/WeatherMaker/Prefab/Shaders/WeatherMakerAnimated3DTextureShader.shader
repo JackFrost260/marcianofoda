@@ -45,6 +45,7 @@ Shader "WeatherMaker/WeatherMakerAnimated3DTextureShader"
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
 		
+		#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
 
 		ENDCG
 
@@ -101,7 +102,7 @@ Shader "WeatherMaker/WeatherMakerAnimated3DTextureShader"
 
 			static const float ambientColor = min(_WeatherMakerAmbientLightColorGround + _WeatherMakerAmbientLightColorSky, pow(_WeatherMakerAmbientLightColorGround + _WeatherMakerAmbientLightColorSky, 2.0));
 
-			v2f vert (vertex_uv_normal v)
+			v2f vert (wm_vertex_uv_normal v)
 			{
 				WM_INSTANCE_VERT(v, v2f, o);
 

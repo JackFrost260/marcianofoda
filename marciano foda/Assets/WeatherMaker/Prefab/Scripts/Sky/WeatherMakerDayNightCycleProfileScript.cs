@@ -395,18 +395,31 @@ namespace DigitalRuby.WeatherMaker
         /// </summary>
         public const float DynamicGIUpdateThresholdSeconds = 300.0f;
 
+        private DateTime prevDt;
         /// <summary>
-        /// Get a date time object representing the current year, month, day and time of day
+        /// Get a date time object representing the current year, month, day and time of day in local time
         /// </summary>
         public DateTime DateTime
         {
-            get; private set;
+            get
+            {
+                TimeSpan ts = TimeOfDayTimeSpan;
+                return new DateTime(Year, Month, Day, ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds, DateTimeKind.Local);
+            }
+            set
+            {
+                DateTime dt = value.ToLocalTime();
+                Year = dt.Year;
+                Month = dt.Month;
+                Day = dt.Day;
+                TimeOfDay = (float)dt.TimeOfDay.TotalSeconds;
+            }
         }
 
         /// <summary>
         /// Get a TimeSpan from the TimeOfDay property
         /// </summary>
-        public TimeSpan TimeOfDayTimeSpan { get { return TimeSpan.FromSeconds(TimeOfDay); } }
+        public TimeSpan TimeOfDayTimeSpan { get { return TimeSpan.FromSeconds(TimeOfDay); } set { TimeOfDay = (float)value.TotalSeconds; } }
 
         private float lastTimeOfDayForDynamicGIUpdate = -999999.0f;
 
@@ -798,7 +811,8 @@ namespace DigitalRuby.WeatherMaker
             DayMultiplier = lookup.g;
             DawnDuskMultiplier = lookup.r;
             NightMultiplier = lookup.b;
-            TimeOfDayCategory = (WeatherMakerTimeOfDayCategory)0;
+            WeatherMakerTimeOfDayCategory current = TimeOfDayCategory;
+            TimeOfDayCategory = WeatherMakerTimeOfDayCategory.None;
             if (DayMultiplier > 0.0f)
             {
                 TimeOfDayCategory |= WeatherMakerTimeOfDayCategory.Day;
@@ -864,6 +878,40 @@ namespace DigitalRuby.WeatherMaker
                     }
                 }
             }
+
+            // send events
+            if ((current & WeatherMakerTimeOfDayCategory.Day) == WeatherMakerTimeOfDayCategory.None && (TimeOfDayCategory & WeatherMakerTimeOfDayCategory.Day) != WeatherMakerTimeOfDayCategory.None)
+            {
+                WeatherMakerScript.Instance.DayBegin.Invoke(this);
+            }
+            if ((current & WeatherMakerTimeOfDayCategory.Night) == WeatherMakerTimeOfDayCategory.None && (TimeOfDayCategory & WeatherMakerTimeOfDayCategory.Night) != WeatherMakerTimeOfDayCategory.None)
+            {
+                WeatherMakerScript.Instance.NightBegin.Invoke(this);
+            }
+            if ((current & WeatherMakerTimeOfDayCategory.Dawn) == WeatherMakerTimeOfDayCategory.None && (TimeOfDayCategory & WeatherMakerTimeOfDayCategory.Dawn) != WeatherMakerTimeOfDayCategory.None)
+            {
+                WeatherMakerScript.Instance.DawnBegin.Invoke(this);
+            }
+            if ((current & WeatherMakerTimeOfDayCategory.Dusk) == WeatherMakerTimeOfDayCategory.None && (TimeOfDayCategory & WeatherMakerTimeOfDayCategory.Dusk) != WeatherMakerTimeOfDayCategory.None)
+            {
+                WeatherMakerScript.Instance.DuskBegin.Invoke(this);
+            }
+            if ((current & WeatherMakerTimeOfDayCategory.Sunrise) == WeatherMakerTimeOfDayCategory.None && (TimeOfDayCategory & WeatherMakerTimeOfDayCategory.Sunrise) != WeatherMakerTimeOfDayCategory.None)
+            {
+                WeatherMakerScript.Instance.SunriseBegin.Invoke(this);
+            }
+            if ((current & WeatherMakerTimeOfDayCategory.Sunrise) != WeatherMakerTimeOfDayCategory.None && (TimeOfDayCategory & WeatherMakerTimeOfDayCategory.Sunrise) == WeatherMakerTimeOfDayCategory.None)
+            {
+                WeatherMakerScript.Instance.SunriseEnd.Invoke(this);
+            }
+            if ((current & WeatherMakerTimeOfDayCategory.Sunset) == WeatherMakerTimeOfDayCategory.None && (TimeOfDayCategory & WeatherMakerTimeOfDayCategory.Sunset) != WeatherMakerTimeOfDayCategory.None)
+            {
+                WeatherMakerScript.Instance.SunsetBegin.Invoke(this);
+            }
+            if ((current & WeatherMakerTimeOfDayCategory.Sunset) != WeatherMakerTimeOfDayCategory.None && (TimeOfDayCategory & WeatherMakerTimeOfDayCategory.Sunset) == WeatherMakerTimeOfDayCategory.None)
+            {
+                WeatherMakerScript.Instance.SunsetEnd.Invoke(this);
+            }
         }
 
         private void UpdateTimeZone()
@@ -912,6 +960,7 @@ namespace DigitalRuby.WeatherMaker
         private void UpdateTimeOfDay(bool updateTimeOfDay)
         {
             UpdateTimeZone();
+            prevDt = DateTime;
 
 #if UNITY_EDITOR
 
@@ -961,6 +1010,32 @@ namespace DigitalRuby.WeatherMaker
                 TimeOfDay -= SecondsPerDay;
             }
             TimeOfDayTimespan = TimeSpan.FromSeconds(TimeOfDay);
+
+            // send events
+            if (prevDt.Year != Year)
+            {
+                WeatherMakerScript.Instance.YearChanged.Invoke(this);
+            }
+            if (prevDt.Month != Month)
+            {
+                WeatherMakerScript.Instance.MonthChanged.Invoke(this);
+            }
+            if (prevDt.Day != Day)
+            {
+                WeatherMakerScript.Instance.DayChanged.Invoke(this);
+            }
+            if (prevDt.Hour != TimeOfDayTimespan.Hours)
+            {
+                WeatherMakerScript.Instance.HourChanged.Invoke(this);
+            }
+            if (prevDt.Minute != TimeOfDayTimespan.Minutes)
+            {
+                WeatherMakerScript.Instance.MinuteChanged.Invoke(this);
+            }
+            if (prevDt.Second != TimeOfDayTimespan.Seconds)
+            {
+                WeatherMakerScript.Instance.SecondChanged.Invoke(this);
+            }
         }
 
         private void UpdateAmbientColors(float l)
@@ -1113,16 +1188,6 @@ namespace DigitalRuby.WeatherMaker
         }
 
         /// <summary>
-        /// Call from day night cycle script Awake
-        /// </summary>
-        public void Awake()
-        {
-            // ensure date time property is set as soon as possible
-            TimeSpan t = TimeSpan.FromSeconds(TimeOfDay);
-            this.DateTime = new DateTime(Year, Month, Day, t.Hours, t.Minutes, t.Seconds, t.Milliseconds, DateTimeKind.Utc);
-        }
-
-        /// <summary>
         /// Update day night cycle using profile settings and light manager state
         /// </summary>
         /// <param name="updateTimeOfDay"></param>
@@ -1140,8 +1205,6 @@ namespace DigitalRuby.WeatherMaker
                 return;
             }
 
-            TimeSpan t = TimeSpan.FromSeconds(TimeOfDay);
-            this.DateTime = new DateTime(Year, Month, Day, t.Hours, t.Minutes, t.Seconds, t.Milliseconds, DateTimeKind.Utc);
             accumulatedTime += Time.deltaTime;
             if (accumulatedTime > UpdateInterval)
             {
@@ -1214,6 +1277,11 @@ namespace DigitalRuby.WeatherMaker
     [Flags]
     public enum WeatherMakerTimeOfDayCategory
     {
+        /// <summary>
+        /// None
+        /// </summary>
+        None = 0,
+
         /// <summary>
         /// Dawn
         /// </summary>

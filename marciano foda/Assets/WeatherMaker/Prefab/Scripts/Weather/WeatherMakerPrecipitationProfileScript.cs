@@ -32,6 +32,7 @@ namespace DigitalRuby.WeatherMaker
     }
 
     [CreateAssetMenu(fileName = "WeatherMakerPrecipitationProfile", menuName = "WeatherMaker/Precipitation Profile", order = 25)]
+    [System.Serializable]
     public class WeatherMakerPrecipitationProfileScript : WeatherMakerBaseScriptableObjectScript
     {
         [Tooltip("Type of precipitation")]

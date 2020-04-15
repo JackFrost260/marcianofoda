@@ -24,6 +24,7 @@ Shader "WeatherMaker/WeatherMakerMoonShader"
 		_MainTex("Moon Texture", 2D) = "white" {}
 		_MaxFade("Moon Max Fade", Range(0.0, 1.0)) = 0.0
 		_MaxEdgeFade("Moon Max Edge Fade", Range(0.0, 1.0)) = 1.0
+		_DirLightPower("Dir Light Power", Range(0.0, 4.0)) = 1.0
 	}
 	SubShader
 	{
@@ -36,15 +37,17 @@ Shader "WeatherMaker/WeatherMakerMoonShader"
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
 		
+		#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
+
 		#include "WeatherMakerSkyShaderInclude.cginc"
 
 		#pragma fragmentoption ARB_precision_hint_fastest
 		#pragma glsl_no_auto_normalization
 		#pragma multi_compile_instancing
 
-		uniform sampler2D _WeatherMakerSkySphereTexture;
 		uniform fixed _MaxFade;
 		uniform fixed _MaxEdgeFade;
+		uniform fixed _DirLightPower;
 
 		static const fixed3 tintColor = _TintColor.rgb * _WeatherMakerSunColor.rgb * _TintColor.a;
 		static const fixed moonFade = clamp(_WeatherMakerSunColor.a, _MaxFade, 1.0);
@@ -87,7 +90,7 @@ Shader "WeatherMaker/WeatherMakerMoonShader"
 			{
 				fixed4 moonColor = tex2D(_MainTex, i.tex.xy);
 				fixed lightNormal = max(0.0, dot(i.normalWorld, _WeatherMakerSunDirectionUp));
-				lightNormal *= lightNormal;
+				lightNormal = pow(lightNormal, _DirLightPower);
 				fixed3 lightFinal = lightNormal * tintColor;
 				fixed lightMax = max(lightFinal.r, max(lightFinal.g, lightFinal.b));
 

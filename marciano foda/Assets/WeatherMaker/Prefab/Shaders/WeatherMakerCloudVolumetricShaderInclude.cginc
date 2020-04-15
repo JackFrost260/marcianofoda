@@ -17,7 +17,7 @@
 #ifndef __WEATHER_MAKER_CLOUD_VOLUMETRIC_SHADER__
 #define __WEATHER_MAKER_CLOUD_VOLUMETRIC_SHADER__
 
-float ComputeCloudShadowStrength(float3 worldPos, uint dirIndex);
+float ComputeCloudShadowStrength(float3 worldPos, uint dirIndex, float existingShadow, bool sampleDetails);
 
 #include "WeatherMakerCloudShaderInclude.cginc"
 #include "WeatherMakerCloudNoiseShaderInclude.cginc"
@@ -97,9 +97,6 @@ float ComputeCloudShadowStrength(float3 worldPos, uint dirIndex);
 // maximum influence cloud type has on curl effect
 #define VOLUMETRIC_CLOUD_MAX_CLOUD_TYPE_CURL_MULTIPLIER 4.0
 
-// dithering for cloud shadows
-#define VOLUMETRIC_CLOUD_SHADOW_DITHER 0.015
-
 // max ray march length for volumetric cloud shadows
 #define VOLUMETRIC_CLOUD_SHADOW_MAX_RAY_LENGTH 8192.0
 
@@ -109,6 +106,7 @@ uniform sampler3D _CloudNoiseShapeVolumetric;
 uniform sampler3D _CloudNoiseDetailVolumetric;
 uniform sampler2D _CloudNoiseCurlVolumetric;
 uniform sampler2D _WeatherMakerWeatherMapTexture;
+uniform float4 _WeatherMakerWeatherMapTexture_TexelSize;
 uniform uint2 _CloudNoiseSampleCountVolumetric;
 uniform float2 _CloudNoiseLodVolumetric;
 uniform float4 _CloudNoiseScaleVolumetric; // shape scale, details scale, curl scale, curl multiplier
@@ -178,16 +176,21 @@ uniform float _CloudRayOffsetVolumetric;
 uniform float _CloudMinRayYVolumetric;
 uniform float _CloudLightStepMultiplierVolumetric;
 uniform uint _CloudDirLightSampleCount;
-uniform uint _CloudVolumetricShadowSampleCount;
+uniform float _CloudDirLightLod;
+uniform uint _WeatherMakerCloudVolumetricShadowSampleCount;
 
 uniform float3 _WeatherMakerWeatherMapScale;
 uniform float _CloudShadowMapAdder;
 uniform float _CloudShadowMapMultiplier;
-uniform float _CloudShadowMapMinimum;
-uniform float _CloudShadowMapMaximum;
 uniform float _CloudShadowMapPower;
-uniform float _WeatherMakerCloudVolumetricShadow;
+uniform float _WeatherMakerCloudVolumetricShadowDither;
+uniform sampler2D _WeatherMakerCloudShadowDetailTexture;
+uniform float _WeatherMakerCloudShadowDetailScale;
+uniform float _WeatherMakerCloudShadowDetailIntensity;
+uniform float _WeatherMakerCloudShadowDetailFalloff;
 
+// fade volumetric shadows at horizon. 0 would be no fade, 1 would be linear fade, 2 is double distane fade, etc.
+uniform float _WeatherMakerCloudShadowDistanceFade; // 1.75
 //uniform uint _WeatherMakerShadowCascades;
 
 // cloud dir light rays
@@ -201,14 +204,41 @@ uniform float4 _CloudGradientStratus;
 uniform float4 _CloudGradientStratoCumulus;
 uniform float4 _CloudGradientCumulus;
 
-uniform float3 _CloudConeRandomVectors[6];
-
 // ray march optimizations
 uniform uint _CloudRaymarchSkipThreshold; // 3
 uniform float _CloudRaymarchMaybeInCloudStepMultiplier; // 1.0
 uniform float _CloudRaymarchInCloudStepMultiplier; // 1.0
 uniform float _CloudRaymarchSkipMultiplier; // 1.1
 uniform uint _CloudRaymarchSkipMultiplierMaxCount; // 16
+uniform uint _CloudRaymarchSampleDetailsForDirLight;
+
+// weather map
+uniform float _WeatherMakerWeatherMapSeed;
+
+uniform float _CloudCoverageFrequency;
+uniform float2 _CloudCoverageRotation;
+uniform float3 _CloudCoverageVelocity; // needs to be prescaled by _WeatherMakerWeatherMapScale.z
+uniform float3 _CloudCoverageOffset;
+uniform float _CloudCoverageMultiplier;
+uniform float _CloudCoverageAdder;
+uniform float _CloudCoveragePower;
+uniform float _CloudCoverageProfileInfluence;
+uniform sampler2D _CloudCoverageTexture;
+uniform float _CloudCoverageTextureMultiplier;
+uniform float _CloudCoverageTextureScale;
+
+uniform float _CloudTypeFrequency;
+uniform float2 _CloudTypeRotation;
+uniform float3 _CloudTypeVelocity; // needs to be prescaled by _WeatherMakerWeatherMapScale.z
+uniform float3 _CloudTypeOffset;
+uniform float _CloudTypeMultiplier;
+uniform float _CloudTypeAdder;
+uniform float _CloudTypePower;
+uniform float _CloudTypeProfileInfluence;
+uniform float _CloudTypeCoveragePower;
+uniform sampler2D _CloudTypeTexture;
+uniform float _CloudTypeTextureMultiplier;
+uniform float _CloudTypeTextureScale;
 
 #if defined(VOLUMETRIC_CLOUD_REAL_TIME_NOISE)
 
@@ -279,24 +309,49 @@ static const float volumetricMinRayY = lerp(_CloudMinRayYVolumetric, -1.0, weath
 static const float volumetricCloudMaybeInCloudStepMultiplier = lerp(1.0, _CloudRaymarchMaybeInCloudStepMultiplier, _CloudRaymarchSkipThreshold != 0);
 static const float volumetricCloudInCloudStepMultiplier = lerp(1.0, _CloudRaymarchInCloudStepMultiplier, _CloudRaymarchSkipThreshold != 0);
 static const float volumetricCloudNoiseScalar = _CloudDensityVolumetric * _CloudNoiseScalarVolumetric;
-static const float volumetricCloudShadowSampleCountInv = (1.0 / float(max(1, _CloudVolumetricShadowSampleCount)));
+static const float volumetricCloudShadowSampleCountInv = 0.95 * (1.0 / float(max(1.0, float(_WeatherMakerCloudVolumetricShadowSampleCount))));
+//static const float volumetricCloudNoiseShadowScalar = clamp(volumetricCloudNoiseScalar, 0.5, 1.0);
+static const float volumetricCloudLightAbsorption = 2.0 * _CloudLightAbsorptionVolumetric;
+static const float volumetricCloudMaxShadow = saturate((1.0 + _CloudShadowMapAdder) * _CloudShadowMapMultiplier);// *volumetricCloudNoiseShadowScalar);
+static const float volumetricCloudMaxShadowInv = saturate(1.0 / max(0.0001, volumetricCloudMaxShadow));
+static const float volumetricCloudShadowDetailIntensity = _WeatherMakerCloudShadowDetailIntensity * 5.0;
+static const float volumetricCloudShadowDetailFalloff = _WeatherMakerCloudShadowDetailFalloff;
+
+// weather map
+static const float cloudDensity = min(1.0, _CloudDensityVolumetric);
+static const float cloudCoverageInfluence = _CloudCoverageProfileInfluence * _CloudCoverVolumetric * cloudDensity;
+static const float cloudCoverageInfluence2 = (1.0 + (_CloudCoverageProfileInfluence * _CloudCoverVolumetric * cloudDensity)) * _CloudCoverageMultiplier * min(1.0, _CloudCoverVolumetric * cloudDensity * 2.0);
+static const float3 cloudCoverageVelocity = (_CloudCoverageOffset + float3(_WeatherMakerWeatherMapSeed, _WeatherMakerWeatherMapSeed, _WeatherMakerWeatherMapSeed) + _CloudCoverageVelocity);
+static const bool cloudCoverageIsMin = (cloudCoverageInfluence < 0.01 && _CloudCoverageAdder <= 0.0);
+static const bool cloudCoverageIsMax = (cloudCoverageInfluence > 0.999 && _CloudCoverageAdder >= 0.0);
+static const float cloudCoverageTextureMultiplier = (_CloudCoverSecondaryVolumetric + _CloudCoverageTextureMultiplier);
+static const float cloudCoverageTextureScale = (4.0 / max(_CloudCoverageTextureScale, _CloudCoverageFrequency));
+
+static const float cloudTypeInfluence = _CloudTypeProfileInfluence * _CloudTypeVolumetric;
+static const float cloudTypeInfluence2 = (1.0 + (_CloudTypeProfileInfluence * _CloudTypeVolumetric)) * _CloudTypeMultiplier * _CloudTypeVolumetric;
+static const float3 cloudTypeVelocity = (_CloudTypeOffset + float3(_WeatherMakerWeatherMapSeed, _WeatherMakerWeatherMapSeed, _WeatherMakerWeatherMapSeed) + _CloudTypeVelocity);
+static const bool cloudTypeIsMin = (cloudTypeInfluence < 0.01 && _CloudTypeAdder <= 0.0);
+static const bool cloudTypeIsMax = (cloudTypeInfluence > 0.999 && _CloudTypeAdder >= 0.0);
+static const float cloudTypeTextureMultiplier = (_CloudTypeSecondaryVolumetric + _CloudTypeTextureMultiplier);
+static const float cloudTypeTextureScale = (4.0 / max(_CloudTypeTextureScale, _CloudTypeFrequency));
+
+static const float3 weatherMapCameraPos = weatherMakerCloudCameraPosition * _WeatherMakerWeatherMapScale.z;
 
 // reduce dir light sample for reflections and cubemaps
-static const uint volumetricLightIterations = ceil(min(5.0, _CloudDirLightSampleCount) *
+static const uint volumetricLightIterations = ceil(min(15.0, _CloudDirLightSampleCount) *
 (
 	WM_CAMERA_RENDER_MODE_NORMAL +
 	lerp(0.0, 0.5, WM_CAMERA_RENDER_MODE_REFLECTION) +
 	lerp(0.0, 0.5, WM_CAMERA_RENDER_MODE_CUBEMAP)
 ));
 static const float invVolumetricLightIterations = 1.0f / max(1.0, float(volumetricLightIterations));
-static const bool volumetricLightSampleDistant = (_CloudDirLightSampleCount == 6);
+static const bool volumetricLightSampleDistant = (_CloudDirLightSampleCount >= 6);
 
 // not doing point light samples currently
 //static const uint volumetricLightIterationsNonDir = 3u;
 //static const float invVolumetricLightIterationsNonDir = 0.9 * (1.0f / float(volumetricLightIterationsNonDir));
 
-static const float volumetricDirLightStepSize = _CloudHeightVolumetric * _CloudLightStepMultiplierVolumetric * invVolumetricLightIterations * invVolumetricLightIterations;
-static const float volumetricDirLightConeRadius = volumetricDirLightStepSize;
+static const float volumetricDirLightStepSize = _CloudHeightVolumetric * _CloudLightStepMultiplierVolumetric * invVolumetricLightIterations;
 
 // reduce sample count for reflections and cubemaps
 static const float2 volumetricSampleCountRange = ceil(float2(_CloudNoiseSampleCountVolumetric.x, _CloudNoiseSampleCountVolumetric.y) *
@@ -312,15 +367,42 @@ static const float2 volumetricLod = float2(_CloudNoiseLodVolumetric.x, _CloudNoi
 	(1.5 * WM_CAMERA_RENDER_MODE_CUBEMAP);
 
 // per fragment state
-float4 dirLightPrecomputedValues[MAX_LIGHT_COUNT]; // x = eye dot, y = y light intensity modifier, z = light intensity squared, w = 0
+static float4 _dirLightPrecomputedValues[MAX_LIGHT_COUNT]; // x = eye dot, y = y light intensity modifier, z = light intensity squared, w = 0
 
 // volumetric clouds --------------------------------------------------------------------------------
-float4 CloudVolumetricSampleWeather(float3 pos, float lod)
+inline float4 CloudVolumetricSampleWeather(float3 pos, float lod)
 {
 	pos.xz -= weatherMakerCloudCameraPosition.xz;
 	pos.xz *= _WeatherMakerWeatherMapScale.z;
 	pos.xz += 0.5; // 0.5, 0.5 is center of weather map at world pos xz of 0,0, as camera moves they will tile through the weather map
 	float4 c = tex2Dlod(_WeatherMakerWeatherMapTexture, float4(pos.xz, 0.0, lod));
+	return c;
+}
+
+// sample weather using 17 tap
+inline float4 CloudVolumetricSampleWeatherGaussian17(float3 pos, float lod)
+{
+	static const float4 offsets = float4
+	(
+		_WeatherMakerWeatherMapTexture_TexelSize.x * 0.4,
+		_WeatherMakerWeatherMapTexture_TexelSize.x * 1.2,
+		_WeatherMakerWeatherMapTexture_TexelSize.y * 0.4,
+		_WeatherMakerWeatherMapTexture_TexelSize.y * 1.2
+	);
+
+	pos.xz -= weatherMakerCloudCameraPosition.xz;
+	pos.xz *= _WeatherMakerWeatherMapScale.z;
+	pos.xz += 0.5; // 0.5, 0.5 is center of weather map at world pos xz of 0,0, as camera moves they will tile through the weather map
+	return GaussianBlur_Texture2D_17Tap(_WeatherMakerWeatherMapTexture, pos.xz, offsets, lod);
+}
+
+// sample weather map using bicubic filtering, really helps eliminate wiggly pixels but at a performance cost
+inline float4 CloudVolumetricSampleWeatherBicubic(float3 pos, float lod)
+{
+	pos.xz -= weatherMakerCloudCameraPosition.xz;
+	pos.xz *= _WeatherMakerWeatherMapScale.z;
+	pos.xz += 0.5; // 0.5, 0.5 is center of weather map at world pos xz of 0,0, as camera moves they will tile through the weather map
+	float4 c = tex2DBicubic(_WeatherMakerWeatherMapTexture, pos.xz, lod, _WeatherMakerWeatherMapTexture_TexelSize);
 	return c;
 }
 
@@ -344,12 +426,14 @@ inline float CloudVolumetricBeerLambert(float density)
 float CloudVolumetricPowder(float density, float lightDotEye, float lightIntensity, float3 lightDir, float3 rayDir)
 {
 	UNITY_BRANCH
-	if (_CloudPowderMultiplierVolumetric < 0.001)
+	if (_CloudPowderMultiplierVolumetric <= 0.0)
 	{
 		return 1.0;
 	}
 	else
 	{
+		static const float oneMinusMultiplier = max(0.0, 1.0 - _CloudPowderMultiplierVolumetric);
+
 		// base powder term
 		float powder = 1.0 - exp2(-2.0 * density);
 
@@ -359,7 +443,10 @@ float CloudVolumetricPowder(float density, float lightDotEye, float lightIntensi
 		// reduce powder as angle from sun decreases, reduce powder as light is at horizon (light is passing through more air)
 		// in dim light or when light as horizon, powder effect looks bad
 		float powderHorizonLerp = saturate((lightDir.y + VOLUMETRIC_POWDER_RAY_Y_ADDER) * VOLUMETRIC_POWDER_RAY_Y_MULTIPLIER);
-		return lerp(VOLUMETRIC_POWDER_BASE_VALUE, powder, (1.0 - (lightDotEye * lightDotEye)) * powderHorizonLerp) * powderHorizonLerp;
+		powder = lerp(VOLUMETRIC_POWDER_BASE_VALUE, powder, (1.0 - (lightDotEye * lightDotEye)) * powderHorizonLerp) * powderHorizonLerp;
+
+		// smoothly lerp to 1 if powder is less than 1
+		return lerp(powder, 1.0, oneMinusMultiplier);
 	}
 }
 
@@ -479,6 +566,38 @@ float SampleCloudDensityDetails(float noise, float4 weatherData, float3 marchPos
 	return noise;
 }
 
+inline float CloudNoiseSampleToCloudNoise(fixed4 noiseSample, float heightFrac, float4 weatherData, float multiplier)
+{
+	// create height gradient for the 3 samples of worley noise
+	float3 heightGradient = float3(SmoothStepGradient(heightFrac, _CloudGradientStratus),
+		SmoothStepGradient(heightFrac, _CloudGradientStratoCumulus), SmoothStepGradient(heightFrac, _CloudGradientCumulus));
+
+	float coverage = CloudVolumetricGetCoverage(weatherData);
+
+	// multiply worley noise samples by height gradients
+	noiseSample.gba *= heightGradient; // dont modify perlin / worley in this step
+
+	// combine all into final noise
+	float noise = (noiseSample.r + noiseSample.g + noiseSample.b + noiseSample.a) * volumetricCloudNoiseMultiplier * multiplier;
+	noise = pow(noise, min(1.0, _CloudHeightNoisePowerVolumetric * heightFrac));
+
+	// smoothstep noise to a range, helps reduce clutter / noise of the clouds
+	noise = smoothstep(_CloudShapeNoiseMinVolumetric, _CloudShapeNoiseMaxVolumetric, noise);
+
+	// remap function for noise against coverage, see gpu gems pro 7
+	noise = saturate(noise - (1.0 - coverage)) * coverage;
+
+
+	/*
+	// gpu gems pro 7 way
+	noise = tex3Dlod(_CloudNoiseShapeVolumetric, noisePos).a * heightGradientSingle;
+	coverage = pow(coverage, Remap(heightFrac, 0.7, 0.8, 1.0, 1.0)); // anvil bias, real-time rendering slides
+	noise = coverage * saturate(Remap(noise, 1.0 - coverage, 1.0, 0.0, 1.0));
+	*/
+
+	return noise;
+}
+
 float SampleCloudDensity(float3 marchPos, float4 weatherData, float heightFrac, float lod, bool sampleDetails)
 {
 	float noise = 0.0;
@@ -517,30 +636,8 @@ float SampleCloudDensity(float3 marchPos, float4 weatherData, float heightFrac, 
 
 #endif
 
-		// create height gradient for the 3 samples of worley noise
-		float3 heightGradient = float3(SmoothStepGradient(heightFrac, _CloudGradientStratus),
-			SmoothStepGradient(heightFrac, _CloudGradientStratoCumulus), SmoothStepGradient(heightFrac, _CloudGradientCumulus));
-
-		// multiply worley noise samples by height gradients
-		noiseSample.gba *= heightGradient; // dont modify perlin / worley in this step
-
-		// combine all into final noise
-		noise = (noiseSample.r + noiseSample.g + noiseSample.b + noiseSample.a) * volumetricCloudNoiseMultiplier * heightGradientSingle;
-		noise = pow(noise, min(1.0, _CloudHeightNoisePowerVolumetric * heightFrac));
-
-		// smoothstep noise to a range, helps reduce clutter / noise of the clouds
-		noise = smoothstep(_CloudShapeNoiseMinVolumetric, _CloudShapeNoiseMaxVolumetric, noise);
-
-		// remap function for noise against coverage, see gpu gems pro 7
-		noise = saturate(noise - (1.0 - coverage)) * coverage;
-
-		/*
-		// gpu gems pro 7 way
-		noise = tex3Dlod(_CloudNoiseShapeVolumetric, noisePos).a * heightGradientSingle;
-		coverage = pow(coverage, Remap(heightFrac, 0.7, 0.8, 1.0, 1.0)); // anvil bias, real-time rendering slides
-		noise = coverage * saturate(Remap(noise, 1.0 - coverage, 1.0, 0.0, 1.0));
-		*/
-
+		noise = CloudNoiseSampleToCloudNoise(noiseSample, heightFrac, weatherData, heightGradientSingle);
+		
 		// apply details if needed, should not even need to branch here as the parameter is a constant for any calls
 		if (sampleDetails)
 		{
@@ -554,12 +651,19 @@ float SampleCloudDensity(float3 marchPos, float4 weatherData, float heightFrac, 
 fixed3 SampleDirLightSources(float3 marchPos, float3 rayDir, float startHeightFrac, float cloudSample, float eyeDensity, float lod)
 {
 	fixed3 lightTotal = fixed3Zero;
+
+	UNITY_BRANCH
+	if (_CloudDirLightMultiplierVolumetric <= 0.0)
+	{
+		return lightTotal;
+	}
+
 	startHeightFrac = max(0.3, startHeightFrac);
-	lod++;
+	lod += _CloudDirLightLod;
 
 	// take advantage of the fact that lights are sorted by perspective/ortho and then by intensity
 	UNITY_LOOP
-	for (uint lightIndex = 0; lightIndex < uint(_WeatherMakerDirLightCount) && _WeatherMakerDirLightVar1[lightIndex].y == 0.0 && _WeatherMakerDirLightColor[lightIndex].a > 0.001; lightIndex++)
+	for (uint lightIndex = 0; lightIndex < uint(_WeatherMakerDirLightCount) && _WeatherMakerDirLightVar1[lightIndex].y == 0.0 && _WeatherMakerDirLightColor[lightIndex].a > 0.0; lightIndex++)
 	{
 		float3 lightDir = _WeatherMakerDirLightPosition[lightIndex].xyz;
 		fixed4 lightColor = _WeatherMakerDirLightColor[lightIndex];
@@ -567,11 +671,13 @@ fixed3 SampleDirLightSources(float3 marchPos, float3 rayDir, float startHeightFr
 		// skip the light if it is below the horizon
 		// TODO: Support true spherical worlds with a different lightDir.y check
 		UNITY_BRANCH
-		if (lightDir.y < -0.1)
+		if (lightDir.y < -0.15)
 		{
 			continue;
 		}
 
+		// make sure we don't walk down, this causes artifacts at horizon
+		lightDir.y = max(0.1, lightDir.y);
 		float3 lightStep = (lightDir.xyz * volumetricDirLightStepSize);
 
 		//causes flicker, figure out why...
@@ -580,6 +686,7 @@ fixed3 SampleDirLightSources(float3 marchPos, float3 rayDir, float startHeightFr
 
 		float heightFrac;
 		float4 weatherData;
+		float coneRadiusStep = lightStep;
 		float coneRadius = lightStep;
 		float3 samplePos;
 		float3 energy;
@@ -590,7 +697,11 @@ fixed3 SampleDirLightSources(float3 marchPos, float3 rayDir, float startHeightFr
 		for (uint i = 0.0; i < volumetricLightIterations; i++)
 		{
 			// sample in the cone, take the march pos and perturb by random vector and cone radius
-			samplePos = pos + (_CloudConeRandomVectors[i] * coneRadius);
+			samplePos = pos + (weatherMakerRandomCone[i] * coneRadius);
+
+			// ensure we don't march out of the cloud layer
+			samplePos.y = max(marchPos.y, samplePos.y);
+			//samplePos.y = clamp(samplePos.y, _CloudStartVolumetric, _CloudEndVolumetric);
 
 			// lookup position for cloud density
 			weatherData = CloudVolumetricSampleWeather(samplePos, lod);
@@ -598,12 +709,14 @@ fixed3 SampleDirLightSources(float3 marchPos, float3 rayDir, float startHeightFr
 			UNITY_BRANCH
 			if (CloudVolumetricGetCoverage(weatherData) > VOLUMETRIC_MINIMUM_COVERAGE_FOR_CLOUD)
 			{
-				heightFrac = GetCloudHeightFractionForPoint(samplePos);
+				// ensure a minimum height - if this goes too low, lighting gets really ugly near the horizon
+				heightFrac = max(0.1, GetCloudHeightFractionForPoint(samplePos));
+				//heightFrac = GetCloudHeightFractionForPoint(samplePos);
 
 				UNITY_BRANCH
 				if (WM_CAMERA_RENDER_MODE_NORMAL)
 				{
-					densityToLight += SampleCloudDensity(samplePos, weatherData, heightFrac, lod, true);
+					densityToLight += SampleCloudDensity(samplePos, weatherData, heightFrac, lod, _CloudRaymarchSampleDetailsForDirLight);
 				}
 				else
 				{
@@ -615,7 +728,7 @@ fixed3 SampleDirLightSources(float3 marchPos, float3 rayDir, float startHeightFr
 			}
 
 			// march to next positions
-			coneRadius += volumetricDirLightConeRadius;
+			coneRadius += coneRadiusStep;
 			pos += lightStep;
 		}
         
@@ -634,7 +747,7 @@ fixed3 SampleDirLightSources(float3 marchPos, float3 rayDir, float startHeightFr
     			UNITY_BRANCH
     			if (WM_CAMERA_RENDER_MODE_NORMAL)
     			{
-    				densityToLight += SampleCloudDensity(pos, weatherData, heightFrac, lod, true);
+    				densityToLight += SampleCloudDensity(pos, weatherData, heightFrac, lod, _CloudRaymarchSampleDetailsForDirLight);
     			}
     			else
     			{
@@ -646,22 +759,21 @@ fixed3 SampleDirLightSources(float3 marchPos, float3 rayDir, float startHeightFr
     		}
         }
         
-		float lightIntensity = dirLightPrecomputedValues[lightIndex].y;
+		float lightIntensity = _dirLightPrecomputedValues[lightIndex].y;
 
-		energy = CloudVolumetricLightEnergy(dirLightPrecomputedValues[lightIndex].x, cloudSample, eyeDensity, densityToLight * _CloudLightAbsorptionVolumetric, lightIntensity, lightDir, rayDir);
+		energy = CloudVolumetricLightEnergy(_dirLightPrecomputedValues[lightIndex].x, cloudSample, eyeDensity, densityToLight * _CloudLightAbsorptionVolumetric, lightIntensity, lightDir, rayDir);
+		fixed energyScalar = energy.x * energy.y * energy.z;
 
 		// indirect
-		lightTotal += (lightColor.rgb * startHeightFrac * dirLightPrecomputedValues[lightIndex].z * _CloudDirLightIndirectMultiplierVolumetric) +
+		lightTotal += (lightColor.rgb * startHeightFrac * _dirLightPrecomputedValues[lightIndex].z * _CloudDirLightIndirectMultiplierVolumetric) +
 
 		// direct
-		(lightColor.rgb * lightIntensity * energy.x * energy.y * energy.z * _CloudDirLightMultiplierVolumetric);
+		(lightColor.rgb * lightIntensity * energyScalar * _CloudDirLightMultiplierVolumetric);
 
-		// if this dir light is bright enough, skip additional dir lights
-		UNITY_BRANCH
-		if (_WeatherMakerDirLightColor[lightIndex].a > 0.1)
-		{
-			break;
-		}
+		// TODO: Can create a jarring transition as sun goes down and moon comes up, but the performance hit for rendering two dir lights is a lot, so
+		// for now just accept this as a limitation
+		// only sample first dir light for now...
+		break;
 	}
 	return lightTotal * _CloudDirColorVolumetric;
 }
@@ -813,13 +925,16 @@ inline fixed4 FinalizeVolumetricCloudColor(fixed4 color, float4 uv, uint marches
 
 	color.a = max(color.a, 0.004);
 
+	// soften colors
+	color *= color.a;
+
 	return color;
 }
 
-fixed4 ComputeCloudColorVolumetricHorizonFade(fixed4 color, fixed3 backgroundSkyColor, float opticalDepth, float3 cloudRay, float distanceToCloud)
+fixed ComputeCloudColorVolumetricHorizonFade(fixed4 color, fixed3 backgroundSkyColor, float opticalDepth, float3 cloudRay, float distanceToCloud)
 {
     UNITY_BRANCH
-    if (_CloudHorizonFadeMultiplierVolumetric > 0.001 && distanceToCloud > 1000.0)
+    if (_CloudHorizonFadeMultiplierVolumetric > 0.0 && distanceToCloud > 1000.0)
     {
         // horizon fade
         // calculate horizon fade
@@ -829,10 +944,12 @@ fixed4 ComputeCloudColorVolumetricHorizonFade(fixed4 color, fixed3 backgroundSky
         // increase horizon fade dither to reduce banding as main dir light decreases in intensity
         fade *= (1.0 + (RandomFloat(cloudRay * _WeatherMakerTime.y) * VOLUMETRIC_HORIZON_FADE_DITHER)) * _CloudHorizonFadeMultiplierVolumetric;
 		fade = clamp((1.0 - fade), VOLUMETRIC_MIN_HORIZON_FADE, 1.0);
-		color *= fade;
-        //color.rgb = lerp(backgroundSkyColor, color.rgb, fade);
+		return fade;
     }
-    return color;
+	else
+	{
+		return 1.0;
+	}
 }
 
 fixed4 RaymarchVolumetricClouds
@@ -857,60 +974,73 @@ fixed4 RaymarchVolumetricClouds
 	{
 		return cloudColor;
 	}
-	else
+
+	float startOpticalDepth = min(1.0, distanceToCloud * invVolumetricMaxOpticalDistance);
+	fixed horizonFade = ComputeCloudColorVolumetricHorizonFade(cloudColor, backgroundSkyColor, startOpticalDepth, origRayDir, distanceToCloud);
+	UNITY_BRANCH
+	if (horizonFade < 0.01)
 	{
-		uint i = 0;
-		bool blockedByDepthBuffer = (distance(marchPos, weatherMakerCloudCameraPosition) >= depth);
-		float sampleReducer = lerp(1.0, 0.5, blockedByDepthBuffer);
-		float lodIncreaser = lerp(0.0, 1.0, blockedByDepthBuffer);
+		return cloudColor;
+	}
 
-		// reduce sample count when looking more straight up or down through the clouds, the ray length will be much smaller
-		//uint sampleCount = uint(lerp(volumetricSampleCountRange.y, volumetricSampleCountRange.x, abs(rayDir.y)));
-		uint sampleCount = uint(lerp(volumetricSampleCountRange.x, volumetricSampleCountRange.y, min(1.0, (0.5 * rayLength * _CloudHeightInverseVolumetric))));
-		sampleCount = uint(float(sampleCount) * sampleReducer);
-		float startOpticalDepth = min(1.0, distanceToCloud * invVolumetricMaxOpticalDistance);
-		float skyAmbientMultiplier = clamp(startOpticalDepth * VOLUMETRIC_SKY_AMBIENT_OPTICAL_DEPTH_MULTIPLIER, VOLUMETRIC_SKY_AMBIENT_MIN_OPTICAL_DEPTH_MULTIPLIER, 1.0);
-		// reduce sample count for clouds that are farther away
-		sampleCount /= max(1.0, startOpticalDepth * VOLUMETRIC_SAMPLE_COUNT_OPTICAL_DEPTH_REDUCER);
+	uint i = 0;
+	bool blockedByDepthBuffer = (distance(marchPos, weatherMakerCloudCameraPosition) >= depth);
+	float sampleReducer = lerp(1.0, 0.5, blockedByDepthBuffer);
+	float lodIncreaser = lerp(0.0, 1.0, blockedByDepthBuffer);
 
-		float invSampleCount = 1.0 / float(sampleCount);
-		float marchLength = clamp(min(volumetricCloudMaxRayLength, rayLength) * invSampleCount * _CloudRaymarchMultiplierVolumetric, VOLUMETRIC_MIN_STEP_LENGTH, VOLUMETRIC_MAX_STEP_LENGTH);
-		float3 marchDir = rayDir * marchLength;
+	// reduce sample count when looking more straight up or down through the clouds, the ray length will be much smaller
+	//uint sampleCount = uint(lerp(volumetricSampleCountRange.y, volumetricSampleCountRange.x, abs(rayDir.y)));
+	uint sampleCount = uint(lerp(volumetricSampleCountRange.x, volumetricSampleCountRange.y, min(1.0, (0.5 * rayLength * _CloudHeightInverseVolumetric))));
+	sampleCount = uint(float(sampleCount) * sampleReducer);
 
-		//float randomDither = (rayDir * _CloudRayDitherVolumetric * RandomFloat(marchPos));
-		//marchDir += randomDither; // dither march dir slightly to avoid banding
-		float randomDither = 1.0 + (_CloudRayDitherVolumetric * RandomFloat(rayDir));
-		marchDir *= randomDither; // dither march dir slightly to avoid banding
-		float3 startMarchDir = marchDir;
-		float heightFrac = 0.0;
-		float cloudSample = 0.0;
-		float cloudSampleTotal = 0.0;
-		float4 lightSample;
-		float4 weatherData;
+	float skyAmbientMultiplier = clamp(startOpticalDepth * VOLUMETRIC_SKY_AMBIENT_OPTICAL_DEPTH_MULTIPLIER, VOLUMETRIC_SKY_AMBIENT_MIN_OPTICAL_DEPTH_MULTIPLIER, 1.0);
+	// reduce sample count for clouds that are farther away
+	sampleCount /= max(1.0, startOpticalDepth * VOLUMETRIC_SAMPLE_COUNT_OPTICAL_DEPTH_REDUCER);
 
-		// increase lod for clouds that are farther away
-		float startLod = min(volumetricLod.y, volumetricLod.x + lodIncreaser + (startOpticalDepth * VOLUMETRIC_LOD_OPTICAL_DEPTH_MULTIPLIER));
+	float invSampleCount = 1.0 / float(sampleCount);
+	float marchLength = clamp(min(volumetricCloudMaxRayLength, rayLength) * invSampleCount * _CloudRaymarchMultiplierVolumetric, VOLUMETRIC_MIN_STEP_LENGTH, VOLUMETRIC_MAX_STEP_LENGTH);
+	float3 marchDir = rayDir * marchLength;
 
-		float lod = startLod;
-		float lodStep = (volumetricLod.y - startLod) * invSampleCount;
-		uint inCloud = 0;
-		uint zeroSampleCounter = 0;
-		uint zeroSampleCounter2 = 0;
-		uint skipCloud;
-		float3 lastZeroPos = marchPos;
+	//float randomDither = (rayDir * _CloudRayDitherVolumetric * RandomFloat(marchPos));
+	//marchDir += randomDither; // dither march dir slightly to avoid banding
+	float randomDither = 1.0 + (_CloudRayDitherVolumetric * RandomFloat(rayDir));
+	marchDir *= randomDither; // dither march dir slightly to avoid banding
+	float3 startMarchDir = marchDir;
+	float heightFrac = 0.0;
+	float cloudSample = 0.0;
+	float cloudSampleTotal = 0.0;
+	float4 lightSample;
+	float4 weatherData;
+
+	// increase lod for clouds that are farther away
+	float startLod = min(volumetricLod.y, volumetricLod.x + lodIncreaser + (startOpticalDepth * VOLUMETRIC_LOD_OPTICAL_DEPTH_MULTIPLIER));
+
+	float lod = startLod;
+	float lodStep = (volumetricLod.y - startLod) * invSampleCount;
+	uint inCloud = 0;
+	uint zeroSampleCounter = 0;
+	uint zeroSampleCounter2 = 0;
+	uint skipCloud;
+	float3 lastZeroPos = marchPos;
 
 #if defined(VOLUMETRIC_CLOUD_ENABLE_AMBIENT_SKY_DENSITY_SAMPLE)
 
-		float3 ambientPos;
+	float3 ambientPos;
 
 #endif
 
-		UNITY_LOOP
-		while (i++ < sampleCount && cloudColor.a < 0.999 && heightFrac > -0.001 && heightFrac < 1.001)
+	UNITY_LOOP
+	while (i++ < sampleCount && cloudColor.a < 0.999 && heightFrac > -0.001 && heightFrac < 1.001)
+	{
+		heightFrac = GetCloudHeightFractionForPoint(marchPos);
+
+		// filter on bottom fade
+		UNITY_BRANCH
+		if (smoothstep(0.0, _CloudBottomFadeVolumetric, heightFrac) > 0.15)
 		{
-			heightFrac = GetCloudHeightFractionForPoint(marchPos);
 			weatherData = CloudVolumetricSampleWeather(marchPos, lod);
 
+			// min coverage
 			UNITY_BRANCH
 			if (CloudVolumetricGetCoverage(weatherData) > VOLUMETRIC_MINIMUM_COVERAGE_FOR_CLOUD)
 			{
@@ -992,16 +1122,21 @@ fixed4 RaymarchVolumetricClouds
 			marchDir = lerp(marchDir, marchDir * _CloudRaymarchSkipMultiplier, skipCloud && zeroSampleCounter2 < _CloudRaymarchSkipMultiplierMaxCount);
 			lastZeroPos = lerp(lastZeroPos, marchPos, skipCloud);
 			zeroSampleCounter2 = lerp(zeroSampleCounter2, zeroSampleCounter2 + 1, skipCloud);
-
-			marchPos += marchDir;
-			lod += lodStep;
 		}
 
-		// add last tiny bit of alpha if we are really close to 1
-		cloudColor.a = min(cloudColor.a + ((cloudColor.a >= 0.999) * 0.001), 1.0);
-
-		return ComputeCloudColorVolumetricHorizonFade(cloudColor, backgroundSkyColor, startOpticalDepth, origRayDir, distanceToCloud); 
+		marchPos += marchDir;
+		lod += lodStep;
 	}
+
+	// add last tiny bit of alpha if we are really close to 1
+	cloudColor.a = min(cloudColor.a + ((cloudColor.a >= 0.999) * 0.001), 1.0);
+
+	cloudColor *= horizonFade;
+
+	// pre-multiply
+	cloudColor.rgb *= cloudColor.a; 
+
+	return cloudColor;
 }
 
 uint SetupCloudRaymarch(float3 worldSpaceCameraPos, float3 rayDir, float depth, float depth2,
@@ -1028,7 +1163,7 @@ uint SetupCloudRaymarch(float3 worldSpaceCameraPos, float3 rayDir, float depth, 
 	}
 }
 
-fixed4 ComputeCloudColorVolumetric(float3 rayDir, float4 uv, float depth)
+fixed4 ComputeCloudColorVolumetric(float3 rayDir, float4 uv, float depth, fixed3 backgroundSkyColor)
 {
 	fixed4 cloudLightColors[2] = { fixed4Zero, fixed4Zero };
 	float3 cloudRayDir = normalize(float3(rayDir.x, rayDir.y + _CloudRayOffsetVolumetric, rayDir.z));
@@ -1043,15 +1178,7 @@ fixed4 ComputeCloudColorVolumetric(float3 rayDir, float4 uv, float depth)
 	rayLength = lerp(min(rayLength, depth - distanceToSphere), rayLength, depth < distanceToSphere);
 	uint marches = 0;
 	float opticalDepth = 1.0;
-	fixed3 skyColor = volumetricCloudAmbientColorSky;
-	fixed3 backgroundSkyColor = fixed3Zero;
-
-	UNITY_BRANCH
-	if (_CloudBackgroundSkyIntensityVolumetric > 0.001)
-	{
-		backgroundSkyColor = (_CloudBackgroundSkyIntensityVolumetric * CalculateSkyColorUnityStyleFragment(skyRay).rgb);
-		skyColor += backgroundSkyColor;
-	}
+	fixed3 skyColor = volumetricCloudAmbientColorSky + backgroundSkyColor;
 
 	UNITY_BRANCH
 	if (iterations > 0)
@@ -1062,11 +1189,11 @@ fixed4 ComputeCloudColorVolumetric(float3 rayDir, float4 uv, float depth)
 		{
 			float intensity = _WeatherMakerDirLightColor[lightIndex].a;
 			float eyeDot = dot(rayDir, _WeatherMakerDirLightPosition[lightIndex].xyz);
-			dirLightPrecomputedValues[lightIndex] = float4
+			_dirLightPrecomputedValues[lightIndex] = float4
 			(
 				max(0.0, eyeDot),
 				max(intensity, max(0.33, (eyeDot + 1.0) * 0.5) * _WeatherMakerDirLightVar1[lightIndex].w),
-				dirLightPrecomputedValues[lightIndex].z = min(intensity, intensity * intensity),
+				_dirLightPrecomputedValues[lightIndex].z = min(intensity, intensity * intensity),
 				0.0
 			);
 		}
@@ -1104,79 +1231,131 @@ fixed4 ComputeCloudColorVolumetric(float3 rayDir, float4 uv, float depth)
 
 #endif // WEATHER_MAKER_ENABLE_VOLUMETRIC_CLOUDS
 
-float ComputeCloudShadowStrength(float3 worldPos, uint dirIndex)
+float ComputeCloudShadowStrength(float3 worldPos, uint dirIndex, float existingShadow, bool sampleDetails)
 {
+	float shadowValue = min(existingShadow, weatherMakerGlobalShadow);
+	float maxShadow = _WeatherMakerDirLightPower[dirIndex].w;
+
 	UNITY_BRANCH
-	if (weatherMakerGlobalShadow <= 0.0)
+	if (shadowValue > maxShadow && _WeatherMakerShadowsEnabled)
 	{
-		return weatherMakerGlobalShadow;
-	}
-	else
-	{
-		float shadowValue = weatherMakerGlobalShadow;
 
 #if defined(WEATHER_MAKER_ENABLE_VOLUMETRIC_CLOUDS)
 
 		// take advantage of the fact that dir lights are supported by perspective/ortho and then by intensity
 		UNITY_BRANCH
-		if (_CloudVolumetricShadowSampleCount > 0 && _WeatherMakerShadowsEnabled && shadowValue > 0.0 && _CloudCoverVolumetric > 0.01 && dirIndex < uint(_WeatherMakerDirLightCount) &&
-			_WeatherMakerDirLightVar1[dirIndex].y == 0.0 && _WeatherMakerDirLightColor[dirIndex].a > 0.001)
+		if (_WeatherMakerCloudVolumetricShadowSampleCount > 0 && dirIndex < uint(_WeatherMakerDirLightCount) &&
+			_WeatherMakerDirLightVar1[dirIndex].y == 0.0 && _WeatherMakerDirLightColor[dirIndex].a > 0.0)
 		{
-			// TODO: Does this work in cubemap?
-			//return fmod(round(abs(pos.x)), 2.0) * fmod(round(abs(pos.z)), 2.0);
-			float3 startPos, startPos2;
-			float rayLength, rayLength2;
-			float distanceToSphere, distanceToSphere2;
 			float3 rayDir = _WeatherMakerDirLightPosition[dirIndex].xyz;
-			float3 cloudRayDir = normalize(float3(rayDir.x, rayDir.y + _CloudRayOffsetVolumetric, rayDir.z));
-			SetupCloudRaymarch(worldPos, cloudRayDir, 10000000.0, 0.0, volumetricSphereInner, volumetricSphereOutter,
-				startPos, rayLength, distanceToSphere, startPos2, rayLength2, distanceToSphere2);
+			float worldPosDistance = distance(worldPos, _WorldSpaceCameraPos);
+			float worldPosDistance01 = worldPosDistance * _ProjectionParams.w;
+			float fade = 1.0 - (min(1.0, worldPosDistance01 * _WeatherMakerCloudShadowDistanceFade) * max(0.0, rayDir.y * 2.0));
 
 			UNITY_BRANCH
-			if (rayLength > 0.01)
+			if (fade > 0.01)
 			{
-				#define VOLUMETRIC_CLOUD_SHADOW_SAMPLE_COUNT 8.0
-				#define VOLUMETRIC_CLOUD_SHADOW_SAMPLE_COUNT_INV (0.9 / VOLUMETRIC_CLOUD_SHADOW_SAMPLE_COUNT)
+				float3 startPos, startPos2;
+				float rayLength, rayLength2;
+				float distanceToSphere, distanceToSphere2;
+				float rayY = max(0.15, rayDir.y + _CloudRayOffsetVolumetric);
+				float3 cloudRayDir = normalize(float3(rayDir.x, rayY, rayDir.z));
+				SetupCloudRaymarch(worldPos, cloudRayDir, 10000000.0, 0.0, volumetricSphereInner, volumetricSphereOutter,
+					startPos, rayLength, distanceToSphere, startPos2, rayLength2, distanceToSphere2);
 
-				float maxShadow = max(_CloudShadowMapMinimum, _WeatherMakerDirLightPower[dirIndex].w);
 				float cloudCoverage = 0.0;
 				float3 marchPos = startPos;
 				float heightFrac;
 				float4 weatherData;
 				float cloudType;
 				float dither = RandomFloat(worldPos);
+				float randomDither = 1.0 + (_WeatherMakerCloudVolumetricShadowDither * dither);
 				float3 marchDir = rayDir * min(VOLUMETRIC_CLOUD_SHADOW_MAX_RAY_LENGTH, rayLength) * volumetricCloudShadowSampleCountInv;
-				float randomDither = 1.0 + (VOLUMETRIC_CLOUD_SHADOW_DITHER * dither);
-				marchDir *= randomDither; // dither march dir slightly to avoid banding
-
-#define VOLUMETRIC_CLOUD_SAMPLE_SHADOW(marchPos) \
-				heightFrac = GetCloudHeightFractionForPoint(marchPos); \
-				weatherData = CloudVolumetricSampleWeather(marchPos, 1.0); \
-				cloudType = CloudVolumetricGetCloudType(weatherData); \
-				cloudCoverage += (randomDither * volumetricCloudNoiseScalar * CloudVolumetricGetCoverage(weatherData) * GetDensityHeightGradientForHeight(heightFrac, cloudType));
+				fixed lod = max(0.0, (worldPosDistance01 - 0.333)) * 4.0;
+				fixed lodMap = (worldPosDistance01 * 4.0);
+				float samp;
 
 				UNITY_LOOP
-				for (uint i = 0; i < _CloudVolumetricShadowSampleCount && cloudCoverage < 0.99; i++)
+				for (uint i = 0; i < _WeatherMakerCloudVolumetricShadowSampleCount && cloudCoverage < 0.999; i++)
 				{
 					marchPos += marchDir;
-					VOLUMETRIC_CLOUD_SAMPLE_SHADOW(marchPos);
+					heightFrac = GetCloudHeightFractionForPoint(marchPos);
+					weatherData = CloudVolumetricSampleWeatherGaussian17(marchPos, lodMap);
+					cloudType = CloudVolumetricGetCloudType(weatherData);
+					samp = (CloudVolumetricGetCoverage(weatherData) * GetDensityHeightGradientForHeight(heightFrac, cloudType));
+					//samp = SampleCloudDensity(marchPos, weatherData, heightFrac, lod, true);
+					samp += _CloudShadowMapAdder;
+					samp *= _CloudShadowMapMultiplier;// *volumetricCloudNoiseShadowScalar;
+					samp = saturate(samp);
+					samp = pow(samp, _CloudShadowMapPower);
+					samp *= randomDither;
+					cloudCoverage += samp;
 				}
 
-				cloudCoverage = min(1.0, cloudCoverage);
+				fixed flatCoverage = ComputeFlatCloudShadows(rayDir, worldPos);
+				cloudCoverage = min(1.0, cloudCoverage + flatCoverage);
+				fixed cloudCoverageSquared = cloudCoverage * cloudCoverage;
+
+				// apply cloud detail shadows if desired
+				UNITY_BRANCH
+				if (sampleDetails && cloudCoverageSquared > 0.0 && volumetricCloudShadowDetailIntensity > 0.0)
+				{
+					fixed cloudShadowDetailSample = min(1.0, tex2Dlod(_WeatherMakerCloudShadowDetailTexture, float4((worldPos.xz + _CloudCoverageVelocity.xz + _CloudCoverageOffset.xz) * _WeatherMakerCloudShadowDetailScale, 0.0, lod)).a);
+					cloudShadowDetailSample = min(volumetricCloudMaxShadow, saturate(3.0 * (cloudCoverage - 0.1)) * cloudShadowDetailSample * volumetricCloudShadowDetailIntensity);
+					cloudShadowDetailSample = lerp(cloudShadowDetailSample, cloudCoverage, volumetricCloudShadowDetailFalloff);
+					cloudCoverage = max(cloudCoverage, cloudShadowDetailSample);
+				}
+				cloudCoverage *= fade * randomDither;
+				cloudCoverage = 1.0 - cloudCoverage;
+				shadowValue = min(shadowValue, max(cloudCoverage, maxShadow));
+
+				/*
+				float maxShadow = _WeatherMakerDirLightPower[dirIndex].w;
+				float3 tenPercent = rayDir * rayLength * 0.1;
+				float3 fiftyPercent = rayDir * rayLength * 0.5;
+				float3 ninetyPercent = rayDir * rayLength * 0.9;
+
+				// sample at 10, 50 and 90 percent ray length and take the max coverage for shadows
+				float3 marchPos = startPos + tenPercent;
+				float heightFrac = GetCloudHeightFractionForPoint(marchPos);
+				float4 weatherData = CloudVolumetricSampleWeather(marchPos, 0.0);
+				float cloudType = CloudVolumetricGetCloudType(weatherData);
+				float cloudCoverage = CloudVolumetricGetCoverage(weatherData) * GetDensityHeightGradientForHeight(heightFrac, cloudType);
+
+				marchPos = startPos + fiftyPercent;
+				heightFrac = GetCloudHeightFractionForPoint(marchPos);
+				weatherData = CloudVolumetricSampleWeather(marchPos, 0.0);
+				cloudType = CloudVolumetricGetCloudType(weatherData);
+				cloudCoverage += (CloudVolumetricGetCoverage(weatherData) * GetDensityHeightGradientForHeight(heightFrac, cloudType), cloudCoverage);
+
+				marchPos = startPos + ninetyPercent;
+				heightFrac = GetCloudHeightFractionForPoint(marchPos);
+				weatherData = CloudVolumetricSampleWeather(marchPos, 0.0);
+				cloudType = CloudVolumetricGetCloudType(weatherData);
+				cloudCoverage += (CloudVolumetricGetCoverage(weatherData) * GetDensityHeightGradientForHeight(heightFrac, cloudType), cloudCoverage);
+
+				cloudCoverage *= 0.33 * _CloudDensityVolumetric * max(0.5, cloudType);
+
+#if defined(VOLUMETRIC_CLOUD_SHADOW_DITHER)
+
+				cloudCoverage *= (1.0 + (VOLUMETRIC_CLOUD_SHADOW_DITHER * RandomFloat(marchPos)));
+
+#endif
+
 				cloudCoverage += _CloudShadowMapAdder;
 				cloudCoverage *= _CloudShadowMapMultiplier;
 				cloudCoverage = pow(cloudCoverage, _CloudShadowMapPower);
 				cloudCoverage = min(_WeatherMakerCloudVolumetricShadow, (1.0 - saturate(cloudCoverage * _WeatherMakerDirLightPower[dirIndex].z)));
-				shadowValue = clamp(cloudCoverage, maxShadow, _CloudShadowMapMaximum);
+				shadowValue = max(cloudCoverage, maxShadow);
+				*/
 			}
-
-			shadowValue = min(weatherMakerGlobalShadow, shadowValue);
 		}
 
 #endif
 
-		return shadowValue;
 	}
+
+	return shadowValue;
 }
 
 #endif // __WEATHER_MAKER_CLOUD_SHADER__

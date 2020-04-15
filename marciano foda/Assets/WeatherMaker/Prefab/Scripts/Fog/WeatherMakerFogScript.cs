@@ -221,7 +221,10 @@ namespace DigitalRuby.WeatherMaker
                 initialized = true;
             }
             UpdateFogMaterialFromProfile();
-            FogProfile.Update();
+            if (FogProfile != null)
+            {
+                FogProfile.Update();
+            }
         }
 
         protected virtual void OnDestroy()

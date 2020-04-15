@@ -44,7 +44,8 @@ Shader "WeatherMaker/WeatherMakerFullScreenFogShader"
 		#pragma target 3.5
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
-		
+
+		#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
 
 		ENDCG
 
@@ -66,9 +67,9 @@ Shader "WeatherMaker/WeatherMakerFullScreenFogShader"
 				#define WEATHER_MAKER_IS_FULL_SCREEN_EFFECT
 				#define NULL_ZONE_RENDER_MASK 2 // fog is 2
 
-				#include "WeatherMakerFogShaderInclude.cginc"
+				#include "WeatherMakerFogVertFragShaderInclude.cginc"
 
-				#define WEATHER_MAKER_TEMPORAL_REPROJECTION_FRAGMENT_TYPE full_screen_fragment
+				#define WEATHER_MAKER_TEMPORAL_REPROJECTION_FRAGMENT_TYPE wm_full_screen_fragment
 				#define WEATHER_MAKER_TEMPORAL_REPROJECTION_FRAGMENT_FUNC fog_box_full_screen_fragment_shader
 				#define WEATHER_MAKER_TEMPORAL_REPROJECTION_BLEND_FUNC blendFogTemporal
 				#define WEATHER_MAKER_TEMPORAL_REPROJECTION_OFF_SCREEN_FUNC offScreenFogTemporal
@@ -80,12 +81,12 @@ Shader "WeatherMaker/WeatherMakerFullScreenFogShader"
 				// leave commented out unless testing performance, red areas are full shader runs, try to minimize these
 				// #define WEATHER_MAKER_TEMPORAL_REPROJECTION_SHOW_OVERDRAW fixed4(1,0,0,1)
 
-				inline fixed4 blendFogTemporal(fixed4 prev, fixed4 cur, fixed4 diff, float4 uv, full_screen_fragment i);
-				inline fixed4 offScreenFogTemporal(fixed4 prev, fixed4 cur, float4 uv, full_screen_fragment i);
+				inline fixed4 blendFogTemporal(fixed4 prev, fixed4 cur, fixed4 diff, float4 uv, wm_full_screen_fragment i);
+				inline fixed4 offScreenFogTemporal(fixed4 prev, fixed4 cur, float4 uv, wm_full_screen_fragment i);
 
 				#include "WeatherMakerTemporalReprojectionShaderInclude.cginc"
 
-				inline fixed4 blendFogTemporal(fixed4 prev, fixed4 cur, fixed4 diff, float4 uv, full_screen_fragment i)
+				inline fixed4 blendFogTemporal(fixed4 prev, fixed4 cur, fixed4 diff, float4 uv, wm_full_screen_fragment i)
 				{
 
 #if defined(WEATHER_MAKER_TEMPORAL_REPROJECTION_NEIGHBORHOOD_CLAMPING)
@@ -142,7 +143,7 @@ Shader "WeatherMaker/WeatherMakerFullScreenFogShader"
 					return prev;
 				}
 
-				inline fixed4 offScreenFogTemporal(fixed4 prev, fixed4 cur, float4 uv, full_screen_fragment i)
+				inline fixed4 offScreenFogTemporal(fixed4 prev, fixed4 cur, float4 uv, wm_full_screen_fragment i)
 				{
 
 #if defined(WEATHER_MAKER_TEMPORAL_REPROJECTION_SHOW_OVERDRAW)
@@ -172,7 +173,7 @@ Shader "WeatherMaker/WeatherMakerFullScreenFogShader"
 
 				#include "WeatherMakerCoreShaderInclude.cginc"
 
-				float4 frag(full_screen_fragment i) : SV_Target
+				float4 frag(wm_full_screen_fragment i) : SV_Target
 				{ 
 					WM_INSTANCE_FRAG(i);
 
@@ -182,22 +183,68 @@ Shader "WeatherMaker/WeatherMakerFullScreenFogShader"
 				ENDCG
 			}
 
-			/*
-			// special effect fog pass, implement later
+			// fog ray render pass
 			Pass
 			{
 				Blend One Zero
-				ZWrite Off
-				ColorMask 0
+
+				CGPROGRAM
+
+				#define WEATHER_MAKER_IS_FULL_SCREEN_EFFECT
+				#include "WeatherMakerFogShaderInclude.cginc"
+
+				#pragma vertex full_screen_vertex_shader
+				#pragma fragment frag
+				#pragma multi_compile_instancing
+
+				fixed4 frag(wm_full_screen_fragment i) : SV_Target
+				{ 
+					WM_INSTANCE_FRAG(i);
+
+					fixed3 shaftColor = fixed3Zero;
+
+					// take advantage of the fact that dir lights are sorted by perspective/ortho and then by intensity
+					UNITY_LOOP
+					for (uint lightIndex = 0;
+						lightIndex < uint(_WeatherMakerDirLightCount) &&
+						_WeatherMakerDirLightVar1[lightIndex].y == 0.0 &&
+						_WeatherMakerDirLightColor[lightIndex].a > 0.001 &&
+						_WeatherMakerDirLightVar1[lightIndex].z > 0.001; lightIndex++)
+					{
+						shaftColor.rgb += ComputeDirLightShaftColor(i.uv.xy, 0.01, _WeatherMakerDirLightViewportPosition[lightIndex],
+							_WeatherMakerFogColor * _WeatherMakerDirLightColor[lightIndex] * _WeatherMakerDirLightVar1[lightIndex].z,
+							fixed4One);
+
+					}
+					return fixed4(shaftColor, 0.0);
+				}
+
+				ENDCG
 			}
-			// special effect blit fog pass, implement later
+
+			// fog ray blit pass
 			Pass
 			{
 				Blend One One
-				ZWrite Off
-				ColorMask 0
+
+				CGPROGRAM
+
+				#define WEATHER_MAKER_IS_FULL_SCREEN_EFFECT
+				#include "WeatherMakerFogShaderInclude.cginc"
+
+				#pragma vertex full_screen_vertex_shader
+				#pragma fragment frag
+				#pragma multi_compile_instancing
+
+				fixed4 frag(wm_full_screen_fragment i) : SV_Target
+				{ 
+					WM_INSTANCE_FRAG(i);
+
+					return WM_SAMPLE_FULL_SCREEN_TEXTURE(_MainTex4, i.uv);
+				}
+
+				ENDCG
 			}
-			*/
 		}
 	}
 	Fallback "VertexLit"

@@ -28,10 +28,14 @@ Shader "WeatherMaker/WeatherMakerFullScreenBlurShader"
 		_BlurDitherLevel("Blur dither level", Range(0.0, 1.0)) = 0.0004
 		_BlurDepthFade("Blur depth fade", Range(0.0, 1.0)) = 1.0
 		_BlurDepthPower("Blur depth power", Range(0.0, 4.0)) = 1.0
+		_BlurNeedsSourceDepth("Blur needs source depth", Int) = 1
+		_Blur7("Blur 7 tap, 0 for 17 tap", Int) = 0
+		_BlendOp("Blend Op", Int) = 0
 	}
 	SubShader
 	{
 		Cull Off ZWrite Off ZTest[_ZTest]
+		BlendOp[_BlendOp]
 		Blend[_SrcBlendMode][_DstBlendMode]
 
 		CGINCLUDE
@@ -39,23 +43,23 @@ Shader "WeatherMaker/WeatherMakerFullScreenBlurShader"
 		#pragma target 3.5
 		#pragma exclude_renderers gles
 		#pragma exclude_renderers d3d9
-		
-
 		#pragma fragmentoption ARB_precision_hint_fastest
 		#pragma multi_compile_instancing
 
 		#define WEATHER_MAKER_IS_FULL_SCREEN_EFFECT
+		#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
 
 		#include "WeatherMakerCoreShaderInclude.cginc"
 
 		UNITY_DECLARE_DEPTH_TEXTURE(_WeatherMakerTemporaryDepthTexture);
 
-		float _Blur7;
 		float _BlurDepthMin;
 		float _BlurAlphaMin;
 		float _BlurDitherLevel;
 		float _BlurDepthFade;
 		float _BlurDepthPower;
+		int _Blur7;
+		int _BlurNeedsSourceDepth;
 
 		struct v2f
 		{
@@ -106,14 +110,14 @@ Shader "WeatherMaker/WeatherMakerFullScreenBlurShader"
 			{
 				WM_INSTANCE_FRAG(i);
 
-				float sourceDepth = (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(_WeatherMakerTemporaryDepthTexture, i.uv))); // already linear 0 - 1
 				float sceneDepth = WM_LINEAR_DEPTH_01(UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv)));
-				float multiplier = lerp(pow(saturate(((sceneDepth * _ProjectionParams.z) - (sourceDepth * _ProjectionParams.z)) * _BlurDepthFade), _BlurDepthPower), 1.0, sceneDepth >= 1.0);
+				float sourceDepth = (_BlurNeedsSourceDepth ? (UNITY_SAMPLE_DEPTH(SAMPLE_DEPTH_TEXTURE(_WeatherMakerTemporaryDepthTexture, i.uv))) : sceneDepth); // already linear 0 - 1
+				float multiplier = (_BlurNeedsSourceDepth ? lerp(pow(saturate(((sceneDepth * _ProjectionParams.z) - (sourceDepth * _ProjectionParams.z)) * _BlurDepthFade), _BlurDepthPower), 1.0, sceneDepth >= 1.0) : 1.0);
 
 				//return fixed4(sourceDepth.rrr - sceneDepth.rrr, 1.0);
 
 				UNITY_BRANCH
-				if (sceneDepth < sourceDepth - 0.01)
+				if (_BlurNeedsSourceDepth && sceneDepth < sourceDepth - 0.01)
 				{
 					// occluded pixel
 					return fixed4Zero;

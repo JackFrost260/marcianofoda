@@ -112,9 +112,8 @@ namespace DigitalRuby.WeatherMaker
                 WeatherMakerFullScreenCloudsScript s = WeatherMakerFullScreenCloudsScript.Instance;
                 if (s != null && s.CloudProfile != null)
                 {
-                    
-                    s.CloudProfile.CloudHeight = m.CloudMinHeight;
-                    s.CloudProfile.CloudHeightTop = m.CloudMaxHeight;
+                    s.CloudProfile.CloudHeight.LastValue = m.CloudMinHeight;
+                    s.CloudProfile.CloudHeightTop.LastValue = m.CloudMaxHeight;
                     if (s.CloudProfile.CloudLayerVolumetric1 != null && WeatherMakerScript.Instance.PerformanceProfile.EnableVolumetricClouds)
                     {
                         s.CloudProfile.WeatherMapCloudCoverageVelocity = CloudDirection * m.CloudSpeed;

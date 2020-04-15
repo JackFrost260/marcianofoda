@@ -653,9 +653,14 @@ namespace DigitalRuby.WeatherMaker
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             const float textFieldWidth = 44;
+            MinMaxSliderAttribute attr = attribute as MinMaxSliderAttribute;
+            if (attr != null)
+            {
+                label.tooltip = attr.tooltip;
+            }
             EditorGUI.BeginProperty(position, label, property);
             position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
-            if (property.propertyType == SerializedPropertyType.Generic && (property.type == "RangeOfFloats" || property.type == "RangeOfIntegers"))
+            if (attr != null && property.propertyType == SerializedPropertyType.Generic && (property.type == "RangeOfFloats" || property.type == "RangeOfIntegers"))
             {
                 int indent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = 0;
@@ -709,7 +714,6 @@ namespace DigitalRuby.WeatherMaker
                     }
                 }
 
-                MinMaxSliderAttribute attr = attribute as MinMaxSliderAttribute;
                 label.tooltip = attr.tooltip;
                 Rect sliderPos = position;
                 float sliderX = textFieldWidth + textFieldWidth + 16.0f;

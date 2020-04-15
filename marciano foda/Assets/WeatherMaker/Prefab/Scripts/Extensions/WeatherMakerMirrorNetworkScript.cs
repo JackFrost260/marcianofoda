@@ -62,7 +62,7 @@ namespace DigitalRuby.WeatherMaker
 
             if (WeatherMakerScript.Instance != null)
             {
-                WeatherMakerScript.Instance.WeatherProfileChanged -= WeatherProfileChanged;
+                WeatherMakerScript.Instance.WeatherProfileChangedEvent -= WeatherProfileChanged;
                 WeatherMakerScript.Instance.HasHadWeatherTransition = false;
                 lastTimeOfDay = System.DateTime.MinValue;
             }
@@ -169,15 +169,24 @@ namespace DigitalRuby.WeatherMaker
         }
 
         [TargetRpc]
-        private void TargetRpcWeatherProfileChanged(NetworkConnection conn, string oldName, string newName, float transitionDuration)
+        private void TargetRpcWeatherProfileChanged(NetworkConnection conn, string oldProfileName, string oldProfileJson, string newProfileName, string newProfileJson, float transitionDuration)
         {
             if (netId != 0 && isClient && WeatherMakerScript.Instance != null)
             {
-                WeatherMakerProfileScript oldProfile = Resources.Load<WeatherMakerProfileScript>(oldName);
-                WeatherMakerProfileScript newProfile = Resources.Load<WeatherMakerProfileScript>(newName);
-
                 // notify any listeners of the change - hold duration is -1.0 meaning the server will send another profile when it is ready (hold duration unknown to client)
-                WeatherMakerScript.Instance.RaiseWeatherProfileChanged(oldProfile, newProfile, transitionDuration, -1.0f, true, null);
+                WeatherMakerProfileScript oldProfileFromJson = null;
+                WeatherMakerProfileScript newProfileFromJson = null;
+                if (oldProfileName != null && oldProfileJson != null)
+                {
+                    oldProfileFromJson = GameObject.Instantiate(Resources.Load<WeatherMakerProfileScript>(oldProfileName));
+                    JsonUtility.FromJsonOverwrite(oldProfileJson, oldProfileFromJson);
+                }
+                if (newProfileName != null && newProfileJson != null)
+                {
+                    newProfileFromJson = GameObject.Instantiate(Resources.Load<WeatherMakerProfileScript>(newProfileName));
+                    JsonUtility.FromJsonOverwrite(newProfileJson, newProfileFromJson);
+                }
+                WeatherMakerScript.Instance.RaiseWeatherProfileChanged(oldProfileFromJson, newProfileFromJson, transitionDuration, -1.0f, true, null);
             }
         }
 
@@ -185,8 +194,8 @@ namespace DigitalRuby.WeatherMaker
         {
             base.OnStartServer();
 
-            WeatherMakerScript.Instance.WeatherProfileChanged -= WeatherProfileChanged;
-            WeatherMakerScript.Instance.WeatherProfileChanged += WeatherProfileChanged;
+            WeatherMakerScript.Instance.WeatherProfileChangedEvent -= WeatherProfileChanged;
+            WeatherMakerScript.Instance.WeatherProfileChangedEvent += WeatherProfileChanged;
         }
 
         public override void OnStartLocalPlayer()
@@ -216,30 +225,30 @@ namespace DigitalRuby.WeatherMaker
 			
 #if MIRROR_NETWORKING_PRESENT
 
-            NetworkIdentity id = obj.GetComponentInChildren<NetworkIdentity>();
-            if (id == null && obj.transform.parent != null)
+            if (obj != null)
             {
-                id = obj.parent.GetComponent<NetworkIdentity>();
+                NetworkIdentity id = obj.GetComponentInChildren<NetworkIdentity>();
+                if (id == null && obj.transform.parent != null)
+                {
+                    id = obj.parent.GetComponent<NetworkIdentity>();
+                }
+                if (id == null || (id.connectionToServer == null && id.connectionToClient == null))
+                {
+                    return null;
+                }
+                else if (id.connectionToClient != null)
+                {
+                    return id.connectionToClient.connectionId.ToString(CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    return id.connectionToServer.connectionId.ToString(CultureInfo.InvariantCulture);
+                }
             }
-            if (id == null || (id.connectionToServer == null && id.connectionToClient == null))
-            {
-                return null;
-            }
-            else if (id.connectionToClient != null)
-            {
-                return id.connectionToClient.connectionId.ToString(CultureInfo.InvariantCulture);
-            }
-            else
-            {
-                return id.connectionToServer.connectionId.ToString(CultureInfo.InvariantCulture);
-            }
-
-#else
-
-            return "0";
 
 #endif
 
+            return "0";
         }
 
         private void WeatherProfileChanged(WeatherMakerProfileScript oldProfile, WeatherMakerProfileScript newProfile, float transitionDuration, string[] connectionIds)
@@ -257,6 +266,8 @@ namespace DigitalRuby.WeatherMaker
             {
                 string oldProfileName = (oldProfile == null ? null : oldProfile.name.Replace("(Clone)", string.Empty).Trim());
                 string newProfileName = (newProfile == null ? null : newProfile.name.Replace("(Clone)", string.Empty).Trim());
+                string oldProfileJson = (oldProfile == null ? null : JsonUtility.ToJson(oldProfile));
+                string newProfileJson = (newProfile == null ? null : JsonUtility.ToJson(newProfile));
                 Dictionary<int, NetworkConnection> connections = NetworkServer.connections;
                 foreach (string connectionId in connectionIds)
                 {
@@ -264,7 +275,7 @@ namespace DigitalRuby.WeatherMaker
                     int connectionIdInt;
                     if (int.TryParse(connectionId, out connectionIdInt) && connections.TryGetValue(connectionIdInt, out conn))
                     {
-                        TargetRpcWeatherProfileChanged(conn, oldProfileName, newProfileName, transitionDuration);
+                        TargetRpcWeatherProfileChanged(conn, oldProfileName, oldProfileJson, newProfileName, newProfileJson, transitionDuration);
                     }
                 }
             }

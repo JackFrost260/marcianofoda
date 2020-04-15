@@ -14,6 +14,7 @@ CGINCLUDE
 #pragma exclude_renderers gles
 #pragma exclude_renderers d3d9
 
+#define WEATHER_MAKER_ENABLE_TEXTURE_DEFINES
 
 UNITY_DECLARE_SHADOWMAP(_ShadowMapTexture);
 float4 _ShadowMapTexture_TexelSize;
@@ -22,22 +23,9 @@ sampler2D _ODSWorldTexture;
 
 #include "UnityCG.cginc"
 #include "UnityShadowLibrary.cginc"
-#include "WeatherMakerCloudVolumetricShaderInclude.cginc"
+#include "WeatherMakerFogExternalShaderInclude.cginc"
 
 // Configuration
-
-float ComputeWeatherMakerShadows(float depth01, float3 worldPos)
-{
-	if (depth01 < 0.99)
-	{
-		return ComputeCloudShadowStrength(worldPos, 0);
-	}
-	else
-	{
-		return weatherMakerGlobalShadow;
-	}
-}
-
 // Should receiver plane bias be used? This estimates receiver slope using derivatives,
 // and tries to tilt the PCF kernel along it. However, since we're doing it in screenspace
 // from the depth texture, the derivatives are wrong on edges or intersections of objects,
@@ -196,8 +184,7 @@ fixed4 frag_hard (v2f i) : SV_Target
     fixed shadow = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, shadowCoord);
     shadow = lerp(_LightShadowData.r, 1.0, shadow);
 
-    fixed4 res = min(ComputeWeatherMakerShadows(GetDepth01(i.uv.xy), wpos.xyz), shadow);
-    return res;
+    return ComputeWeatherMakerShadows(wpos.xyz, shadow, true);
 }
 
 /**
@@ -228,7 +215,7 @@ fixed4 frag_pcfSoft(v2f i) : SV_Target
     // as it would be in first cascade; otherwise derivatives
     // at cascade boundaries will be all wrong. So compute
     // it from cascade 0 UV, and scale based on which cascade we're in.
-    float3 coordCascade0 = getShadowCoord_SingleCascade(wpos);
+    float3 coordCascade0 = wm_getShadowCoord_SingleCascade(wpos);
     float biasMultiply = dot(cascadeWeights,unity_ShadowCascadeScales);
     receiverPlaneDepthBias = UnityGetReceiverPlaneDepthBias(coordCascade0.xyz, biasMultiply);
 #endif
@@ -268,7 +255,7 @@ fixed4 frag_pcfSoft(v2f i) : SV_Target
     }
 #endif
 
-    return min(ComputeWeatherMakerShadows(GetDepth01(i.uv.xy), wpos.xyz), shadow);
+    return ComputeWeatherMakerShadows(wpos.xyz, shadow, true);
 }
 ENDCG
 

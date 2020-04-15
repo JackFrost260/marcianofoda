@@ -31,6 +31,10 @@ namespace DigitalRuby.WeatherMaker
         [Tooltip("Texture size (width, height, depth)")]
         public int Size = 128;
 
+        [Range(1, 1024)]
+        [Tooltip("Count of slices")]
+        public int Count = 128;
+
         [Range(0.0f, 1.0f)]
         [Tooltip("Step size (z direction, 0 for auto based on size)")]
         public float Step = 0.0f;
