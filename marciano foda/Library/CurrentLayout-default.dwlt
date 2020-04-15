@@ -21,7 +21,7 @@ MonoBehaviour:
   m_ShowMode: 4
   m_Title: 
   m_RootView: {fileID: 7}
-  m_MinSize: {x: 875, y: 542}
+  m_MinSize: {x: 875, y: 392}
   m_MaxSize: {x: 10000, y: 10000}
   m_Maximized: 1
 --- !u!114 &2
@@ -34,25 +34,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 12006, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: ProjectBrowser
+  m_Name: InspectorWindow
   m_EditorClassIdentifier: 
   m_Children: []
   m_Position:
     serializedVersion: 2
     x: 0
-    y: 558
+    y: 606
     width: 964
-    height: 389
-  m_MinSize: {x: 231, y: 271}
-  m_MaxSize: {x: 10001, y: 10021}
-  m_ActualView: {fileID: 18}
+    height: 341
+  m_MinSize: {x: 276, y: 121}
+  m_MaxSize: {x: 4001, y: 4021}
+  m_ActualView: {fileID: 11}
   m_Panes:
   - {fileID: 18}
   - {fileID: 23}
   - {fileID: 13}
   - {fileID: 11}
-  m_Selected: 0
-  m_LastSelected: 1
+  m_Selected: 3
+  m_LastSelected: 2
 --- !u!114 &3
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -74,10 +74,10 @@ MonoBehaviour:
     y: 0
     width: 964
     height: 947
-  m_MinSize: {x: 231, y: 492}
-  m_MaxSize: {x: 10001, y: 14042}
+  m_MinSize: {x: 276, y: 342}
+  m_MaxSize: {x: 4001, y: 8042}
   vertical: 1
-  controlID: 57
+  controlID: 16
 --- !u!114 &4
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -127,14 +127,19 @@ MonoBehaviour:
     width: 1920
     height: 947
 <<<<<<< HEAD
+<<<<<<< HEAD
   m_MinSize: {x: 804, y: 492}
   m_MaxSize: {x: 18004, y: 14042}
 =======
   m_MinSize: {x: 708, y: 492}
   m_MaxSize: {x: 18003, y: 14042}
 >>>>>>> parent of 30a70a7e... FixPrefab
+=======
+  m_MinSize: {x: 1199, y: 342}
+  m_MaxSize: {x: 12004, y: 8042}
+>>>>>>> parent of 75a1f084... Cercas + Narrativa
   vertical: 0
-  controlID: 56
+  controlID: 15
 --- !u!114 &6
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -145,7 +150,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 1
   m_Script: {fileID: 12006, guid: 0000000000000000e000000000000000, type: 0}
+<<<<<<< HEAD
   m_Name: WelcomeWindow
+=======
+  m_Name: DialogueEditorWindow
+>>>>>>> parent of 75a1f084... Cercas + Narrativa
   m_EditorClassIdentifier: 
   m_Children: []
   m_Position:
@@ -155,6 +164,7 @@ MonoBehaviour:
     width: 753
     height: 947
 <<<<<<< HEAD
+<<<<<<< HEAD
   m_MinSize: {x: 371, y: 301}
   m_MaxSize: {x: 4001, y: 4021}
   m_ActualView: {fileID: 16}
@@ -163,13 +173,22 @@ MonoBehaviour:
   m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 19}
 >>>>>>> parent of 30a70a7e... FixPrefab
+=======
+  m_MinSize: {x: 721, y: 261}
+  m_MaxSize: {x: 4001, y: 4021}
+  m_ActualView: {fileID: 12}
+>>>>>>> parent of 75a1f084... Cercas + Narrativa
   m_Panes:
   - {fileID: 19}
   - {fileID: 16}
   - {fileID: 15}
   - {fileID: 12}
   - {fileID: 14}
+<<<<<<< HEAD
   m_Selected: 1
+=======
+  m_Selected: 3
+>>>>>>> parent of 75a1f084... Cercas + Narrativa
   m_LastSelected: 0
 --- !u!114 &7
 MonoBehaviour:
@@ -193,7 +212,7 @@ MonoBehaviour:
     y: 0
     width: 1920
     height: 997
-  m_MinSize: {x: 875, y: 542}
+  m_MinSize: {x: 875, y: 392}
   m_MaxSize: {x: 10000, y: 10000}
 --- !u!114 &8
 MonoBehaviour:
@@ -256,7 +275,7 @@ MonoBehaviour:
     x: 0
     y: 0
     width: 964
-    height: 558
+    height: 606
   m_MinSize: {x: 201, y: 221}
   m_MaxSize: {x: 4001, y: 4021}
   m_ActualView: {fileID: 21}
@@ -288,9 +307,9 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 744
+    y: 679
     width: 963
-    height: 255
+    height: 320
   m_ViewDataDictionary: {fileID: 0}
   m_OpenAddComponentMenu: 0
   m_ObjectsLockedBeforeSerialization: []
@@ -302,7 +321,7 @@ MonoBehaviour:
     m_ControlHash: 1412526313
     m_PrefName: Preview_InspectorPreview
   m_PreviewWindow: {fileID: 0}
-  m_LastInspectedObjectInstanceID: -32306
+  m_LastInspectedObjectInstanceID: -1
   m_LastVerticalScrollValue: 0
 --- !u!114 &12
 MonoBehaviour:
@@ -337,7 +356,7 @@ MonoBehaviour:
   actorFilter: 
   actorListSelectedIndex: -1
   showNodeEditor: 1
-  currentConversationID: 2
+  currentConversationID: 1
   globalSearchText: 
   globalReplaceText: 
   globalSearchSpecificConversation: 0
@@ -369,14 +388,14 @@ MonoBehaviour:
   isSearchBarOpen: 0
   searchString: 
   searchCaseSensitive: 0
-  currentEntryID: 12
+  currentEntryID: 1
   itemFoldouts:
     propertiesKeys: 
     propertiesValues: 
-    fieldsKeys: 000000000100000002000000
-    fieldsValues: 010000
+    fieldsKeys: 0000000001000000
+    fieldsValues: 0100
   itemFilter: 
-  itemListSelectedIndex: 2
+  itemListSelectedIndex: 0
   localizationLanguages:
     languages: []
     outputFolder: 
@@ -388,7 +407,7 @@ MonoBehaviour:
   locationFilter: 
   locationListSelectedIndex: -1
   toolbar:
-    current: 5
+    current: 2
   database: {fileID: 11400000, guid: 837d014a9cfa489429ba53718faa9bf8, type: 2}
   debug: 0
   registerCompleteObjectUndo: 1
@@ -404,23 +423,22 @@ MonoBehaviour:
     variables: 0
   useReorderableListForVariables: 1
   variableFoldouts:
-    propertiesKeys: 01000000
-    propertiesValues: 01
+    propertiesKeys: 
+    propertiesValues: 
     fieldsKeys: 
     fieldsValues: 
   variableFilter: 
   watches: []
   autoUpdateWatches: 0
   watchUpdateFrequency: 1
-  nextWatchUpdateTime: 5506.3553488
+  nextWatchUpdateTime: 4732.263198500001
   watchableVariableNames:
+  - Actor
+  - ActorIndex
   - Alert
-  - Cerca__4__Ghost
-  - CercasInstaladas
-  watchableQuestNames:
-  - Explorar artefato
-  - Explore os arredores
-  - Instalar Cerca
+  - Conversant
+  - ConversantIndex
+  watchableQuestNames: []
   luaCommand: 
   showNodeIDs: 0
   showAllActorNames: 0
@@ -431,12 +449,11 @@ MonoBehaviour:
   showFullTextOnHover: 1
   addNewNodesToRight: 0
   zoomLocked: 0
-  _zoom: 1.2699997
+  _zoom: 1.18
   canvasScrollView: {x: 100000, y: 100000}
-  canvasScrollPosition: {x: 68.67723, y: 41.726044}
+  canvasScrollPosition: {x: 66.10167, y: 0}
   conversationTitles:
   - New Conversation 1
-  - New Conversation 2
   conversationIndex: -1
   snapToGridAmount: 0
   confirmDelete: 1
@@ -463,9 +480,9 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 631
+    y: 679
     width: 963
-    height: 368
+    height: 320
   m_ViewDataDictionary: {fileID: 0}
   m_SerializedViewsNames: []
   m_SerializedViewsValues: []
@@ -473,7 +490,7 @@ MonoBehaviour:
   m_ShowGizmos: 0
   m_TargetDisplay: 0
   m_ClearColor: {r: 0, g: 0, b: 0, a: 0}
-  m_TargetSize: {x: 963, y: 347}
+  m_TargetSize: {x: 963, y: 299}
   m_TextureFilterMode: 0
   m_TextureHideFlags: 61
   m_RenderIMGUI: 1
@@ -489,8 +506,8 @@ MonoBehaviour:
     vZoomLockedByDefault: 0
     m_HBaseRangeMin: -481.5
     m_HBaseRangeMax: 481.5
-    m_VBaseRangeMin: -173.5
-    m_VBaseRangeMax: 173.5
+    m_VBaseRangeMin: -149.5
+    m_VBaseRangeMax: 149.5
     m_HAllowExceedBaseRangeMin: 1
     m_HAllowExceedBaseRangeMax: 1
     m_VAllowExceedBaseRangeMin: 1
@@ -499,7 +516,7 @@ MonoBehaviour:
     m_HSlider: 0
     m_VSlider: 0
     m_IgnoreScrollWheelUntilClicked: 0
-    m_EnableMouseInput: 0
+    m_EnableMouseInput: 1
     m_EnableSliderZoomHorizontal: 0
     m_EnableSliderZoomVertical: 0
     m_UniformScale: 1
@@ -509,9 +526,9 @@ MonoBehaviour:
       x: 0
       y: 21
       width: 963
-      height: 347
+      height: 299
     m_Scale: {x: 1, y: 1}
-    m_Translation: {x: 481.5, y: 173.5}
+    m_Translation: {x: 481.5, y: 149.5}
     m_MarginLeft: 0
     m_MarginRight: 0
     m_MarginTop: 0
@@ -519,12 +536,12 @@ MonoBehaviour:
     m_LastShownAreaInsideMargins:
       serializedVersion: 2
       x: -481.5
-      y: -173.5
+      y: -149.5
       width: 963
-      height: 347
+      height: 299
     m_MinimalGUI: 1
   m_defaultScale: 1
-  m_LastWindowPixelSize: {x: 963, y: 368}
+  m_LastWindowPixelSize: {x: 963, y: 320}
   m_ClearInEditMode: 1
   m_NoCameraWarning: 1
   m_LowResolutionForAspectRatios: 00000000000000000000
@@ -606,9 +623,9 @@ MonoBehaviour:
     m_Tooltip: 
   m_Pos:
     serializedVersion: 2
-    x: 1167
+    x: 1199
     y: 73
-    width: 752
+    width: 720
     height: 926
   m_ViewDataDictionary: {fileID: 0}
   showOnStart: 1
@@ -660,9 +677,9 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 631
-    width: 963
-    height: 368
+    y: 723
+    width: 1197
+    height: 276
   m_ViewDataDictionary: {fileID: 0}
   m_SearchFilter:
     m_NameFilter: 
@@ -676,7 +693,8 @@ MonoBehaviour:
     m_ShowAllHits: 0
     m_SkipHidden: 0
     m_SearchArea: 1
-    m_Folders: []
+    m_Folders:
+    - Assets/CrosshairAssembler/CrosshairSamples/CrosshairAdvanced
   m_ViewMode: 0
   m_StartGridSize: 64
   m_LastFolders: []
@@ -689,10 +707,14 @@ MonoBehaviour:
     m_SelectedIDs: 26110100
     m_LastClickedID: 69926
 <<<<<<< HEAD
+<<<<<<< HEAD
     m_ExpandedIDs: 0000000094a300006ebc000070bc000072bc000074bc000076bc000078bc00007abc00007cbc00007ebc000080bc000082bc000084bc000086bc000088bc00008abc00008cbc00008ebc000090bc000092bc000094bc000096bc000098bc00009abc00009cbc00009ebc0000a0bc0000a2bc0000a4bc0000a6bc0000a8bc0000aabc0000acbc0000aebc0000b0bc0000b2bc0000b4bc0000
 =======
     m_ExpandedIDs: 000000002a6000002c6000002e60000030600000326000003460000036600000386000003a6000003c6000003e60000040600000426000004460000046600000486000004a6000004c6000004e60000050600000526000005460000056600000586000005a6000005c6000005e60000060600000626000006460000066600000686000006a600000
 >>>>>>> parent of 30a70a7e... FixPrefab
+=======
+    m_ExpandedIDs: 000000004e5a0000505a0000525a0000545a0000565a0000585a00005a5a00005c5a00005e5a0000605a0000625a0000645a0000665a0000685a00006a5a00006c5a00006e5a0000705a0000725a0000
+>>>>>>> parent of 75a1f084... Cercas + Narrativa
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -717,28 +739,32 @@ MonoBehaviour:
       m_Icon: {fileID: 0}
       m_ResourceFile: 
   m_AssetTreeState:
-    scrollPos: {x: 0, y: 532}
-    m_SelectedIDs: 
+    scrollPos: {x: 0, y: 235}
+    m_SelectedIDs: 68b0fcff
     m_LastClickedID: 0
+<<<<<<< HEAD
 <<<<<<< HEAD
     m_ExpandedIDs: ffffffff0000000094a300006ebc000070bc000072bc000074bc000076bc000078bc00007abc00007cbc00007ebc000080bc000082bc000084bc000086bc000088bc00008abc00008cbc00008ebc000090bc000092bc000094bc000096bc000098bc00009abc00009cbc00009ebc0000a0bc0000a2bc0000a4bc0000a6bc0000a8bc0000aabc0000acbc0000aebc0000b0bc0000b2bc0000b4bc0000
 =======
     m_ExpandedIDs: ffffffff000000002a6000002c6000002e60000030600000326000003460000036600000386000003a6000003c60000040600000426000004460000046600000486000004a6000004c6000004e60000050600000526000005460000056600000586000005a6000005c6000005e600000606000006260000064600000686000006a6000008c60000092600000f8600000806300008e63000082820000c0820000
 >>>>>>> parent of 30a70a7e... FixPrefab
+=======
+    m_ExpandedIDs: ffffffff000000004e5a0000505a0000525a0000545a0000565a0000585a00005a5a00005c5a00005e5a0000605a0000625a0000645a0000665a0000685a00006a5a00006c5a00006e5a0000b663000028650000726b0000746b0000e66b00007e6c0000806c0000aa6c0000c66c0000b4c40000f8c5000002c6000004c6000012c6000018c6000022c60000
+>>>>>>> parent of 75a1f084... Cercas + Narrativa
     m_RenameOverlay:
       m_UserAcceptedRename: 0
-      m_Name: 
-      m_OriginalName: 
+      m_Name: CLSurroundCircles
+      m_OriginalName: CLSurroundCircles
       m_EditFieldRect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 0
         height: 0
-      m_UserData: 0
+      m_UserData: 50614
       m_IsWaitingForDelay: 0
       m_IsRenaming: 0
-      m_OriginalEventType: 11
+      m_OriginalEventType: 0
       m_IsRenamingFilename: 1
       m_ClientGUIView: {fileID: 2}
     m_SearchString: 
@@ -749,9 +775,9 @@ MonoBehaviour:
       m_Icon: {fileID: 0}
       m_ResourceFile: 
   m_ListAreaState:
-    m_SelectedInstanceIDs: 
-    m_LastClickedInstanceID: 0
-    m_HadKeyboardFocusLastEvent: 0
+    m_SelectedInstanceIDs: 68b0fcff
+    m_LastClickedInstanceID: -216984
+    m_HadKeyboardFocusLastEvent: 1
     m_ExpandedInstanceIDs: c6230000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
@@ -817,7 +843,7 @@ MonoBehaviour:
     m_PrefName: Preview_InspectorPreview
   m_PreviewWindow: {fileID: 0}
   m_LastInspectedObjectInstanceID: -1
-  m_LastVerticalScrollValue: 180
+  m_LastVerticalScrollValue: 0
 --- !u!114 &20
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -848,6 +874,7 @@ MonoBehaviour:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
 <<<<<<< HEAD
+<<<<<<< HEAD
       m_SelectedIDs: 
       m_LastClickedID: 0
       m_ExpandedIDs: c813ffff
@@ -856,20 +883,25 @@ MonoBehaviour:
       m_LastClickedID: -223952
       m_ExpandedIDs: e67cfeffe689ffffd4f2ffff06f3ffff4af3ffffa4f6ffffd24e0000
 >>>>>>> parent of 30a70a7e... FixPrefab
+=======
+      m_SelectedIDs: 12cefdff
+      m_LastClickedID: 0
+      m_ExpandedIDs: bab3fcff6ce9ffff9ee9ffff02edffff644e0000
+>>>>>>> parent of 75a1f084... Cercas + Narrativa
       m_RenameOverlay:
         m_UserAcceptedRename: 0
-        m_Name: Cerca (9)
-        m_OriginalName: Cerca (9)
+        m_Name: 
+        m_OriginalName: 
         m_EditFieldRect:
           serializedVersion: 2
           x: 0
           y: 0
           width: 0
           height: 0
-        m_UserData: -65454
+        m_UserData: 0
         m_IsWaitingForDelay: 0
         m_IsRenaming: 0
-        m_OriginalEventType: 0
+        m_OriginalEventType: 11
         m_IsRenamingFilename: 0
         m_ClientGUIView: {fileID: 4}
       m_SearchString: 
@@ -903,7 +935,7 @@ MonoBehaviour:
     x: 0
     y: 73
     width: 963
-    height: 537
+    height: 585
   m_ViewDataDictionary: {fileID: 0}
   m_ShowContextualTools: 0
   m_WindowGUID: 2fb22f3773eaf834cb4ae9e6a6fac480
@@ -916,6 +948,7 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_Position:
 <<<<<<< HEAD
+<<<<<<< HEAD
     m_Target: {x: 3767.2302, y: 286.7572, z: 1282.1886}
     speed: 2
     m_Value: {x: 3767.2302, y: 286.7572, z: 1282.1886}
@@ -924,6 +957,11 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 3817.2573, y: 224.81377, z: 1846.947}
 >>>>>>> parent of 30a70a7e... FixPrefab
+=======
+    m_Target: {x: 1640.7266, y: 1101.3284, z: 2340.58}
+    speed: 2
+    m_Value: {x: 1640.7266, y: 1101.3284, z: 2340.58}
+>>>>>>> parent of 75a1f084... Cercas + Narrativa
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -969,6 +1007,7 @@ MonoBehaviour:
     m_GridAxis: 1
     m_gridOpacity: 0.5
   m_Rotation:
+<<<<<<< HEAD
     m_Target: {x: 0.2630268, y: -0.6738943, z: 0.27883092, w: 0.6318739}
     speed: 2
 <<<<<<< HEAD
@@ -979,11 +1018,20 @@ MonoBehaviour:
     m_Value: 2663.8286
 =======
     m_Value: {x: 0.25867018, y: -0.5273358, z: 0.17105928, w: 0.79104066}
-  m_Size:
-    m_Target: 778.3967
+=======
+    m_Target: {x: 0.24479082, y: 0.6698703, z: -0.25183386, w: 0.6543355}
     speed: 2
+    m_Value: {x: 0.24279998, y: 0.6705479, z: -0.24979472, w: 0.6549934}
+>>>>>>> parent of 75a1f084... Cercas + Narrativa
+  m_Size:
+    m_Target: 3105.7078
+    speed: 2
+<<<<<<< HEAD
     m_Value: 744.87726
 >>>>>>> parent of 30a70a7e... FixPrefab
+=======
+    m_Value: 2971.9692
+>>>>>>> parent of 75a1f084... Cercas + Narrativa
   m_Ortho:
     m_Target: 0
     speed: 2
@@ -1119,7 +1167,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 631
-    width: 963
-    height: 368
+    y: 721
+    width: 1197
+    height: 278
   m_ViewDataDictionary: {fileID: 0}

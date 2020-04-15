@@ -1,6 +1,11 @@
 Base path: 'D:/Unity/2019.3.2f1/Editor/Data', plugins path 'D:/Unity/2019.3.2f1/Editor/Data/PlaybackEngines'
 Cmd: initializeCompiler
+<<<<<<< HEAD
 Cmd: compileComputeKernel
   api=14 insize=3423 outsize=4399 ok=1
 Cmd: translateComputeKernel
   api=14 insize=4399 outsize=6746 ok=1
+=======
+Cmd: compileSnippet
+  api=4 type=1 insize=1602 outsize=5722 kw=UNITY_PASS_FORWARDBASE DIRECTIONAL pd=UNITY_ENABLE_REFLECTION_BUFFERS UNITY_USE_DITHER_MASK_FOR_ALPHABLENDED_SHADOWS UNITY_PBS_USE_BRDF1 UNITY_SPECCUBE_BOX_PROJECTION UNITY_SPECCUBE_BLENDING UNITY_ENABLE_DETAIL_NORMALMAP SHADER_API_DESKTOP UNITY_LIGHT_PROBE_PROXY_VOLUME UNITY_LIGHTMAP_RGBM_ENCODING ok=1
+>>>>>>> parent of 75a1f084... Cercas + Narrativa
