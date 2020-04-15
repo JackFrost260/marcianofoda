@@ -6,12 +6,6 @@ public class Cut : MonoBehaviour
 {
     public Item item;
 
-    void Start()
-    {
-        
-    }
-
-
     public void Cutting()
     {
         Debug.Log("Picking up " + item.name);

@@ -16,11 +16,9 @@ public class Crafting : MonoBehaviour
 	public Inventory inventory;
 
 	public void OnCraftButtonClick()
-	{
-		Debug.Log("1");
+	{ 
 		if (craftingRecipe != null && inventory != null)
 		{
-			Debug.Log("2");
 			craftingRecipe.Craft(inventory);
 		}
 	}

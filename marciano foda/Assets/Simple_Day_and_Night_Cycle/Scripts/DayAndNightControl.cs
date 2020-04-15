@@ -32,8 +32,14 @@ public class DayAndNightControl : MonoBehaviour {
 
 	Camera targetCam;
 
+
+	PlasticProduction plasticProduction;
+
 	// Use this for initialization
 	void Start () {
+
+		plasticProduction = PlasticProduction.instance;
+
 		foreach (Camera c in GameObject.FindObjectsOfType<Camera>())
 		{
 			if (c.isActiveAndEnabled) {
@@ -55,6 +61,8 @@ public class DayAndNightControl : MonoBehaviour {
 		if (currentTime >= 1) {
 			currentTime = 0;//once we hit "midnight"; any time after that sunrise will begin.
 			currentDay++; //make the day counter go up
+			plasticProduction.Production();
+
 		}
 	}
 
