@@ -1,9 +1,0 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-﻿{"cameraMode":{"drawMode":0,"name":"Shaded","section":"Shading Mode"},"sceneLighting":true,"audioPlay":false,"sceneViewState":{"showFog":true,"showMaterialUpdate":true,"showSkybox":true,"showFlares":true,"showImageEffects":true,"showParticleSystems":true},"in2DMode":false,"pivot":{"x":3767.230224609375,"y":286.7572021484375,"z":1282.1885986328125},"rotation":{"x":0.26302680373191836,"y":-0.6738942861557007,"z":0.2788309156894684,"w":0.6318739056587219},"size":2783.700927734375,"orthographic":false}
-=======
-﻿{"cameraMode":{"drawMode":0,"name":"Shaded","section":"Shading Mode"},"sceneLighting":true,"audioPlay":false,"sceneViewState":{"showFog":true,"showMaterialUpdate":true,"showSkybox":true,"showFlares":true,"showImageEffects":true,"showParticleSystems":true},"in2DMode":false,"pivot":{"x":3833.592529296875,"y":220.837890625,"z":1860.020751953125},"rotation":{"x":0.259988397359848,"y":-0.5214735865592957,"z":0.16914214193820954,"w":0.7951034903526306},"size":778.396728515625,"orthographic":false}
->>>>>>> parent of 30a70a7e... FixPrefab
-=======
-﻿{"cameraMode":{"drawMode":0,"name":"Shaded","section":"Shading Mode"},"sceneLighting":true,"audioPlay":false,"sceneViewState":{"showFog":true,"showMaterialUpdate":true,"showSkybox":true,"showFlares":true,"showImageEffects":true,"showParticleSystems":true},"in2DMode":false,"pivot":{"x":1640.7265625,"y":1101.328369140625,"z":2340.580078125},"rotation":{"x":0.24479082226753236,"y":0.6698703169822693,"z":-0.25183385610580447,"w":0.6543354988098145},"size":3105.707763671875,"orthographic":false}
->>>>>>> parent of 75a1f084... Cercas + Narrativa
