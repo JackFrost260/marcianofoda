@@ -112,10 +112,10 @@ MonoBehaviour:
     y: 30
     width: 1366
     height: 635
-  m_MinSize: {x: 679, y: 492}
+  m_MinSize: {x: 678, y: 492}
   m_MaxSize: {x: 14002, y: 14042}
   vertical: 0
-  controlID: 9693
+  controlID: 861
 --- !u!114 &6
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -137,10 +137,10 @@ MonoBehaviour:
     y: 0
     width: 1087
     height: 635
-  m_MinSize: {x: 403, y: 492}
+  m_MinSize: {x: 402, y: 492}
   m_MaxSize: {x: 10001, y: 14042}
   vertical: 1
-  controlID: 9752
+  controlID: 862
 --- !u!114 &7
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -162,10 +162,10 @@ MonoBehaviour:
     y: 0
     width: 1087
     height: 339
-  m_MinSize: {x: 403, y: 221}
-  m_MaxSize: {x: 8003, y: 4021}
+  m_MinSize: {x: 402, y: 221}
+  m_MaxSize: {x: 8002, y: 4021}
   vertical: 0
-  controlID: 9753
+  controlID: 863
 --- !u!114 &8
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -391,23 +391,23 @@ MonoBehaviour:
   m_SceneHierarchy:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
-      m_SelectedIDs: 30fbffff
-      m_LastClickedID: -1232
-      m_ExpandedIDs: def7feff80b8ffff90b8ffff4afaffff8cfaffffc0faffff32fbffff
+      m_SelectedIDs: b6f8ffff38f9ffff3cf9ffff42f3feff
+      m_LastClickedID: -68798
+      m_ExpandedIDs: 46f3feff7ef9ffffdef9ffffe2f9ffff56faffff32fbffffe84d0000
       m_RenameOverlay:
         m_UserAcceptedRename: 0
-        m_Name: 
-        m_OriginalName: 
+        m_Name: Button
+        m_OriginalName: Button
         m_EditFieldRect:
           serializedVersion: 2
           x: 0
           y: 0
           width: 0
           height: 0
-        m_UserData: 0
+        m_UserData: 45962
         m_IsWaitingForDelay: 0
         m_IsRenaming: 0
-        m_OriginalEventType: 11
+        m_OriginalEventType: 0
         m_IsRenamingFilename: 0
         m_ClientGUIView: {fileID: 8}
       m_SearchString: 
@@ -453,9 +453,9 @@ MonoBehaviour:
   m_PlayAudio: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: 0, y: 0, z: 0}
+    m_Target: {x: 1049, y: 1.8356628, z: 3107}
     speed: 2
-    m_Value: {x: 0, y: 0, z: 0}
+    m_Value: {x: 996.68005, y: -30.93156, z: 0}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -501,13 +501,13 @@ MonoBehaviour:
     m_GridAxis: 1
     m_gridOpacity: 0.5
   m_Rotation:
-    m_Target: {x: -0.043735094, y: 0.05301829, z: -0.0023285039, w: -0.9976486}
+    m_Target: {x: -0.119276404, y: 0.3192072, z: -0.040537708, w: -0.9392916}
     speed: 2
-    m_Value: {x: -0.043735094, y: 0.053018294, z: -0.0023285039, w: -0.99764866}
+    m_Value: {x: -0.04378989, y: 0.017076056, z: -0.00075262156, w: -0.9988946}
   m_Size:
-    m_Target: 57157.676
+    m_Target: 1203.3854
     speed: 2
-    m_Value: 57157.676
+    m_Value: 232.28317
   m_Ortho:
     m_Target: 0
     speed: 2
@@ -597,21 +597,21 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/WeatherMaker/Prefab/Scripts/Manager
+    - Assets/Recipes/Materiais
   m_ViewMode: 1
   m_StartGridSize: 64
   m_LastFolders:
-  - Assets/WeatherMaker/Prefab/Scripts/Manager
+  - Assets/Recipes/Materiais
   m_LastFoldersGridSize: -1
   m_LastProjectPath: "C:\\Users\\Lenovo\\Documents\\Faculdade\\TCC\\Programa\xE7\xE3o\\Novo
     Reposit\xF3rio\\marciano foda"
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
-    scrollPos: {x: 0, y: 833}
-    m_SelectedIDs: 5c730000
-    m_LastClickedID: 29532
-    m_ExpandedIDs: 000000001a6c00001c6c00001e6c0000206c0000226c0000246c0000266c0000286c00002a6c00002c6c0000c272000054730000
+    scrollPos: {x: 0, y: 420}
+    m_SelectedIDs: 96e40000
+    m_LastClickedID: 58518
+    m_ExpandedIDs: 00000000e06d0000e26d0000e46d0000e86d0000ea6d0000ec6d0000ee6d0000f06d0000f26d0000f46d0000866f00007673000030740000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -639,7 +639,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 000000001a6c00001c6c00001e6c0000206c0000226c0000246c0000266c0000286c00002a6c00002c6c0000c272000054730000
+    m_ExpandedIDs: 00000000e06d0000e26d0000e46d0000e66d0000e86d0000ea6d0000ec6d0000ee6d0000f06d0000f26d0000f46d0000f66d0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -666,7 +666,7 @@ MonoBehaviour:
   m_ListAreaState:
     m_SelectedInstanceIDs: 
     m_LastClickedInstanceID: 0
-    m_HadKeyboardFocusLastEvent: 0
+    m_HadKeyboardFocusLastEvent: 1
     m_ExpandedInstanceIDs: c6230000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
@@ -694,7 +694,7 @@ MonoBehaviour:
     m_ScrollPosition: {x: 0, y: 0}
     m_GridSize: 64
   m_SkipHiddenPackages: 0
-  m_DirectoriesAreaWidth: 115
+  m_DirectoriesAreaWidth: 220
 --- !u!114 &17
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -758,4 +758,4 @@ MonoBehaviour:
     m_PrefName: Preview_InspectorPreview
   m_PreviewWindow: {fileID: 0}
   m_LastInspectedObjectInstanceID: -1
-  m_LastVerticalScrollValue: 0
+  m_LastVerticalScrollValue: 1299
