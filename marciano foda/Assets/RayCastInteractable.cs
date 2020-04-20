@@ -29,9 +29,10 @@ public class RayCastInteractable : MonoBehaviour
 			Interactable interact = hit.collider.GetComponent<Interactable>();
 			Crafting craft = hit.collider.GetComponent<Crafting>();
 			Biomassa bio = hit.collider.GetComponent<Biomassa>();
+			Converter converter = hit.collider.GetComponent<Converter>();
 
 
-			if (collect != null || deposit != null || interact != null || craft != null || bio != null)
+			if (collect != null || deposit != null || interact != null || craft != null || bio != null || converter != null)
 			{
 				if (Input.GetKeyDown(KeyCode.E))
 				{
@@ -49,6 +50,9 @@ public class RayCastInteractable : MonoBehaviour
 
 					if (bio != null)
 						bio.GenerateEnergy();
+
+					if (converter != null)
+						converter.activate();
 
 				}
 
