@@ -8,6 +8,7 @@ using UnityEngine.UI;
 
 public class UpdateInterface : MonoBehaviour
 {
+    public static bool CursorLock = true;
 
     #region Singleton
 
