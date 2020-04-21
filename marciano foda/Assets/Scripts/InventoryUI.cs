@@ -25,6 +25,18 @@ public class InventoryUI : MonoBehaviour
 		if (Input.GetKeyDown(KeyCode.I))
 		{
 			inventoryUI.SetActive(!inventoryUI.activeSelf);
+			if(Time.timeScale == 1)
+			{
+				Time.timeScale = 0;
+			}
+
+			else
+			{
+				if (Time.timeScale == 0)
+				{
+					Time.timeScale = 1;
+				}
+			}
 
 			if (cursorLocked)
 			{

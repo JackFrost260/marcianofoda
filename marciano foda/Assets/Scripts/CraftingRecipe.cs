@@ -76,6 +76,25 @@ public class CraftingRecipe : ScriptableObject
         }
     }
 
+    public int CraftGenerator(ItemContainer itemContainer)
+    {
+        if (Generators.currentEnergy >= energyUsed)
+        {
+            if (CanCraft(itemContainer))
+            {
+                Generators.currentEnergy -= energyUsed;
+                UpdateInterface.instance.Update();
+                RemoveMaterials(itemContainer);
+                return 1;
+
+            }
+
+            else return 0;
+        }
+
+        else return 0;
+    }
+
     public void RemoveMaterials(ItemContainer itemContainer)
     {
         foreach (ItemAmount itemAmount in Materials)
