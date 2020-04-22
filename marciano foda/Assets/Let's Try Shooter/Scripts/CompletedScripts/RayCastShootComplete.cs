@@ -3,7 +3,8 @@ using System.Collections;
 
 public class RayCastShootComplete : MonoBehaviour {
 
-	public int gunDamage = 1;											
+	public int gunDamage = 1;
+	public Transform rayPosition;
 	public float fireRate = 0.25f;										
 	public float weaponRange = 50f;										
 	public Transform gunEnd;											
@@ -13,7 +14,7 @@ public class RayCastShootComplete : MonoBehaviour {
 	private AudioSource gunAudio;										
 	private LineRenderer laserLine;										
 	private float nextFire;
-	public Texture2D CrossHair;
+	//public Texture2D CrossHair;
 
 
 	void Start () 
@@ -38,7 +39,7 @@ public class RayCastShootComplete : MonoBehaviour {
 			
             StartCoroutine (ShotEffect());
 
-       
+            //Vector3 rayOrigin = rayPosition.position;
             Vector3 rayOrigin = fpsCam.ViewportToWorldPoint (new Vector3(0.5f, 0.5f, 0.0f));
 
          
@@ -84,8 +85,8 @@ public class RayCastShootComplete : MonoBehaviour {
 		laserLine.enabled = false;
 	}
 
-	private void OnGUI()
-	{
-		GUI.DrawTexture(new Rect((Screen.width / 2) - (100 / 2), (Screen.height / 2) - (100 / 2), 100, 100), CrossHair);
-	}
+	//private void OnGUI()
+	//{
+	//	GUI.DrawTexture(new Rect((Screen.width / 2) - (100 / 2), (Screen.height / 2) - (100 / 2), 100, 100), CrossHair);
+	//}
 }
