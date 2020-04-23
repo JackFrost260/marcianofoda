@@ -1020,11 +1020,15 @@ namespace PixelCrushers.DialogueSystem
 
         private void OnConversationStart(Transform actor)
         {
+            Cursor.lockState = CursorLockMode.None;
+           
             conversationStarted(actor);
         }
 
         private void OnConversationEnd(Transform actor)
         {
+            Cursor.lockState = CursorLockMode.Locked;
+          
             conversationEnded(actor);
         }
 

@@ -8,23 +8,49 @@ using UnityEngine.UI;
 
 public class UpdateInterface : MonoBehaviour
 {
-    public static bool CursorLock = true;
+	public static bool CursorLock = true;
+	private bool cursorLocked = true;
 
-    #region Singleton
+	#region Singleton
 
-    public static UpdateInterface instance;
+	public static UpdateInterface instance;
 
-    void Awake()
-    {
-        instance = this;
-    }
+	void Awake()
+	{
+		instance = this;
+	}
 
-    #endregion
+	#endregion
 
-    public TextMeshProUGUI currentEnergy;
+	public TextMeshProUGUI currentEnergy;
+	public GameObject instru;
+	private void Start()
+	{
+		Cursor.lockState = CursorLockMode.Locked;
+	}
 
-    public void Update()
-    {
-        currentEnergy.text = "Sua Energia:" + Generators.currentEnergy;
-    }
+	public void Update2()
+	{
+		currentEnergy.text = "Sua Energia:" + Generators.currentEnergy;
+	}
+
+	public void Update()
+	{
+		if (Input.GetKeyDown(KeyCode.R))
+		{
+			instru.SetActive(!instru.activeSelf);
+			if (Time.timeScale == 1)
+			{
+				Time.timeScale = 0;
+			}
+
+			else
+			{
+				if (Time.timeScale == 0)
+				{
+					Time.timeScale = 1;
+				}
+			}
+		}
+	}
 }

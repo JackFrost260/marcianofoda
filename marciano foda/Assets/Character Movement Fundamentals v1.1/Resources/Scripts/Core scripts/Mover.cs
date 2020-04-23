@@ -13,7 +13,7 @@ public class Mover : MonoBehaviour {
 
 	//Collider variables;
 	[Range(0f, 1f)] public float stepHeight = 0.25f;
-	[SerializeField] public float colliderHeight = 2f;
+	[SerializeField] public float colliderHeight = 4f;
 	[SerializeField] public float colliderThickness = 1f;
 	[SerializeField] public Vector3 colliderOffset = Vector3.zero;
 

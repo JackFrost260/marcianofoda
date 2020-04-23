@@ -69,7 +69,7 @@ public class CraftingRecipe : ScriptableObject
             if (CanCraft(itemContainer))
             {
                 Generators.currentEnergy -= energyUsed;
-                UpdateInterface.instance.Update();
+                UpdateInterface.instance.Update2();
                 RemoveMaterials(itemContainer);
                 AddResults(itemContainer);
             }
@@ -83,7 +83,7 @@ public class CraftingRecipe : ScriptableObject
             if (CanCraft(itemContainer))
             {
                 Generators.currentEnergy -= energyUsed;
-                UpdateInterface.instance.Update();
+                UpdateInterface.instance.Update2();
                 RemoveMaterials(itemContainer);
                 return 1;
 

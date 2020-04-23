@@ -7,6 +7,7 @@ public class buttonSetup : MonoBehaviour
 {
    
     public GameObject weather1;
+    public GameObject instru;
 
     public void startGame()
     {
@@ -17,6 +18,15 @@ public class buttonSetup : MonoBehaviour
     public void exitGame()
     {
         Application.Quit();
+    }
+
+    public void Instru()
+    {
+        instru.SetActive(true);
+    }
+    public void ExitInstu()
+    {
+        instru.SetActive(false);
     }
 
 }

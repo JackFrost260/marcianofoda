@@ -34,7 +34,7 @@ public class Biomassa : MonoBehaviour
                 Generators.currentEnergy = Generators.maxCapacity;
             }
 
-            UpdateInterface.instance.Update();
+            UpdateInterface.instance.Update2();
         }
 
     }
