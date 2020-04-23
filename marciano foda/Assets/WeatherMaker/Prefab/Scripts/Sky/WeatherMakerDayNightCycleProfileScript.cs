@@ -15,6 +15,7 @@
 // *** END NOTE ABOUT PIRACY ***
 //
 
+using PixelCrushers.DialogueSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -165,7 +166,7 @@ namespace DigitalRuby.WeatherMaker
         [Range(-100000, 100000.0f)]
         [Tooltip("The day speed of the cycle. Set to 0 to freeze the cycle and manually control it. At a speed of 1, the cycle is in real-time. " +
             "A speed of 100 is 100 times faster than normal. Negative numbers run the cycle backwards.")]
-        public float Speed = 10.0f;
+        public float Speed = 300f;
 
         [Range(-100000, 100000.0f)]
         [Tooltip("The night speed of the cycle. Set to 0 to freeze the cycle and manually control it. At a speed of 1, the cycle is in real-time. " +
@@ -422,6 +423,8 @@ namespace DigitalRuby.WeatherMaker
         public TimeSpan TimeOfDayTimeSpan { get { return TimeSpan.FromSeconds(TimeOfDay); } set { TimeOfDay = (float)value.TotalSeconds; } }
 
         private float lastTimeOfDayForDynamicGIUpdate = -999999.0f;
+
+        PlasticProduction plasticProduction = PlasticProduction.instance;
 
         public static DateTime JulianToDateTime(double julianDate)
         {
@@ -999,6 +1002,7 @@ namespace DigitalRuby.WeatherMaker
                     Year = dt.Year;
                     Month = dt.Month;
                     Day = dt.Day;
+                    plasticProduction.Production();
                 }
             }
             else if (TimeOfDay < 0.0f)

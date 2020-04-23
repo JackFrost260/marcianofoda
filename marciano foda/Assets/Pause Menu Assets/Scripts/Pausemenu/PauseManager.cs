@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.IO;
+using UnityEngine.SceneManagement;
 //using UnityStandardAssets.ImageEffects;
 /// <summary>
 ///  Copyright (c) 2016 Eric Zhu 
@@ -369,7 +370,8 @@ namespace GreatArcStudios
         public void Resume()
         {
             Time.timeScale = timeScale;
-
+            Cursor.lockState = CursorLockMode.Locked;
+            UpdateInterface.CursorLock = true;
             mainPanel.SetActive(false);
             vidPanel.SetActive(false);
             audioPanel.SetActive(false);
@@ -422,7 +424,7 @@ namespace GreatArcStudios
         /// </summary>
         public void returnToMenu()
         {
-            Application.LoadLevel(mainMenu);
+            SceneManager.LoadScene("menu");
             uiEventSystem.SetSelectedGameObject(defualtSelectedMain);
         }
 
@@ -448,9 +450,10 @@ namespace GreatArcStudios
                 pauseMenu.text = "Pause Menu";
             }
 
-            if (Input.GetKeyDown(KeyCode.Escape) && mainPanel.active == false)
+            if (Input.GetKeyDown(KeyCode.P) && mainPanel.activeSelf == false)
             {
-
+                Cursor.lockState = CursorLockMode.None;
+                UpdateInterface.CursorLock = false;
                 uiEventSystem.SetSelectedGameObject(defualtSelectedMain);
                 mainPanel.SetActive(true);
                 vidPanel.SetActive(false);
@@ -467,7 +470,9 @@ namespace GreatArcStudios
                      blurEffect.enabled = true;
                  }  */
             }
-            else if(Input.GetKeyDown(KeyCode.Escape) && mainPanel.active == true) {
+            else if(Input.GetKeyDown(KeyCode.P) && mainPanel.activeSelf == true) {
+                Cursor.lockState = CursorLockMode.Locked;
+                UpdateInterface.CursorLock = true;
                 Time.timeScale = timeScale;
                 mainPanel.SetActive(false);
                 vidPanel.SetActive(false);

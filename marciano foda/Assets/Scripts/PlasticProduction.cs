@@ -16,7 +16,7 @@ public class PlasticProduction : MonoBehaviour
     #endregion
 
 
-    private int bact = 1;
+    private int bact = 0;
     private int plastic = 0;
 
     public Item item;
@@ -43,6 +43,7 @@ public class PlasticProduction : MonoBehaviour
         if(bact > 0)
         {
             plastic += bact;
+            
             Debug.Log("bact:" + bact);
             Debug.Log("plastic:" + plastic);
         }

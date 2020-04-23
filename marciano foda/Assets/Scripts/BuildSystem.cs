@@ -21,10 +21,10 @@ public class BuildSystem : MonoBehaviour {
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R))//rotate
-        {
-            previewGameObject.transform.Rotate(0, 90f, 0);//rotate the preview 90 degrees. You can add in your own value here
-        }
+       // if (Input.GetKeyDown(KeyCode.R))//rotate
+      //  {
+         //   previewGameObject.transform.Rotate(0, 90f, 0);//rotate the preview 90 degrees. You can add in your own value here
+       // }
 
         if (Input.GetKeyDown(KeyCode.G))//cancel build
         {
