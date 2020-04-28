@@ -10,26 +10,28 @@ public class MovimentoDoJogador : MonoBehaviour
     public float gravidade = -9.81f;
     public float distanciaChao = 0.5f;
     public float distanciaPulo = 20f;
-
-    Transform offsetVector;
+    public LayerMask mundo;
+    public Transform objetoDeDetecao;
+    
     Vector3 velocidadeDeQueda;
     Vector3 velocidadePulo;
     bool noChao;
     float z;
+    public float raioDetecao;
     
 
     // Start is called before the first frame update
     void Start()
     {
         controlador = gameObject.GetComponent<CharacterController>();
-       
-   
 
     }
 
     // Update is called once per frame
     void Update()
     {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
 
         float x = Input.GetAxis("Horizontal");
         float y = Input.GetAxis("Vertical");
@@ -41,15 +43,32 @@ public class MovimentoDoJogador : MonoBehaviour
 
         Vector3 movimento = transform.right * x + transform.forward * y;
         controlador.Move(movimento * velocidade * Time.deltaTime);
-        velocidadeDeQueda.y += gravidade * Time.deltaTime;
+
+
+        noChao = Physics.CheckSphere(objetoDeDetecao.position, raioDetecao, mundo, QueryTriggerInteraction.Ignore);
+
+        if (noChao == false)
+        {
+            velocidadeDeQueda.y += gravidade * Time.deltaTime;
+        }
+
+        if (noChao == true)
+        {
+            velocidadeDeQueda.y = 0;
+        }
+
         velocidadePulo.y = distanciaPulo * Time.deltaTime * z;
-
-
 
         controlador.Move(velocidadeDeQueda * Time.deltaTime);
         controlador.Move(Time.deltaTime * velocidadePulo);
 
         print(velocidadeDeQueda);
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = new Color(255, 120, 20, 170);
+        Gizmos.DrawSphere(objetoDeDetecao.position, raioDetecao);
     }
 }
 
