@@ -6,12 +6,12 @@ public class MovimentoDoJogador : MonoBehaviour
 {
     CharacterController controlador;
     public float velocidade = 15f;
+    public float offset;
     public float gravidade = -9.81f;
-    public Transform checagemChao;
     public float distanciaChao = 0.5f;
     public float distanciaPulo = 20f;
-    public LayerMask mascaraChao;
 
+    Transform offsetVector;
     Vector3 velocidadeDeQueda;
     Vector3 velocidadePulo;
     bool noChao;
@@ -30,12 +30,6 @@ public class MovimentoDoJogador : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        noChao = Physics.CheckSphere(checagemChao.position, distanciaChao, mascaraChao);
-
-        if (noChao && velocidadeDeQueda.y < 0)
-        {
-            velocidadeDeQueda.y = -1f;
-        }
 
         float x = Input.GetAxis("Horizontal");
         float y = Input.GetAxis("Vertical");
@@ -55,7 +49,7 @@ public class MovimentoDoJogador : MonoBehaviour
         controlador.Move(velocidadeDeQueda * Time.deltaTime);
         controlador.Move(Time.deltaTime * velocidadePulo);
 
-
+        print(velocidadeDeQueda);
     }
 }
 
