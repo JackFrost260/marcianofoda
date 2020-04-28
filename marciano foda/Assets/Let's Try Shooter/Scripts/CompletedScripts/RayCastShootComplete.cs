@@ -14,7 +14,7 @@ public class RayCastShootComplete : MonoBehaviour {
 	private AudioSource gunAudio;										
 	private LineRenderer laserLine;										
 	private float nextFire;
-	//public Texture2D CrossHair;
+	public Texture2D CrossHair;
 
 
 	void Start () 
@@ -85,8 +85,8 @@ public class RayCastShootComplete : MonoBehaviour {
 		laserLine.enabled = false;
 	}
 
-	//private void OnGUI()
-	//{
-	//	GUI.DrawTexture(new Rect((Screen.width / 2) - (100 / 2), (Screen.height / 2) - (100 / 2), 100, 100), CrossHair);
-	//}
+	private void OnGUI()
+	{
+		GUI.DrawTexture(new Rect((Screen.width / 2) - (100 / 2), (Screen.height / 2) - (100 / 2), 100, 100), CrossHair);
+	}
 }
