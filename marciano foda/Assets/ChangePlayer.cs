@@ -9,10 +9,22 @@ public class ChangePlayer : MonoBehaviour
     public GameObject car;
     public GameObject car2;
 
-  public void ChangePlayerInteract()
+    InventoryUI inventoryUI;
+    Inventory inventory;
+
+    private void Start()
+    {
+        inventory = Inventory.instance;
+        inventoryUI = InventoryUI.instance;
+        inventory.onItemChangedCallback += inventoryUI.UpdateUI;
+    }
+
+    public void ChangePlayerInteract()
     {
        if(playerBool)
         {
+            Inventory.currentInventory = "Car";
+            inventoryUI.UpdateUIInventory();
             car.SetActive(true);
             car2.SetActive(false);
             player.SetActive(false);
@@ -21,6 +33,9 @@ public class ChangePlayer : MonoBehaviour
 
        else
         {
+        
+            Inventory.currentInventory = "Player";
+            InventoryUI.instance.UpdateUI();
             player.SetActive(true);
             car2.SetActive(true);
             car.SetActive(false);

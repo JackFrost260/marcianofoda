@@ -5,9 +5,21 @@ using UnityEngine.UI;
 
 public class InventoryUI : MonoBehaviour
 {
+	#region Singleton
 
-	public GameObject inventoryUI;  // UI do inventário
+	public static InventoryUI instance;
+
+	void Awake()
+	{
+		instance = this;
+	}
+
+	#endregion
+	public GameObject inventoryUIPlayer;  // UI do inventário
+	public GameObject inventoryUICar;
 	public Transform itemsParent;   // Objeto pai de todos os itens
+
+	public GameObject inventoryUI ;
 
 	Inventory inventory;    // Inventário Atual
 
@@ -16,15 +28,32 @@ public class InventoryUI : MonoBehaviour
 	void Start()
 	{
 		inventory = Inventory.instance;
+		inventoryUI = inventoryUIPlayer;
 		inventory.onItemChangedCallback += UpdateUI;
+
 	}
 
 	// Verifique se devemos abrir / fechar o inventário
 	void Update()
 	{
+	
 		if (Input.GetKeyDown(KeyCode.I))
 		{
+
+			if (Inventory.currentInventory == "Player")
+			{
+				inventory.changeInventory();
+				inventoryUI = inventoryUIPlayer;
+			}
+
+			if (Inventory.currentInventory == "Car")
+			{
+				inventory.changeInventory();
+				inventoryUI = inventoryUICar;
+			}
+
 			inventoryUI.SetActive(!inventoryUI.activeSelf);
+
 			if(Time.timeScale == 1)
 			{
 				Time.timeScale = 0;
@@ -53,13 +82,19 @@ public class InventoryUI : MonoBehaviour
 		}
 	}
 
+	public void UpdateUIInventory()
+	{
+		UpdateUI();
+	}
+
 	// Atualiza a UI do inventário by:
 	//		- Adicionando itens
 	//		- limpando slots vazios
 	// Isto é chamadado usando um delegate no inventário.
 	public void UpdateUI()
-	{
-		InventorySlot[] slots = GetComponentsInChildren<InventorySlot>();
+	{ 
+
+		InventorySlot[] slots = inventoryUI.GetComponentsInChildren<InventorySlot>();
 
 		for (int i = 0; i < slots.Length; i++)
 		{

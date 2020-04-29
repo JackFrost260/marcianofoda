@@ -87,13 +87,7 @@ public class RayCastInteractable : MonoBehaviour
 			texture = crossHair;
 		}
 
-
-
-
-
 	}
-
-
 
 	private void OnGUI()
 	{

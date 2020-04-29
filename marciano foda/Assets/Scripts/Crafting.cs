@@ -21,7 +21,7 @@ public class Crafting : MonoBehaviour
 	}
 
 	public void MouseEnter()
-	{
+	{ 
 		recipeString = craftingRecipe.Feedback();
 		recipeText.text = recipeString;
 	}

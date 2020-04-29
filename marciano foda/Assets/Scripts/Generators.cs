@@ -5,7 +5,7 @@ using UnityEngine;
 public class Generators : MonoBehaviour
 {
     public static int maxCapacity = 10;
-    public static int currentEnergy;
+    public static int currentEnergy = 20;
 
     // Update is called once per frame
     void Update()
