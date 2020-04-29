@@ -61,7 +61,7 @@ public class DayAndNightControl : MonoBehaviour {
 		if (currentTime >= 1) {
 			currentTime = 0;//once we hit "midnight"; any time after that sunrise will begin.
 			currentDay++; //make the day counter go up
-			plasticProduction.Production();
+			//plasticProduction.Production();
 
 		}
 	}
