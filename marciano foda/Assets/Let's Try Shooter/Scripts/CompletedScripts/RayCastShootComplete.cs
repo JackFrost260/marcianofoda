@@ -85,8 +85,4 @@ public class RayCastShootComplete : MonoBehaviour {
 		laserLine.enabled = false;
 	}
 
-	private void OnGUI()
-	{
-		GUI.DrawTexture(new Rect((Screen.width / 2) - (100 / 2), (Screen.height / 2) - (100 / 2), 100, 100), CrossHair);
-	}
 }

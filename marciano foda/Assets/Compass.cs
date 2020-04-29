@@ -39,14 +39,14 @@ public class Compass : MonoBehaviour
             marker.image.rectTransform.anchoredPosition = GetPosOmCompass(marker);
 
             float dst = Vector2.Distance(new Vector2(player.transform.position.x, player.transform.position.z), marker.position);
-            float scale = 0f;
+            //float scale = 0f;
 
-            if (dst < maxDistanece)
-            {
-                scale = 1f -(dst / maxDistanece);
-            }
+          //if (dst < maxDistanece)
+         // {
+          //      scale = 1f -(dst / maxDistanece);
+        // }
 
-            marker.image.rectTransform.localScale = Vector3.one * scale;
+         // marker.image.rectTransform.localScale = Vector3.one * scale;
         }
     }
 
@@ -62,7 +62,7 @@ public class Compass : MonoBehaviour
     Vector2 GetPosOmCompass(QuestMarker marker)
     {
         Vector2 playerPos = new Vector2(player.transform.position.x, player.transform.position.z);
-        Vector2 playerFwd = new Vector2(-player.transform.forward.x, -player.transform.forward.z);
+        Vector2 playerFwd = new Vector2(player.transform.forward.x, player.transform.forward.z);
 
         float angle = Vector2.SignedAngle(marker.position - playerPos, playerFwd);
 

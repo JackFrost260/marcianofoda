@@ -6,20 +6,21 @@ using UnityEngine.UI;
 public class RayCastInteractable : MonoBehaviour
 {
 	public float weaponRange;
-	public Transform rayPosition;
 	private Camera fpsCam;
-	public Sprite pressESprite;
-	public Image pressImage;
+	public Texture2D pressE;
+	public Texture2D shot;
+	public Texture2D crossHair;
+
+	private Texture2D texture;
 
 	private void Start()
 	{
+		texture = crossHair;
 		fpsCam = GetComponentInParent<Camera>();
 	}
 
 	private void Update()
 	{
-
-		//Vector3 rayOrigin = rayPosition.position;
 		Vector3 rayOrigin = fpsCam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
 
 
@@ -28,7 +29,7 @@ public class RayCastInteractable : MonoBehaviour
 
 		if (Physics.Raycast(rayOrigin, fpsCam.transform.forward, out hit, weaponRange))
 		{
-			
+
 			PlasticCollect collect = hit.collider.GetComponent<PlasticCollect>();
 			PlasticDeposit deposit = hit.collider.GetComponent<PlasticDeposit>();
 			Interactable interact = hit.collider.GetComponent<Interactable>();
@@ -36,14 +37,23 @@ public class RayCastInteractable : MonoBehaviour
 			Biomassa bio = hit.collider.GetComponent<Biomassa>();
 			Converter converter = hit.collider.GetComponent<Converter>();
 			ChangePlayer change = hit.collider.GetComponent<ChangePlayer>();
+			Cut itemCut = hit.collider.GetComponent<Cut>();
 
 
-			if (collect != null || deposit != null || interact != null || craft != null || bio != null || converter != null || change != null)
+			if (collect != null || deposit != null || interact != null || craft != null || bio != null || converter != null || change != null || itemCut != null)
 			{
-				//pressImage.enabled = true;
-				//pressImage.gameObject.transform.position = Input.mousePosition;
-				//pressImage.gameObject.transform.position = new Vector3((Screen.width / 2) - (100 / 2), (Screen.height / 2) - (100 / 2), 0);
-				//pressImage.sprite = pressESprite;
+
+				if (itemCut != null)
+				{
+					texture = shot;
+				}
+
+				else
+				{
+			    	texture = pressE;
+				}
+
+
 				if (Input.GetKeyDown(KeyCode.E))
 				{
 					if (collect != null)
@@ -70,8 +80,23 @@ public class RayCastInteractable : MonoBehaviour
 				}
 
 			}
-
-			//else pressImage.enabled = false;
 		}
+
+		else
+		{
+			texture = crossHair;
+		}
+
+
+
+
+
+	}
+
+
+
+	private void OnGUI()
+	{
+		GUI.DrawTexture(new Rect((Screen.width / 2) - (100 / 2), (Screen.height / 2) - (100 / 2), 100, 100), texture);
 	}
 }

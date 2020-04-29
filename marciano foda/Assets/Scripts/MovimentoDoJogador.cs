@@ -30,16 +30,16 @@ public class MovimentoDoJogador : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        //Cursor.lockState = CursorLockMode.Locked;
+        //Cursor.visible = false;
 
         float x = Input.GetAxis("Horizontal");
         float y = Input.GetAxis("Vertical");
 
-        if (Input.GetButtonDown("Fire1"))
-        {
-            z = 1 * distanciaPulo;
-        }
+        //if (Input.GetButtonDown("Fire1"))
+       // {
+        //    z = 1 * distanciaPulo;
+       // }
 
         Vector3 movimento = transform.right * x + transform.forward * y;
         controlador.Move(movimento * velocidade * Time.deltaTime);
@@ -62,7 +62,7 @@ public class MovimentoDoJogador : MonoBehaviour
         controlador.Move(velocidadeDeQueda * Time.deltaTime);
         controlador.Move(Time.deltaTime * velocidadePulo);
 
-        print(velocidadeDeQueda);
+        //print(velocidadeDeQueda);
     }
 
     private void OnDrawGizmos()

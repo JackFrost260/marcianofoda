@@ -1,4 +1,5 @@
-﻿using System;
+﻿using com.ootii.Graphics;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,21 +28,21 @@ public class CraftingRecipe : ScriptableObject
 
     public bool CanCraft(ItemContainer itemContainer)
     {
-        
+
         return HasMaterials(itemContainer); // && HasSpace(itemContainer);
     }
 
 
     public bool HasMaterials(ItemContainer itemContainer)
     {
-     
+
         foreach (ItemAmount itemAmount in Materials)
         {
-           
-            
+
+
             if (itemContainer.ItemCount(itemAmount.item.name) < itemAmount.Amount)
             {
-           
+
                 Debug.LogWarning("You don't have the required materals.");
                 return false;
             }
@@ -49,18 +50,18 @@ public class CraftingRecipe : ScriptableObject
         return true;
     }
 
-   // private bool HasSpace(ItemContainer itemContainer)
+    // private bool HasSpace(ItemContainer itemContainer)
     //{
-       // foreach (ItemAmount itemAmount in Results)
-      //  {
-         //   if (!itemContainer.CanAddItem(itemAmount.item, itemAmount.Amount))
-          //  {
-             //   Debug.LogWarning("Your inventory is full.");
-             //   return false;
-           // }
-       // }
-      //  return true;
-  //  }
+    // foreach (ItemAmount itemAmount in Results)
+    //  {
+    //   if (!itemContainer.CanAddItem(itemAmount.item, itemAmount.Amount))
+    //  {
+    //   Debug.LogWarning("Your inventory is full.");
+    //   return false;
+    // }
+    // }
+    //  return true;
+    //  }
 
     public void Craft(ItemContainer itemContainer)
     {
@@ -101,7 +102,7 @@ public class CraftingRecipe : ScriptableObject
         {
             for (int i = 0; i < itemAmount.Amount; i++)
             {
-               // ItemAmount oldItem = itemContainer.RemoveItem(itemAmount.item.name) ;
+                // ItemAmount oldItem = itemContainer.RemoveItem(itemAmount.item.name) ;
                 Inventory.instance.Remove(itemAmount.item);
             }
         }
@@ -117,4 +118,25 @@ public class CraftingRecipe : ScriptableObject
         }
     }
 
+    public string Feedback()
+    {
+        string stringReturn;
+
+        stringReturn = "Energia Usada: " + energyUsed + "\n";
+
+        foreach (ItemAmount itemAmount in Materials)
+        {
+
+            for (int i = 0; i < itemAmount.Amount; i++)
+            {
+                stringReturn += itemAmount.item.name + ": " + itemAmount.Amount + "\n";
+            }
+        }
+
+        return stringReturn; 
+    }
+
+
 }
+
+

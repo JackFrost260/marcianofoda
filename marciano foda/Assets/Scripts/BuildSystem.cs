@@ -26,10 +26,10 @@ public class BuildSystem : MonoBehaviour {
          //   previewGameObject.transform.Rotate(0, 90f, 0);//rotate the preview 90 degrees. You can add in your own value here
        // }
 
-        if (Input.GetKeyDown(KeyCode.G))//cancel build
-        {
-            CancelBuild();
-        }
+       // if (Input.GetKeyDown(KeyCode.G))//cancel build
+      //  {
+        //    CancelBuild();
+       // }
 
         if (Input.GetMouseButtonDown(0) && isBuilding)//actually build the thing in the world
         {
@@ -113,7 +113,7 @@ public class BuildSystem : MonoBehaviour {
             
             //If your using unity primitives use these 3 lines
             float y = hit.point.y + (previewGameObject.transform.localScale.y / 2f);
-            Vector3 pos = new Vector3(hit.point.x, y, hit.point.z);
+            Vector3 pos = new Vector3(hit.point.x, hit.point.y, hit.point.z);
             previewGameObject.transform.position = pos;
             
             //if your using something from blender and anchor points are setup correctly use this line
