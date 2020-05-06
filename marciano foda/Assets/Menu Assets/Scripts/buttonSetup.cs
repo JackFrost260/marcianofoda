@@ -7,6 +7,7 @@ public class buttonSetup : MonoBehaviour
 {
    
     public GameObject weather1;
+    public GameObject fadeObject;
     public GameObject instru;
 
     public void startGame()
