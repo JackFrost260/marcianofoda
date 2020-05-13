@@ -450,7 +450,7 @@ namespace GreatArcStudios
                 pauseMenu.text = "Pause Menu";
             }
 
-            if (Input.GetKeyDown(KeyCode.P) && mainPanel.activeSelf == false)
+            if (Input.GetKeyDown(KeyCode.Escape) && mainPanel.activeSelf == false)
             {
                 Cursor.lockState = CursorLockMode.None;
                 UpdateInterface.CursorLock = false;
@@ -470,7 +470,7 @@ namespace GreatArcStudios
                      blurEffect.enabled = true;
                  }  */
             }
-            else if(Input.GetKeyDown(KeyCode.P) && mainPanel.activeSelf == true) {
+            else if(Input.GetKeyDown(KeyCode.Escape) && mainPanel.activeSelf == true) {
                 Cursor.lockState = CursorLockMode.Locked;
                 UpdateInterface.CursorLock = true;
                 Time.timeScale = timeScale;
@@ -610,7 +610,7 @@ namespace GreatArcStudios
         public void applyAudio()
         {
             StartCoroutine(applyAudioMain());
-            uiEventSystem.SetSelectedGameObject(defualtSelectedMain);
+            //uiEventSystem.SetSelectedGameObject(defualtSelectedMain);
            
         }
         /// <summary>
@@ -768,6 +768,7 @@ namespace GreatArcStudios
         {
             uiEventSystem.SetSelectedGameObject(defualtSelectedMain);
             StartCoroutine(cancelVideoMain());
+            applyAudio();
         }
         /// <summary>
         /// Use an IEnumerator to first play the animation and then changethe video settings
@@ -828,6 +829,8 @@ namespace GreatArcStudios
         {
             StartCoroutine(applyVideo());
             uiEventSystem.SetSelectedGameObject(defualtSelectedMain);
+           
+          
   
         }
         /// <summary>
