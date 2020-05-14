@@ -80,7 +80,7 @@ namespace GreatArcStudios
         /// <summary>
         /// The terrain detail density float. It's only public because you may want to adjust it in editor
         /// </summary> 
-        public  float detailDensity;
+        public float detailDensity;
 
         /// <summary>
         /// Timescale value. The defualt is 1 for most games. You may want to change it if you are pausing the game in a slow motion situation 
@@ -89,11 +89,11 @@ namespace GreatArcStudios
         /// <summary>
         /// One terrain variable used if you have a terrain plugin like rtp. 
         /// </summary>
-        public  Terrain terrain;
+        public Terrain terrain;
         /// <summary>
         /// Other terrain variable used if you want to have an option to target low end harware.
         /// </summary>
-        public  Terrain simpleTerrain;
+        public Terrain simpleTerrain;
         /// <summary>
         /// Inital shadow distance 
         /// </summary>
@@ -170,19 +170,19 @@ namespace GreatArcStudios
         /// <summary>
         /// Lod bias float array. You should manually assign these based on the quality level.
         /// </summary>
-        public  float[] LODBias;
+        public float[] LODBias;
         /// <summary>
         /// Shadow distance array. You should manually assign these based on the quality level.
         /// </summary>
-        public  float[] shadowDist;
+        public float[] shadowDist;
         /// <summary>
         /// An array of music audio sources
         /// </summary>
-        public  AudioSource[] music;
+        public AudioSource[] music;
         /// <summary>
         /// An array of sound effect audio sources
         /// </summary>
-        public  AudioSource[] effects;
+        public AudioSource[] effects;
         /// <summary>
         /// An array of the other UI elements, which is used for disabling the other elements when the game is paused.
         /// </summary>
@@ -194,7 +194,7 @@ namespace GreatArcStudios
         /// <summary>
         /// Boolean for turning on simple terrain
         /// </summary>
-        public  Boolean useSimpleTerrain;
+        public Boolean useSimpleTerrain;
         public static Boolean readUseSimpleTerrain;
         /// <summary>
         /// Event system
@@ -244,7 +244,7 @@ namespace GreatArcStudios
 
         //last shadow cascade value
         internal static int lastShadowCascade;
-       
+
         public static Boolean aoBool;
         public static Boolean dofBool;
         private Boolean lastAOBool;
@@ -278,9 +278,25 @@ namespace GreatArcStudios
         /// <summary>
         /// The start method; you will need to place all of your inital value getting/setting here. 
         /// </summary>
+        /// 
+
+
+
+
+
+
+
+        public Animator confirmationMenuAnimator;
+        public Animator confirmationExitGameAnimator;
+        public GameObject confirmationMenuPanel;
+        public GameObject confirmationExitGamePanel;
+        public GameObject quitOptionsPanel;
+        public GameObject weather;
+        public GameObject dialogue;
+
         public void Start()
         {
-           
+
             readUseSimpleTerrain = useSimpleTerrain;
             if (useSimpleTerrain)
             {
@@ -290,7 +306,7 @@ namespace GreatArcStudios
             {
                 readTerrain = terrain;
             }
-           
+
             mainCamShared = mainCam;
             //Set the lastmusicmult and last audiomult
             lastMusicMult = audioMusicSlider.value;
@@ -375,6 +391,9 @@ namespace GreatArcStudios
             mainPanel.SetActive(false);
             vidPanel.SetActive(false);
             audioPanel.SetActive(false);
+            confirmationExitGamePanel.SetActive(false);
+            confirmationMenuPanel.SetActive(false);
+            quitOptionsPanel.SetActive(false);
             TitleTexts.SetActive(false);
             mask.SetActive(false);
             for (int i = 0; i < otherUIElements.Length; i++)
@@ -396,8 +415,10 @@ namespace GreatArcStudios
         /// </summary>
         public void quitOptions()
         {
+            mainPanel.SetActive(false);
             vidPanel.SetActive(false);
             audioPanel.SetActive(false);
+            quitOptionsPanel.SetActive(true);
             quitPanelAnimator.enabled = true;
             quitPanelAnimator.Play("QuitPanelIn");
 
@@ -418,12 +439,15 @@ namespace GreatArcStudios
         public void quitCancel()
         {
             quitPanelAnimator.Play("QuitPanelOut");
+            mainPanel.SetActive(true);
         }
         /// <summary>
         ///Loads the main menu scene.
         /// </summary>
         public void returnToMenu()
         {
+            Destroy(weather);
+            Destroy(dialogue);
             SceneManager.LoadScene("menu");
             uiEventSystem.SetSelectedGameObject(defualtSelectedMain);
         }
@@ -458,6 +482,9 @@ namespace GreatArcStudios
                 mainPanel.SetActive(true);
                 vidPanel.SetActive(false);
                 audioPanel.SetActive(false);
+                quitOptionsPanel.SetActive(false);
+                confirmationExitGamePanel.SetActive(false);
+                confirmationMenuPanel.SetActive(false);
                 TitleTexts.SetActive(true);
                 mask.SetActive(true);
                 Time.timeScale = 0;
@@ -470,13 +497,17 @@ namespace GreatArcStudios
                      blurEffect.enabled = true;
                  }  */
             }
-            else if(Input.GetKeyDown(KeyCode.P) && mainPanel.activeSelf == true) {
+            else if (Input.GetKeyDown(KeyCode.P) && mainPanel.activeSelf == true)
+            {
                 Cursor.lockState = CursorLockMode.Locked;
                 UpdateInterface.CursorLock = true;
                 Time.timeScale = timeScale;
                 mainPanel.SetActive(false);
                 vidPanel.SetActive(false);
                 audioPanel.SetActive(false);
+                confirmationExitGamePanel.SetActive(false);
+                confirmationMenuPanel.SetActive(false);
+                quitOptionsPanel.SetActive(false);
                 TitleTexts.SetActive(false);
                 mask.SetActive(false);
                 for (int i = 0; i < otherUIElements.Length; i++)
@@ -611,7 +642,7 @@ namespace GreatArcStudios
         {
             StartCoroutine(applyAudioMain());
             uiEventSystem.SetSelectedGameObject(defualtSelectedMain);
-           
+
         }
         /// <summary>
         /// Use an IEnumerator to first play the animation and then change the audio settings
@@ -768,6 +799,7 @@ namespace GreatArcStudios
         {
             uiEventSystem.SetSelectedGameObject(defualtSelectedMain);
             StartCoroutine(cancelVideoMain());
+            applyAudio();
         }
         /// <summary>
         /// Use an IEnumerator to first play the animation and then changethe video settings
@@ -828,7 +860,9 @@ namespace GreatArcStudios
         {
             StartCoroutine(applyVideo());
             uiEventSystem.SetSelectedGameObject(defualtSelectedMain);
-  
+
+
+
         }
         /// <summary>
         /// Use an IEnumerator to first play the animation and then change the video settings.
@@ -1067,7 +1101,7 @@ namespace GreatArcStudios
         /// <param name="b"></param>
         public void setFullScreen(Boolean b)
         {
-           
+
 
             if (b == true)
             {
@@ -1387,5 +1421,40 @@ namespace GreatArcStudios
             QualitySettings.lodBias = LODBias[6];
         }
 
+
+        public void ConfirmationExitGame()
+        {
+            mainPanel.SetActive(false);
+            vidPanel.SetActive(false);
+            quitOptionsPanel.SetActive(false);
+            confirmationExitGamePanel.SetActive(true);
+            confirmationExitGameAnimator.enabled = true;
+            confirmationExitGameAnimator.Play("Audio Panel In");
+
+        }
+
+        public void ConfirmationReturnToMenu()
+        {
+            mainPanel.SetActive(false);
+            vidPanel.SetActive(false);
+            quitOptionsPanel.SetActive(false);
+            confirmationMenuPanel.SetActive(true);
+            confirmationMenuAnimator.enabled = true;
+            confirmationMenuAnimator.Play("Audio Panel In");
+        }
+
+        public void CancelReturnToMenu()
+        {
+            confirmationMenuAnimator.Play("Audio Panel Out");
+            quitOptionsPanel.SetActive(true);
+        }
+
+        public void CancelExitGame()
+        {
+            confirmationExitGameAnimator.Play("Audio Panel Out");
+            quitOptionsPanel.SetActive(true);
+        }
+
+      
     }
 }
