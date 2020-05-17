@@ -21,8 +21,10 @@ public class PlasticProduction : MonoBehaviour
 
     public Item item;
 
-    public GameObject [] activate;
-    public GameObject deactivate;
+    public GameObject[] gavetas;
+    public GameObject[] bacts;
+    public GameObject[] potFull;
+  
 
 
 
@@ -42,20 +44,27 @@ public class PlasticProduction : MonoBehaviour
     {
         if(bact > 0)
         {
-            plastic += bact;
+            for(int i = 0; i <= bact-1; i++)
+            {
+                gavetas[i].SetActive(true);
+            }
+
+           // plastic += bact;
             
-            Debug.Log("bact:" + bact);
-            Debug.Log("plastic:" + plastic);
+            //Debug.Log("bact:" + bact);
+           // Debug.Log("plastic:" + plastic);
         }
     }
 
     public void Collect()
     {
-        for (int i = plastic; i > 0; i--)
-        {
+       // for (int i = plastic; i > 0; i--)
+        //{
+            
             Inventory.instance.Add(item);
-            plastic--;
-        }
+            
+           // plastic--;
+       // }
     }
 
     public void Deposit()
@@ -66,12 +75,17 @@ public class PlasticProduction : MonoBehaviour
 
             bact++;
 
-            for (int i = 0; i < activate.Length ; i++)
+            for (int i = 0; i <= bact - 1; i++)
             {
-                activate[i].SetActive(true);
+                bacts[i].SetActive(true);
             }
 
-            deactivate.SetActive(false);
+            for (int i = 0; i < potFull.Length ; i++)
+            {
+                potFull[i].SetActive(false);
+            }
+
+          
 
         }
     }

@@ -4,7 +4,6 @@ using System.Collections;
 public class RayCastShootComplete : MonoBehaviour {
 
 	public int gunDamage = 1;
-	public Transform rayPosition;
 	public float fireRate = 0.25f;										
 	public float weaponRange = 50f;										
 	public Transform gunEnd;											
@@ -14,43 +13,60 @@ public class RayCastShootComplete : MonoBehaviour {
 	private AudioSource gunAudio;										
 	private LineRenderer laserLine;										
 	private float nextFire;
-	public Texture2D CrossHair;
+	private bool fire;
 
 
 	void Start () 
 	{
+		fire = false;
+
 		laserLine = GetComponent<LineRenderer>();
 
 		gunAudio = GetComponent<AudioSource>();
 
 		fpsCam = GetComponentInParent<Camera>();
 
-	}
-	
+		
 
-	void Update () 
+	}
+
+
+	void Update()
 	{
-		
-		if (Input.GetButtonDown("Fire1") && Time.time > nextFire && Time.timeScale != 0) 
+
+		if (Input.GetButtonDown("Fire1")) //&& Time.time > nextFire && Time.timeScale != 0) 
 		{
-		
-			nextFire = Time.time + fireRate;
+			fire = true;
+			gunAudio.Play();
+			laserLine.enabled = true;
+		}
+
+		if (Input.GetButtonUp("Fire1"))
+		{
+			fire = false;
+			gunAudio.Stop();
+			laserLine.enabled = false;
+			
+		}
+
+		if (fire)
+		{
+			//nextFire = Time.time + fireRate;
+
+			//StartCoroutine (ShotEffect());
+			laserLine.SetPosition(0, gunEnd.position);
+
+			Vector3 rayOrigin = fpsCam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
+
+
+			RaycastHit hit;
 
 			
-            StartCoroutine (ShotEffect());
 
-            //Vector3 rayOrigin = rayPosition.position;
-            Vector3 rayOrigin = fpsCam.ViewportToWorldPoint (new Vector3(0.5f, 0.5f, 0.0f));
 
-         
-            RaycastHit hit;
-
-			laserLine.SetPosition (0, gunEnd.position);
-
-		
-			if (Physics.Raycast (rayOrigin, fpsCam.transform.forward, out hit, weaponRange))
+			if (Physics.Raycast(rayOrigin, fpsCam.transform.forward, out hit, weaponRange))
 			{
-				laserLine.SetPosition (1, hit.point);
+				laserLine.SetPosition(1, hit.point);
 
 				// Get a reference to a health script attached to the collider we hit
 				//ShootableBox health = hit.collider.GetComponent<ShootableBox>();
@@ -66,8 +82,8 @@ public class RayCastShootComplete : MonoBehaviour {
 			}
 			else
 			{
-				
-                laserLine.SetPosition (1, rayOrigin + (fpsCam.transform.forward * weaponRange));
+
+				laserLine.SetPosition(1, rayOrigin + (fpsCam.transform.forward * weaponRange));
 			}
 		}
 	}
