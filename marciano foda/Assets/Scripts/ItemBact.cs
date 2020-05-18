@@ -5,8 +5,7 @@ using UnityEngine;
 public class ItemBact : Interactable
 {
 
-    public GameObject bottleEmpty;
-    public GameObject bottleFull;
+    public GameObject[] Full;
 
     public override void Interact()
     {
@@ -22,8 +21,10 @@ public class ItemBact : Interactable
     // Update is called once per frame
     void PickUp()
     {
-        bottleEmpty.SetActive(false);
-        bottleFull.SetActive(true);
+        for (int i = 0; i < Full.Length; i ++)
+        {
+            Full[i].SetActive(true);
+        }
 
         Interactable.bottleFull = true;
 
