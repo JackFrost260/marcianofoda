@@ -21,6 +21,8 @@ public class RayCastInteractable : MonoBehaviour
 
 	private void Update()
 	{
+		
+
 		Vector3 rayOrigin = fpsCam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
 
 
@@ -91,6 +93,11 @@ public class RayCastInteractable : MonoBehaviour
 
 	private void OnGUI()
 	{
+		if (Time.timeScale == 0)
+		{
+			texture = null;
+		}
+
 		GUI.DrawTexture(new Rect((Screen.width / 2) - (100 / 2), (Screen.height / 2) - (100 / 2), 100, 100), texture);
 	}
 }

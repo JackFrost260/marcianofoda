@@ -34,7 +34,7 @@ public class RayCastShootComplete : MonoBehaviour {
 	void Update()
 	{
 
-		if (Input.GetButtonDown("Fire1")) //&& Time.time > nextFire && Time.timeScale != 0) 
+		if (Input.GetButtonDown("Fire1") && Time.timeScale != 0)// Time.time > nextFire && ) 
 		{
 			fire = true;
 			gunAudio.Play();
