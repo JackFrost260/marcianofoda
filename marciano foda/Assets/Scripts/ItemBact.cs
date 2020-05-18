@@ -22,7 +22,7 @@ public class ItemBact : Interactable
     // Update is called once per frame
     void PickUp()
     {
-        TextTime.feedbackString = "+ Colônia de Bactérias";
+        TextTime.feedbackString = "+ Colônia de Bactérias".ToUpper(); ;
         TextTime.textAtivado = true;
 
         for (int i = 0; i < Full.Length; i ++)

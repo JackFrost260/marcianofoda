@@ -36,50 +36,35 @@ public class InventoryUI : MonoBehaviour
 	// Verifique se devemos abrir / fechar o inventário
 	void Update()
 	{
-	
-		if (Input.GetKeyDown(KeyCode.I))
+
+		if (Input.GetKeyDown(KeyCode.I) && inventoryUI.activeSelf == false && Time.timeScale != 0)
 		{
+			Cursor.lockState = CursorLockMode.None;
+			Cursor.visible = true;
+			UpdateInterface.CursorLock = false;
 
-			if (Inventory.currentInventory == "Player")
-			{
-				inventory.changeInventory();
-				inventoryUI = inventoryUIPlayer;
-			}
+			Time.timeScale = 0;
 
-			if (Inventory.currentInventory == "Car")
-			{
-				inventory.changeInventory();
-				inventoryUI = inventoryUICar;
-			}
 
-			inventoryUI.SetActive(!inventoryUI.activeSelf);
-
-			if(Time.timeScale == 1)
-			{
-				Time.timeScale = 0;
-			}
-
-			else
-			{
-				if (Time.timeScale == 0)
-				{
-					Time.timeScale = 1;
-				}
-			}
-
-			if (cursorLocked)
-			{
-				Cursor.lockState = CursorLockMode.None;
-				cursorLocked = false;
-			}
-
-			else
-			{
-				Cursor.lockState = CursorLockMode.Locked;
-				cursorLocked = true;
-			}
+			inventoryUI.SetActive(true);
 			UpdateUI();
+
 		}
+
+		else if (Input.GetKeyDown(KeyCode.I) && inventoryUI.activeSelf == true && !Converter.InCraft)
+		{
+			Cursor.lockState = CursorLockMode.Locked;
+			Cursor.visible = false;
+			UpdateInterface.CursorLock = true;
+
+			Time.timeScale = 1;
+
+			inventoryUI.SetActive(false);
+			UpdateUI();
+
+		}
+
+
 	}
 
 	public void UpdateUIInventory()

@@ -27,6 +27,7 @@ public class UpdateInterface : MonoBehaviour
 	private void Start()
 	{
 		Cursor.lockState = CursorLockMode.Locked;
+		Update2();
 	}
 
 	public void Update2()

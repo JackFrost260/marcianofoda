@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 
@@ -11,6 +12,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Item", menuName = "Crafting/Recipe")]
 public class CraftingRecipe : ScriptableObject
 {
+    public static int craftAtual = 1;
 
     [Serializable]
     public struct ItemAmount
@@ -133,10 +135,82 @@ public class CraftingRecipe : ScriptableObject
             }
         }
 
-        return stringReturn; 
+        return stringReturn;
     }
 
+    public Sprite RecipeIcon1()
+    {
+        Sprite materiais1 = null;
 
+        foreach (ItemAmount itemAmount in Materials)
+        {
+
+            for (int i = 0; i < itemAmount.Amount; i++)
+            {
+                if (materiais1 == null)
+                {
+                    materiais1 = itemAmount.item.icon;
+                }
+
+            }
+        }
+
+        return materiais1;
+
+    }
+
+    public Sprite RecipeIcon2()
+    {
+        Sprite materiais2 = null;
+
+        foreach (ItemAmount itemAmount in Materials)
+        {
+
+            for (int i = 0; i < itemAmount.Amount; i++)
+            {
+                materiais2 = itemAmount.item.icon;
+
+            }
+        }
+        return materiais2;
+
+    }
+
+    public string RecipeEnergia()
+    {
+        string stringReturn = "" + energyUsed;
+
+        return stringReturn;
+    }
+
+    public string NameItem()
+    {
+        string stringReturn = "";
+
+        foreach (ItemAmount itemAmount in Results)
+        {
+            for (int i = 0; i < itemAmount.Amount; i++)
+            {
+                stringReturn = itemAmount.item.name;
+            }
+        }
+
+        return stringReturn;
+    }
+
+    public bool HasEnergia()
+    {
+        if (Generators.currentEnergy >= energyUsed)
+        {
+            return true;
+        }
+
+        else return false;
+    }
 }
+
+
+
+
 
 
