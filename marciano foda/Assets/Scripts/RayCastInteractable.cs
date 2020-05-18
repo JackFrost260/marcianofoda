@@ -7,15 +7,17 @@ public class RayCastInteractable : MonoBehaviour
 {
 	public float weaponRange;
 	private Camera fpsCam;
-	public Texture2D pressE;
-	public Texture2D shot;
-	public Texture2D crossHair;
+	public Texture2D crosshairE;
+	public Texture2D crosshairLaser;
+	public Texture2D crosshairBact;
+	public Texture2D crosshairHand;
+	public Texture2D crosshair;
 
 	private Texture2D texture;
 
 	private void Start()
 	{
-		texture = crossHair;
+		texture = crosshair;
 		fpsCam = GetComponentInParent<Camera>();
 	}
 
@@ -34,7 +36,8 @@ public class RayCastInteractable : MonoBehaviour
 
 			PlasticCollect collect = hit.collider.GetComponent<PlasticCollect>();
 			PlasticDeposit deposit = hit.collider.GetComponent<PlasticDeposit>();
-			Interactable interact = hit.collider.GetComponent<Interactable>();
+			ItemPickup pickup = hit.collider.GetComponent<ItemPickup>();
+			ItemBact bact = hit.collider.GetComponent<ItemBact>();
 			Crafting craft = hit.collider.GetComponent<Crafting>();
 			Biomassa bio = hit.collider.GetComponent<Biomassa>();
 			Converter converter = hit.collider.GetComponent<Converter>();
@@ -42,30 +45,48 @@ public class RayCastInteractable : MonoBehaviour
 			Cut itemCut = hit.collider.GetComponent<Cut>();
 
 
-			if (collect != null || deposit != null || interact != null || craft != null || bio != null || converter != null || change != null || itemCut != null)
+			if (collect != null || deposit != null || bact != null || craft != null || bio != null || converter != null || change != null || itemCut != null || pickup != null)
 			{
 
 				if (itemCut != null)
 				{
-					texture = shot;
+					texture = crosshairLaser;
 				}
 
-				else
+				else if (deposit != null && Interactable.bottleFull )
+				{ 
+					texture = crosshairBact;
+				}
+
+				else if (collect != null || craft != null || bio != null || converter != null || change != null)
 				{
-			    	texture = pressE;
+			    	texture = crosshairE;
 				}
 
+				else if (bact != null && !Interactable.bottleFull )
+				{
+					texture = crosshairBact;
+				}
 
+				else if (pickup != null )
+				{
+					texture = crosshairHand;
+				}
+				
+				
+				
+				
+				
 				if (Input.GetKeyDown(KeyCode.E))
 				{
 					if (collect != null)
 						collect.Collect();
 
-					if (deposit != null)
+					if (deposit != null && Ferramentas.ferramenta == "pote")
 						deposit.Deposit();
 
-					if (interact != null)
-						interact.Interact();
+					if (bact != null && Ferramentas.ferramenta == "pote")
+						bact.Interact();
 
 					if (craft != null)
 						craft.OnCraftButtonClick();
@@ -79,6 +100,10 @@ public class RayCastInteractable : MonoBehaviour
 					if (change != null)
 						change.ChangePlayerInteract();
 
+					if (pickup != null && Ferramentas.ferramenta == "mão")
+						pickup.Interact();
+
+					
 				}
 
 			}
@@ -86,7 +111,7 @@ public class RayCastInteractable : MonoBehaviour
 
 		else
 		{
-			texture = crossHair;
+			texture = crosshair;
 		}
 
 	}

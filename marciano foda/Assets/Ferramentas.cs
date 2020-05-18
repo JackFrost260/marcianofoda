@@ -6,70 +6,72 @@ using UnityEngine.UI;
 public class Ferramentas : MonoBehaviour
 {
     public GameObject[] ferramentas;
-    public Image iconFerramentas;
+    public GameObject[] iconFerramentas;
 
     public static string ferramenta;
-
-    private int position;
 
 
     // Start is called before the first frame update
     void Start()
     {
-        position = 1;
+        ferramenta = "mão";
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.L))
+        if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            position++;
-
-            if(position > ferramentas.Length)
-            {
-                ferramentas[0].SetActive(true);
-                ferramentas[2].SetActive(false);
-                position = 1;
-            }
-
-            for(int i = 0; i < position; i++)
-            {
-                if(i > 1)
-                {
-                    ferramentas[i - 2].SetActive(false);
-                    ferramentas[i - 1].SetActive(false);
-                }
-
-                ferramentas[i].SetActive(true);
-            }
+            Ativar(0);
         }
 
-        if (Input.GetKeyDown(KeyCode.K))
+        if (Input.GetKeyDown(KeyCode.Alpha2))
         {
-            position--;
+            Ativar(1);
+        }
 
-            if (position <= 0)
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            Ativar(2);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            Ativar(3);
+        }
+
+    }
+
+    public void Ativar(int a)
+    {
+        if (a == 0) ferramenta = "mão";
+        if (a == 1) ferramenta = "pote";
+        if (a == 2) ferramenta = "laser";
+        if (a == 3) ferramenta = "nenhuma";
+
+        Debug.Log(ferramenta);
+
+        for (int i = 0; i < ferramentas.Length; i++)
+        {
+            if (a == 3)
             {
-                ferramentas[0].SetActive(false);
-                ferramentas[2].SetActive(true);
-                position = 3;
+                ferramentas[i].SetActive(false);
+                iconFerramentas[i].SetActive(false);
             }
 
-            for (int i = 0; i < position; i++)
+            else
             {
-                if (position < 3)
+                if (i == a)
                 {
-                    ferramentas[2].SetActive(false);
+                    ferramentas[i].SetActive(true);
+                    iconFerramentas[i].SetActive(true);
                 }
 
-                else if (position == 3)
+                else
                 {
-                    ferramentas[0].SetActive(false);
-                    ferramentas[1].SetActive(false);
+                    ferramentas[i].SetActive(false);
+                    iconFerramentas[i].SetActive(false);
                 }
-                  
-                ferramentas[i].SetActive(true);
             }
         }
     }

@@ -18,7 +18,9 @@ public class ItemPickup : Interactable
 	// Pick up the item
 	public void PickUp()
 	{
-	
+		TextTime.feedbackString = "+ " + item.name;
+		TextTime.textAtivado = true;
+
 		Inventory.instance.Add(item);   // Adiciona ao inventário
 
 		Destroy(gameObject);    // Destrói o item da cena

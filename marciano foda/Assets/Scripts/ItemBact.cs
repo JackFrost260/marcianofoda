@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using com.ootii.Graphics;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -21,12 +22,17 @@ public class ItemBact : Interactable
     // Update is called once per frame
     void PickUp()
     {
+        TextTime.feedbackString = "+ Colônia de Bactérias";
+        TextTime.textAtivado = true;
+
         for (int i = 0; i < Full.Length; i ++)
         {
             Full[i].SetActive(true);
         }
 
         Interactable.bottleFull = true;
+
+
 
         Destroy(gameObject);    // Destrói o item da cena
     }
