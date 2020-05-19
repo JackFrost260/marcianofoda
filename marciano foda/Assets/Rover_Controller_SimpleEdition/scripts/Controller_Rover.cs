@@ -124,15 +124,15 @@ public class Controller_Rover : MonoBehaviour
 
         Wheel_proces.Left_Wheel_Collider.GetWorldPose(out Wheel_position, out Wheel_rotation);
         Wheel_proces.Left_Wheel_Mesh.transform.position = Wheel_position;
-        Wheel_proces.Left_Wheel_Mesh.transform.rotation = Wheel_rotation;
+        Wheel_proces.Left_Wheel_Mesh.transform.rotation = new Quaternion(0, 0, -90, 0);
 
        
 
 
         Wheel_proces.Right_Wheel_Collider.GetWorldPose(out Wheel_position, out Wheel_rotation);
         Wheel_proces.Right_Wheel_Mesh.transform.position = Wheel_position;
-        Wheel_proces.Right_Wheel_Mesh.transform.rotation = Wheel_rotation;
-        
+        // Wheel_proces.Right_Wheel_Mesh.transform.rotation = Wheel_rotation;
+        Wheel_proces.Right_Wheel_Mesh.transform.rotation = new Quaternion(0, 0,-90, 0);
     }
 
 

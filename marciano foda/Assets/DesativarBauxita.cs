@@ -18,5 +18,6 @@ public class DesativarBauxita : MonoBehaviour
             
         }
     }
+
 }
 

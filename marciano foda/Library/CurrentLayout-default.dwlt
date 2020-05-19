@@ -21,7 +21,7 @@ MonoBehaviour:
   m_ShowMode: 4
   m_Title: 
   m_RootView: {fileID: 2}
-  m_MinSize: {x: 875, y: 300}
+  m_MinSize: {x: 875, y: 542}
   m_MaxSize: {x: 10000, y: 10000}
   m_Maximized: 1
 --- !u!114 &2
@@ -115,7 +115,7 @@ MonoBehaviour:
   m_MinSize: {x: 679, y: 442}
   m_MaxSize: {x: 12004, y: 8042}
   vertical: 0
-  controlID: 16
+  controlID: 94
 --- !u!114 &6
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -140,7 +140,7 @@ MonoBehaviour:
   m_MinSize: {x: 403, y: 442}
   m_MaxSize: {x: 8003, y: 8042}
   vertical: 1
-  controlID: 17
+  controlID: 95
 --- !u!114 &7
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -165,7 +165,7 @@ MonoBehaviour:
   m_MinSize: {x: 403, y: 221}
   m_MaxSize: {x: 8003, y: 4021}
   vertical: 0
-  controlID: 18
+  controlID: 64
 --- !u!114 &8
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -392,24 +392,24 @@ MonoBehaviour:
   m_ViewDataDictionary: {fileID: 0}
   m_SceneHierarchy:
     m_TreeViewState:
-      scrollPos: {x: 0, y: 15.553068}
-      m_SelectedIDs: a6f8ffff
-      m_LastClickedID: -1882
-      m_ExpandedIDs: def5ffff0af6ffff32fbffff0a710000a2760000
+      scrollPos: {x: 0, y: 59}
+      m_SelectedIDs: 6aeaffff
+      m_LastClickedID: -5526
+      m_ExpandedIDs: 84c4feff2cfaffff32fbffff
       m_RenameOverlay:
         m_UserAcceptedRename: 0
-        m_Name: 
-        m_OriginalName: 
+        m_Name: Pneu 1 Low Poly UV
+        m_OriginalName: Pneu 1 Low Poly UV
         m_EditFieldRect:
           serializedVersion: 2
           x: 0
           y: 0
           width: 0
           height: 0
-        m_UserData: 0
+        m_UserData: -107288
         m_IsWaitingForDelay: 0
         m_IsRenaming: 0
-        m_OriginalEventType: 11
+        m_OriginalEventType: 0
         m_IsRenamingFilename: 0
         m_ClientGUIView: {fileID: 8}
       m_SearchString: 
@@ -455,9 +455,9 @@ MonoBehaviour:
   m_PlayAudio: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: 923.4694, y: 16.807444, z: 3170.6567}
+    m_Target: {x: 899.9722, y: 15.0439205, z: 3120.395}
     speed: 2
-    m_Value: {x: 923.4694, y: 16.807444, z: 3170.6567}
+    m_Value: {x: 899.9722, y: 15.0439205, z: 3120.395}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -503,13 +503,13 @@ MonoBehaviour:
     m_GridAxis: 1
     m_gridOpacity: 0.5
   m_Rotation:
-    m_Target: {x: 0.07236322, y: -0.27664512, z: 0.020616813, w: 0.9580975}
+    m_Target: {x: 0.1307184, y: 0.53506947, z: -0.08455872, w: 0.8304289}
     speed: 2
-    m_Value: {x: 0.07333704, y: -0.2966477, z: 0.022575295, w: 0.9518993}
+    m_Value: {x: 0.1310715, y: 0.5188592, z: -0.08120933, w: 0.8408392}
   m_Size:
-    m_Target: 13.670876
+    m_Target: 3.6715188
     speed: 2
-    m_Value: 14.315053
+    m_Value: 3.1114566
   m_Ortho:
     m_Target: 0
     speed: 2
@@ -747,35 +747,35 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - "Assets/3D/Ve\xEDculos"
+    - "Assets/3D/Ve\xEDculos/Pneus Ve\xEDculos/Pneu 1 - Unity"
   m_ViewMode: 1
   m_StartGridSize: 16
   m_LastFolders:
-  - "Assets/3D/Ve\xEDculos"
+  - "Assets/3D/Ve\xEDculos/Pneus Ve\xEDculos/Pneu 1 - Unity"
   m_LastFoldersGridSize: 16
   m_LastProjectPath: "C:\\Users\\Lenovo\\Documents\\Faculdade\\TCC\\Programa\xE7\xE3o\\Reposit\xF3rio\\marciano
     foda"
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
-    scrollPos: {x: 0, y: 148.39703}
-    m_SelectedIDs: 52eb0000
-    m_LastClickedID: 60242
-    m_ExpandedIDs: 0000000030bc000032bc000034bc000036bc000038bc00003abc0000
+    scrollPos: {x: 0, y: 155.50368}
+    m_SelectedIDs: 34be0000
+    m_LastClickedID: 48692
+    m_ExpandedIDs: 0000000030bc000032bc000034bc000036bc000038bc00003abc0000eebd000028be000032be000000ca9a3b
     m_RenameOverlay:
       m_UserAcceptedRename: 0
-      m_Name: 
-      m_OriginalName: 
+      m_Name: 3D
+      m_OriginalName: 3D
       m_EditFieldRect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 0
         height: 0
-      m_UserData: 0
+      m_UserData: 48622
       m_IsWaitingForDelay: 0
       m_IsRenaming: 0
-      m_OriginalEventType: 11
+      m_OriginalEventType: 0
       m_IsRenamingFilename: 1
       m_ClientGUIView: {fileID: 10}
     m_SearchString: 
@@ -814,24 +814,24 @@ MonoBehaviour:
       m_Icon: {fileID: 0}
       m_ResourceFile: 
   m_ListAreaState:
-    m_SelectedInstanceIDs: b8ec0000
-    m_LastClickedInstanceID: 60600
-    m_HadKeyboardFocusLastEvent: 0
+    m_SelectedInstanceIDs: deb0feff
+    m_LastClickedInstanceID: -85794
+    m_HadKeyboardFocusLastEvent: 1
     m_ExpandedInstanceIDs: c623000000000000ba6f0000da330200a09c000054a20000b8e1000070f70100dab20000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
-      m_Name: 
-      m_OriginalName: 
+      m_Name: Base
+      m_OriginalName: Base
       m_EditFieldRect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 0
         height: 0
-      m_UserData: 0
+      m_UserData: 52154
       m_IsWaitingForDelay: 0
       m_IsRenaming: 0
-      m_OriginalEventType: 11
+      m_OriginalEventType: 0
       m_IsRenamingFilename: 1
       m_ClientGUIView: {fileID: 10}
     m_CreateAssetUtility:
@@ -899,7 +899,7 @@ MonoBehaviour:
   m_ViewDataDictionary: {fileID: 0}
   m_LockTracker:
     m_IsLocked: 0
-  m_LastSelectedObjectID: -170786
+  m_LastSelectedObjectID: -198318
 --- !u!114 &20
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -937,4 +937,4 @@ MonoBehaviour:
     m_PrefName: Preview_InspectorPreview
   m_PreviewWindow: {fileID: 0}
   m_LastInspectedObjectInstanceID: -1
-  m_LastVerticalScrollValue: 354.58582
+  m_LastVerticalScrollValue: 0
