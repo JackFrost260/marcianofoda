@@ -36,6 +36,7 @@ public class RayCastInteractable : MonoBehaviour
 
 			PlasticCollect collect = hit.collider.GetComponent<PlasticCollect>();
 			PlasticDeposit deposit = hit.collider.GetComponent<PlasticDeposit>();
+			AluminumProduction aluminum = hit.collider.GetComponent<AluminumProduction>();
 			ItemPickup pickup = hit.collider.GetComponent<ItemPickup>();
 			ItemBact bact = hit.collider.GetComponent<ItemBact>();
 			Crafting craft = hit.collider.GetComponent<Crafting>();
@@ -45,7 +46,7 @@ public class RayCastInteractable : MonoBehaviour
 			Cut itemCut = hit.collider.GetComponent<Cut>();
 
 
-			if (collect != null || deposit != null || bact != null || craft != null || bio != null || converter != null || change != null || itemCut != null || pickup != null)
+			if (collect != null || deposit != null || bact != null || craft != null || bio != null || converter != null || change != null || itemCut != null || pickup != null || aluminum != null)
 			{
 
 				if (itemCut != null)
@@ -58,7 +59,15 @@ public class RayCastInteractable : MonoBehaviour
 					texture = crosshairBact;
 				}
 
-				else if (collect != null || craft != null || bio != null || converter != null || change != null)
+				else if (aluminum != null )
+				{
+					if (aluminum.HasMaterial())
+					{
+						texture = crosshairE;
+					}
+				}
+
+				else if (collect != null || craft != null || bio != null || converter != null || change != null )
 				{
 			    	texture = crosshairE;
 				}
@@ -103,16 +112,28 @@ public class RayCastInteractable : MonoBehaviour
 					if (pickup != null && Ferramentas.ferramenta == "mão")
 						pickup.Interact();
 
-					
+					if (aluminum != null)
+					{
+						if (aluminum.HasMaterial())
+						{
+							aluminum.ProduzirAluminum();
+						}
+					}
+
+					texture = crosshair;
+
 				}
 
 			}
+			
 		}
 
 		else
 		{
 			texture = crosshair;
 		}
+
+
 
 	}
 

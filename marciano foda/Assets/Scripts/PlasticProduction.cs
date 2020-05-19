@@ -58,10 +58,11 @@ public class PlasticProduction : MonoBehaviour
 
     public void Collect()
     {
-       // for (int i = plastic; i > 0; i--)
+        // for (int i = plastic; i > 0; i--)
         //{
-            
-            Inventory.instance.Add(item);
+        TextTime.feedbackString = "+ " + item.name;
+        TextTime.textAtivado = true;
+        Inventory.instance.Add(item);
             
            // plastic--;
        // }

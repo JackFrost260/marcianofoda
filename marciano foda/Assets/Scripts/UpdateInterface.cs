@@ -23,10 +23,10 @@ public class UpdateInterface : MonoBehaviour
 	#endregion
 
 	public TextMeshProUGUI currentEnergy;
-	public GameObject instru;
+
 	private void Start()
 	{
-		Cursor.lockState = CursorLockMode.Locked;
+		
 		Update2();
 	}
 
@@ -36,22 +36,7 @@ public class UpdateInterface : MonoBehaviour
 	}
 
 	public void Update()
-	{
-		if (Input.GetKeyDown(KeyCode.R))
-		{
-			instru.SetActive(!instru.activeSelf);
-			if (Time.timeScale == 1)
-			{
-				Time.timeScale = 0;
-			}
+	{ 
 
-			else
-			{
-				if (Time.timeScale == 0)
-				{
-					Time.timeScale = 1;
-				}
-			}
-		}
 	}
 }

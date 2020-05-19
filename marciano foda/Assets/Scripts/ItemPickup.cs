@@ -18,6 +18,10 @@ public class ItemPickup : Interactable
 	// Pick up the item
 	public void PickUp()
 	{
+		if(item.name == "Alumínio")
+		{
+			AluminumProduction.AluminioProduzido = false;
+		}
 		TextTime.feedbackString = "+ " + item.name;
 		TextTime.textAtivado = true;
 

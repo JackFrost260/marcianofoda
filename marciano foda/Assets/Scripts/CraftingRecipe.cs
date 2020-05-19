@@ -207,6 +207,29 @@ public class CraftingRecipe : ScriptableObject
 
         else return false;
     }
+
+    public bool CraftAluminum(ItemContainer itemContainer)
+    {
+        if (Generators.currentEnergy >= energyUsed)
+        {
+            if (CanCraft(itemContainer))
+            {
+                Generators.currentEnergy -= energyUsed;
+                UpdateInterface.instance.Update2();
+                RemoveMaterials(itemContainer);
+                TextTime.feedbackString = "- Bauxita";
+                TextTime.textAtivado = true;
+
+
+                return true;
+
+            }
+
+            else return false;
+        }
+
+        else return false;
+    }
 }
 
 
