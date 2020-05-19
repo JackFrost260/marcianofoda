@@ -9,10 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ootii", "ootii.csproj", "{6
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ootii.Demos", "ootii.Demos.csproj", "{AF0DA56A-E261-6DEB-51FD-ACE8F826CC62}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AwesomeTechnologies.VegetationStudioPro.Runtime", "AwesomeTechnologies.VegetationStudioPro.Runtime.csproj", "{7382222F-BE52-64C9-8800-F8A4B8068EC7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AwesomeTechnologies.TouchReactSystemPro.Runtime", "AwesomeTechnologies.TouchReactSystemPro.Runtime.csproj", "{C367D5EB-1908-E074-CDA5-47F0388AAFC8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp-Editor-firstpass", "Assembly-CSharp-Editor-firstpass.csproj", "{D5E16B13-F94D-3F09-D832-DBBF57BFE84D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp-Editor", "Assembly-CSharp-Editor.csproj", "{33D2D4CE-95A6-101E-73BD-849BEDB4C13D}"
@@ -20,10 +16,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ootii.Editor", "ootii.Editor.csproj", "{E8470C5A-FCD7-2A87-CA39-6C939030705C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ootii.Demos.Shared.Editor", "ootii.Demos.Shared.Editor.csproj", "{F6B24D7C-7A09-E20C-A78D-53A8D730ABB4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AwesomeTechnologies.VegetationStudioPro.Editor", "AwesomeTechnologies.VegetationStudioPro.Editor.csproj", "{483C6F4A-8B63-A76C-9C90-AC159376F6FF}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AwesomeTechnologies.TouchReactSystemPro.Editor", "AwesomeTechnologies.TouchReactSystemPro.Editor.csproj", "{954A0118-1C0A-7E02-7E8A-A82B998839DE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,14 +39,6 @@ Global
 		{AF0DA56A-E261-6DEB-51FD-ACE8F826CC62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF0DA56A-E261-6DEB-51FD-ACE8F826CC62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF0DA56A-E261-6DEB-51FD-ACE8F826CC62}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7382222F-BE52-64C9-8800-F8A4B8068EC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7382222F-BE52-64C9-8800-F8A4B8068EC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7382222F-BE52-64C9-8800-F8A4B8068EC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7382222F-BE52-64C9-8800-F8A4B8068EC7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C367D5EB-1908-E074-CDA5-47F0388AAFC8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C367D5EB-1908-E074-CDA5-47F0388AAFC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C367D5EB-1908-E074-CDA5-47F0388AAFC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C367D5EB-1908-E074-CDA5-47F0388AAFC8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D5E16B13-F94D-3F09-D832-DBBF57BFE84D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D5E16B13-F94D-3F09-D832-DBBF57BFE84D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5E16B13-F94D-3F09-D832-DBBF57BFE84D}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -71,14 +55,6 @@ Global
 		{F6B24D7C-7A09-E20C-A78D-53A8D730ABB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6B24D7C-7A09-E20C-A78D-53A8D730ABB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6B24D7C-7A09-E20C-A78D-53A8D730ABB4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{483C6F4A-8B63-A76C-9C90-AC159376F6FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{483C6F4A-8B63-A76C-9C90-AC159376F6FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{483C6F4A-8B63-A76C-9C90-AC159376F6FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{483C6F4A-8B63-A76C-9C90-AC159376F6FF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{954A0118-1C0A-7E02-7E8A-A82B998839DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{954A0118-1C0A-7E02-7E8A-A82B998839DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{954A0118-1C0A-7E02-7E8A-A82B998839DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{954A0118-1C0A-7E02-7E8A-A82B998839DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
