@@ -291,7 +291,6 @@ namespace GreatArcStudios
         public GameObject confirmationMenuPanel;
         public GameObject confirmationExitGamePanel;
         public GameObject quitOptionsPanel;
-        public GameObject weather;
         public GameObject dialogue;
 
         public void Start()
@@ -446,7 +445,6 @@ namespace GreatArcStudios
         /// </summary>
         public void returnToMenu()
         {
-            Destroy(weather);
             Destroy(dialogue);
             SceneManager.LoadScene("menu");
             uiEventSystem.SetSelectedGameObject(defualtSelectedMain);
